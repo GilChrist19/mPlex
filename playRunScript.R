@@ -23,10 +23,23 @@ for (x in 1:length(allObjects)){
 
 
 
+Mate(allObject = allObjects)
 
 
-allObjects[[1]]$grow_up()
 
 
+
+Eggs <- new.env(hash = TRUE, parent = parent.frame())
+
+assign(x = "1", value = Mosquito$new(genotype = "WW", age = 0, stage = "Egg"), pos = Eggs, inherits = F)
+
+#x has to be a string. Has to be unique. 
+#how to move that object out, use assign? then how to know what names to use/
+
+
+
+Larva <- new.env()
+Pupa <- new.env()
+Adults <- new.env()
 
 
