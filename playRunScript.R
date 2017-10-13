@@ -7,6 +7,15 @@ source("mFunc.R")
 source("mClass.R")
 
 
+#how to set up intelligently?
+Need to make possible genotypes.
+Need to make homing/n list stuff
+  Applies to all things and only needs calculated once
+Fill adults/ eggs, larva, pupa with probable numbers and 
+  appropriate age distribution, and genotypes.
+  Base this off of chosen adult size
+
+
 
 
 # create holder for all my play objects
@@ -41,5 +50,11 @@ assign(x = "1", value = Mosquito$new(genotype = "WW", age = 0, stage = "Egg"), p
 Larva <- new.env()
 Pupa <- new.env()
 Adults <- new.env()
+
+
+
+
+
+
 
 

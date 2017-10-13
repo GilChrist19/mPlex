@@ -46,6 +46,60 @@ Death <- function(mObject){
 ## These functions don't get stuff inside function
 ## Re-organize somehow. 
 
+
+functions
+  age(critter, age factor){
+    This function will age every critter, with a poisson distribution on their
+    current life stage to move them to the next.
+    Should also kill for too old?
+  }
+  
+  stage move(critter, next environment){
+    get life stage of critter, then move it to the next stage.
+    This will only be used on ELP stages, not on adult
+  }
+  
+  clean_names(environment){
+    get the list of objects in the environment, find whichi ones are  empty, then
+    shift things to fill them in.
+    
+    get list of names, move objects up in list maybe?
+      rm()/remove()
+      ls()/objects()
+
+    or, just get the names that are gone, then call new objects by those names? 
+      max(list of names) then add there for more names
+
+  }
+  
+  Density effects(factors, environment){
+    These are specific to each stage. apply to whole environment, randomly kill.
+    Maybe apply this before we clean environment names?
+  }
+  
+  Mate (adult?){
+    mating, done by female that isnt already mated. need list of all males currently
+    in environment. So maybe apply this to whole environment? need to only mate
+    females that arent already mated, so make part of adult move function?
+  }
+  
+  Offspring(){
+    This applies to all adult females. They are already mated, so have mate 
+    genotype.
+    
+    if (male)
+      break
+    if (female)
+      do offspring
+    
+    push offspring into egg environment. 
+    
+    
+  }
+  
+  
+
+
 Mate <- function(allObject){
   #currently remates all females :()
   
