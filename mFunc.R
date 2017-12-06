@@ -5,41 +5,19 @@
 
 ###############################################################################
 
-GrowUp <- function(mObject){
+GrowUp <- function(mObject, nextEnv){
   
   #increase age
   mObject$age <- mObject$age+1
   
-  #increarse life stage
-  cStage <- mObject$stage
+  #check to see if 
   
-  if (cStage == "Egg"){
-    if (mObject$age >= 7){
-      mObject$stage <- "Larva"
-    }
-  }
   
-  if (cStage == "Larva"){
-    if (mObject$age >= 14){
-      mObject$stage <- "Pupa"
-    }
-  }
   
-  if (cStage == "Pupa"){
-    if (mObject$age >= 21){
-      mObject$age <- "Adult"
-    }
-  }
   
 }
 
-Death <- function(mObject){
-  
-  if (mObject$stage == "Adult" && mObject$age >=42){
-    return(NULL)
-  }
-  
-}
+
 
 
 ###############################################################################
@@ -51,7 +29,7 @@ functions
   age(critter, age factor){
     This function will age every critter, with a poisson distribution on their
     current life stage to move them to the next.
-    Should also kill for too old?
+    Should also kill for too old.
   }
   
   stage move(critter, next environment){

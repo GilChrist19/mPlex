@@ -14,10 +14,9 @@ Mosquito <- R6::R6Class(classname = "mosquito",
                     public = list(
                       
                       # constructor
-                      initialize = function(genotype=NULL, age=NULL, stage=NULL){
+                      initialize = function(genotype=NULL, age=NULL, sex=NULL){
                         private$age = age
-                        private$stage = stage
-                        private$sex = NULL
+                        private$sex = sex
                         private$mate = NULL
                         private$genotype = genotype
                         
@@ -25,7 +24,6 @@ Mosquito <- R6::R6Class(classname = "mosquito",
                       
                       # setters
                       set_age = function(age=NULL){private$age = age},
-                      set_stage = function(stage=NULL){private$stage = stage},
                       set_sex = function(sex=NULL){private$sex = sex},
                       set_mate = function(mate=NULL){private$mate = mate},
                       set_genotype = function(genotype=NULL){private$genotype = genotype},
@@ -35,7 +33,6 @@ Mosquito <- R6::R6Class(classname = "mosquito",
                       
                       #getters
                       get_age = function(){return(private$age)},
-                      get_stage = function() {return(private$stage)},
                       get_sex = function(){return(private$sex)},
                       get_mate = function(){return(private$mate)},
                       get_genotype = function(){return(private$genotype)}
@@ -46,7 +43,6 @@ Mosquito <- R6::R6Class(classname = "mosquito",
                       
                       # fields
                       age = NULL,
-                      stage = NULL,
                       sex = NULL,
                       mate = NULL,
                       genotype = NULL
