@@ -322,19 +322,30 @@ DaisyOffspring <- function(fGen, mGen, reference){
 
 
 
+hold1 <- MakeReference(H = c(1.0), R = c(0), S = c(0)/3, d = c(0.1))
+hold2 <- MakeReference(H = c(1.0, 1.0), R = c(0,0), S = c(0,0)/3, d = c(0.1, 0.1))
+hold3 <- MakeReference(H = c(1.0, 1.0, 1.0), R = c(0,0,0), S = c(0,0,0)/3, d = c(0.1, 0.4, 0.1))
+hold4 <- MakeReference(H = c(1.0, 1.0, 1.0, 1.0), R = c(0,0,0,0), S = c(0,0,0,0)/3, d = c(0.1, 0.4, 0.1, 0.1))
 
-hold <- MakeReference(H = c(0.9, 0.5, 0.1), R = c(0,0,0), S = c(0,0,0)/3, d = c(.001, 0.001, 0.001))
+#H+d <= 1             
+# R+S <= 1
+
+
 
 
 fGen <- "WW"
 mGen <- "WW"
 reference <- hold
 
-test <- DaisyOffspring(fGen = "HHWWWW", mGen = "WWWWWW", reference = hold)
+test <- DaisyOffspring(fGen = "HWHW", mGen = "WWWW", reference = hold2)
 test
 
-
-microbenchmark::microbenchmark(DaisyOffspring(fGen = "HHWWWW", mGen = "WWWWWW", reference = hold), times = 10)
+#linear scaling! 
+microbenchmark::microbenchmark(DaisyOffspring(fGen = "HH", mGen = "WW", reference = hold1),
+                               DaisyOffspring(fGen = "HHWW", mGen = "WWWW", reference = hold2),
+                               DaisyOffspring(fGen = "HHWWWW", mGen = "WWWWWW", reference = hold3),
+                               DaisyOffspring(fGen = "HHWWWWHH", mGen = "WWWWWWWW", reference = hold4),
+                               times = 10)
 
 
 
