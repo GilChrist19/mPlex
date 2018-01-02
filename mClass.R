@@ -9,44 +9,42 @@ Mosquito <- R6::R6Class(classname = "mosquito",
                     cloneable = FALSE,
                     lock_class = FALSE,
                     lock_objects = FALSE,
-                    
+
                     # public memebers
                     public = list(
-                      
+
                       # constructor
-                      initialize = function(genotype=NULL, age=NULL, sex=NULL){
+                      initialize = function(genotype=NULL, age=NULL){
                         private$age = age
-                        private$sex = sex
                         private$mate = NULL
                         private$genotype = genotype
-                        
+
                       }, # end constructor
-                      
+
                       # setters
                       set_age = function(age=NULL){private$age = age},
-                      set_sex = function(sex=NULL){private$sex = sex},
                       set_mate = function(mate=NULL){private$mate = mate},
                       set_genotype = function(genotype=NULL){private$genotype = genotype},
-                      
-                      hitched = function() Mate(private),
-                      grow_up = function() GrowUp(private),
-                      
+
+                      age_one_day = function() {private$age = private$age + 1},
+                      print_noMate = function(){file.path(private$age, private$genotype,fsep = "\t")},
+                      print_yesMate = function(){file.path(private$age, private$genotype, private$mate, fsep = "\t")},
+                      #file.path can't handle nulls
+
                       #getters
-                      get_age = function(){return(private$age)},
-                      get_sex = function(){return(private$sex)},
-                      get_mate = function(){return(private$mate)},
-                      get_genotype = function(){return(private$genotype)}
+                      get_age = function(){private$age},
+                      get_mate = function(){private$mate},
+                      get_genotype = function(){private$genotype}
 
                     ), # end public
-                    
+
                     private = list(
-                      
+
                       # fields
                       age = NULL,
-                      sex = NULL,
                       mate = NULL,
                       genotype = NULL
 
                     ) # end private
-                    
+
 ) # end class definition
