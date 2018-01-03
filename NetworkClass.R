@@ -37,11 +37,35 @@ Network <- R6::R6Class(classname = "Network",
 
                     private$patches[[i]] = Patch$new(patchID = i,
                                                      simTime = private$simTime,
-                                                     eggs_t0 = networkParameters$Leq[i],
-                                                     larva_t0 = networkParameters$Leq[i],
-                                                     pupa_t0 = networkParameters$Leq[i],
-                                                     adult_male_t0 = networkParameters$AdPopEQ[i]/2L,
-                                                     adult_female_t0 = networkParameters$AdPopEQ[i]/2L,
+                                                     eggs_t0 = CreateMosquitoes_Distribution_Genotype(numMos = networkParameters$Leq[i], 
+                                                                                                      minAge = 0L, maxAge = networkParameters$timeAq["E"], 
+                                                                                                      ageDist =  rep(x = 1, times = length(0:networkParameters$timeAq["E"]))/length(0:networkParameters$timeAq["E"]),
+                                                                                                      aTypes = networkParameters$alleloTypes[[i]]),
+                                                     
+                                                     larva_t0 = CreateMosquitoes_Distribution_Genotype(numMos = networkParameters$Leq[i],
+                                                                                                       minAge = networkParameters$timeAq["E"]+1, 
+                                                                                                       maxAge = networkParameters$timeAq["L"], 
+                                                                                                       ageDist = rep(x = 1, times = length((networkParameters$timeAq["E"]+1):networkParameters$timeAq["L"]))/length((networkParameters$timeAq["E"]+1):networkParameters$timeAq["L"]),
+                                                                                                       aTypes = networkParameters$alleloTypes[[i]]),
+                                                                                                      
+                                                     pupa_t0 = CreateMosquitoes_Distribution_Genotype(numMos = networkParameters$Leq[i], 
+                                                                                                      minAge = networkParameters$timeAq["L"]+1, 
+                                                                                                      maxAge = networkParameters$timeAq["P"], 
+                                                                                                      ageDist = rep(x = 1, times = length((networkParameters$timeAq["L"]+1):networkParameters$timeAq["P"]))/length((networkParameters$timeAq["L"]+1):networkParameters$timeAq["P"]),
+                                                                                                      aTypes = networkParameters$alleloTypes[[i]]),
+                                                     
+                                                     adult_male_t0 = CreateMosquitoes_Distribution_Genotype(numMos = networkParameters$AdPopEQ[i]/2L,
+                                                                                                            minAge = networkParameters$timeAq["P"]+1, 
+                                                                                                            maxAge = networkParameters$tAdult, 
+                                                                                                            ageDist = rep(x = 1, times = length((networkParameters$timeAq["P"]+1):networkParameters$tAdult))/length((networkParameters$timeAq["P"]+1):networkParameters$tAdult),
+                                                                                                            aTypes = networkParameters$alleloTypes[[i]]),
+                                                     
+                                                     adult_female_t0 = CreateMosquitoes_Distribution_Genotype(numMos = networkParameters$AdPopEQ[i]/2L,
+                                                                                                              minAge = networkParameters$timeAq["P"]+1, 
+                                                                                                              maxAge = networkParameters$tAdult, 
+                                                                                                              ageDist = rep(x = 1, times = length((networkParameters$timeAq["P"]+1):networkParameters$tAdult))/length((networkParameters$timeAq["P"]+1):networkParameters$tAdult),
+                                                                                                              aTypes = networkParameters$alleloTypes[[i]]),
+                                                     
                                                      maleReleases = patchReleases[[i]]$maleReleases,
                                                      femaleReleases = patchReleases[[i]]$femaleReleases,
                                                      larvaeReleases = patchReleases[[i]]$larvaeReleases
@@ -277,20 +301,6 @@ Network$set(which = "public",name = "oneDay",
 # These are from network-migration.R
 #######################################
 
-
-
-
-
-
-
-
-
-
-
-
-##htese need done##
-
-
 #' Inter-Patch Migration
 #'
 #' Simulate migration between patches.
@@ -306,37 +316,31 @@ oneDay_Migration_Network <- function(){
   }
 
   ######################################
-  # male migration
+  # migration in
   ######################################
 
-  # grab moving males
+  # grab moving mosquitoes
   maleMoveOut = vector(mode="list",length=private$nPatch)
+  femaleMoveOut = vector(mode="list",length=private$nPatch)
+  
   for(ix in 1:private$nPatch){
+    
     maleMoveOut[[ix]] = private$patches[[ix]]$get_maleMigration()
+    femaleMoveOut[[ix]] = private$patches[[ix]]$get_femaleMigration()
+    
   }
 
   # sum over patches
   maleMoveIn = vector(mode="list",length=private$nPatch)
-  for(ix in 1:private$nPatch){
-    maleMoveIn[[ix]] = rowSums(vapply(X = maleMoveOut,FUN = function(x,ix){x[,ix]},FUN.VALUE = numeric(self$get_genotypesN()),ix=ix))
-  }
-
-  ######################################
-  # female migration
-  ######################################
-
-  # same thing as above for females
-  femaleMoveOut = vector(mode="list",length=private$nPatch)
-  for(ix in 1:private$nPatch){
-    femaleMoveOut[[ix]] = private$patches[[ix]]$get_femaleMigration()
-  }
-
-  # sum over patches
   femaleMoveIn = vector(mode="list",length=private$nPatch)
-  for(ix in 1:private$nPatch){
-    femaleMoveIn[[ix]] = Reduce(f = "+",x = lapply(X = femaleMoveOut,FUN = function(x,ix){
-      x[,,ix]
-    },ix=ix))
+  
+  for(first in 1:private$nPatch){
+    for(second in 1:private$nPatch){
+      
+      maleMoveIn[[first]] = c(maleMoveIn[[first]], maleMoveOut[[first]][[second]])
+      femaleMoveIn[[first]] = c(femaleMoveIn[[first]], femaleMoveOut[[first]][[second]])
+      
+    }
   }
 
   ######################################
@@ -344,7 +348,8 @@ oneDay_Migration_Network <- function(){
   ######################################
 
   for(ix in 1:private$nPatch){
-    private$patches[[ix]]$oneDay_migrationIn(maleIn = maleMoveIn[[ix]], femaleIn = femaleMoveIn[[ix]])
+    private$patches[[ix]]$oneDay_migrationIn(maleIn = maleMoveIn[[ix]], 
+                                             femaleIn = femaleMoveIn[[ix]])
   }
 
 }

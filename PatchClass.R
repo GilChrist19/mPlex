@@ -94,8 +94,13 @@ Patch <- R6::R6Class(classname = "Patch",
                 unmated_female = NULL,
 
                 # migration
-                maleMigration = NULL, # nGenotypes X nPatch matrix
-                femaleMigration = NULL, # nGenotypes X nGenotypes X nPatch array
+                maleMigration = NULL,
+                femaleMigration = NULL,
+                
+                # Mosquito Releases
+                maleReleases = NULL,
+                femaleReleases = NULL,
+                larvaeReleases = NULL,
 
                 # pointers
                 NetworkPointer = NULL
@@ -223,6 +228,9 @@ Patch$set(which = "public",name = "oneDay_maleReleases",
 oneDay_femaleReleases_Patch <- function(){
   # female releases
 
+  #clear unmated females. This will run every time.
+  private$unmated_female = NULL
+  
   if( (length(private$femaleReleases) > 0) && (private$femaleReleases[[1]]$tRelease <= private$NetworkPointer$get_tNow()) ){
     private$unmated_female = c(private$unmated_female, private$femaleReleases[[1]]$nuF)
     private$femaleReleases[[1]] = NULL
@@ -234,6 +242,23 @@ Patch$set(which = "public",name = "oneDay_femaleReleases",
           value = oneDay_femaleReleases_Patch, overwrite = TRUE
 )
 
+#' Release larvae in a Patch
+#'
+#' Based on this patch's release schedule, handle daily releases.
+#'
+oneDay_larvaeReleases_Patch <- function(){
+  # female releases
+
+  if( (length(private$larvaeReleases) > 0) && (private$larvaeReleases[[1]]$tRelease <= private$NetworkPointer$get_tNow()) ){
+    private$larva = c(private$larva, private$larvaeReleases[[1]]$larvae)
+    private$larvaeReleases[[1]] = NULL
+  }
+
+}
+
+Patch$set(which = "public",name = "oneDay_larvaeReleases",
+          value = oneDay_larvaeReleases_Patch, overwrite = TRUE
+)
 #######################################
 # These are from patch-migration.R
 #######################################
