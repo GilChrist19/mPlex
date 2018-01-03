@@ -16,7 +16,7 @@ Mosquito <- R6::R6Class(classname = "mosquito",
                       # constructor
                       initialize = function(genotype=NULL, age=NULL){
                         private$age = age
-                        private$mate = "NA"
+                        private$mate = NULL
                         private$genotype = genotype
 
                       }, # end constructor
@@ -27,7 +27,8 @@ Mosquito <- R6::R6Class(classname = "mosquito",
                       set_genotype = function(genotype=NULL){private$genotype = genotype},
 
                       age_one_day = function() {private$age = private$age + 1},
-                      print_info = function(){file.path(private$age, private$genotype, private$mate, fsep = "\t")},
+                      print_female = function(){file.path(private$age, private$genotype, private$mate, fsep = ",")},
+                      print_male = function(){file.path(private$age, private$genotype, fsep = ",")},
                       #file.path can't handle nulls
 
                       #getters

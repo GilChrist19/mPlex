@@ -1,0 +1,361 @@
+#Network Class
+#Jared Bennett
+
+Network <- R6::R6Class(classname = "Network",
+            portable = TRUE,
+            cloneable = FALSE,
+            lock_class = FALSE,
+            lock_objects = FALSE,
+
+            # public memebers
+            public = list(
+
+                # Constructor
+                initialize = function(networkParameters, patchReleases, migrationMale, migrationFemale, directory){
+
+                  if(length(patchReleases) != networkParameters$nPatch){
+                    stop("length of patchReleases must equal number of patches in networkParameters!")
+                  }
+
+                  private$parameters = networkParameters
+                  private$nPatch = networkParameters$nPatch
+                  private$patches = vector(mode="list",length=private$nPatch)
+                  private$simTime = networkParameters$simTime
+                  private$directory = directory
+                  private$runID = networkParameters$runID
+
+                  private$migrationMale = migrationMale
+                  private$migrationFemale = migrationFemale
+
+                  private$patchReleases = patchReleases
+
+                  # initialize patches
+                  for(i in 1:private$nPatch){
+
+                    # initialize patch i
+                    cat("initializing patch: ",i," of ",private$nPatch,"\n")
+
+                    private$patches[[i]] = Patch$new(patchID = i,
+                                                     simTime = private$simTime,
+                                                     eggs_t0 = networkParameters$Leq[i],
+                                                     larva_t0 = networkParameters$Leq[i],
+                                                     pupa_t0 = networkParameters$Leq[i],
+                                                     adult_male_t0 = networkParameters$AdPopEQ[i]/2L,
+                                                     adult_female_t0 = networkParameters$AdPopEQ[i]/2L,
+                                                     maleReleases = patchReleases[[i]]$maleReleases,
+                                                     femaleReleases = patchReleases[[i]]$femaleReleases,
+                                                     larvaeReleases = patchReleases[[i]]$larvaeReleases
+                                                   )
+
+                    # set pointers
+                    private$patches[[i]]$set_NetworkPointer(self)
+                  }
+
+                  # Output
+                  if(!dir.exists(directory)){
+                    dir.create(directory)
+                  } else {
+                    # if running in serial remove files, else do nothing
+                    if(!networkParameters$parallel){
+                      dirFiles = list.files(path = directory)
+                      if(length(dirFiles)>0){
+                        selection = utils::menu(c(paste0("delete all (",length(dirFiles),") files found in ",directory), "do not delete any files (files may be overwritten)"))
+                        if(selection==1){
+                          for(i in dirFiles){
+                            cat("removing file: ",file.path(directory, i),"\n", sep = "")
+                            file.remove(file.path(directory, i))
+                          }
+                        }
+
+                      }
+                    }
+
+                  }
+
+                }, # end constructor
+                
+                #getters and setters
+                get_moveVar = function() {private$parameters$moveVar},
+                get_timeAq = function(stage = NULL){
+                                if(is.null(stage)){sum(private$parameters$timeAq)
+                                } else {private$parameters$timeAq[[stage]]}
+                              },
+                get_thetaAq = function(stage){private$parameters$thetaAq[[stage]]},
+                get_beta = function(){private$parameters$beta},
+                get_muAd = function(){private$parameters$muAd},
+                get_rm = function(){private$parameters$rm},
+                get_AdPopEQ = function(ix){private$parameters$AdPopEQ[ix]},
+                get_g = function(){private$parameters$g},
+                get_Rm = function(){private$parameters$Rm},
+                get_muAq = function(){private$parameters$muAq},
+                get_alpha = function(ix){private$parameters$alpha[ix]},
+                get_Leq = function(ix){private$parameters$Leq[ix]},
+                get_patch = function(patch = NULl){
+                              if(is.null(patch)){private$patches
+                              } else {private$patches[[patch]]}
+                            },
+                get_nPatch = function(){private$nPatch},
+                get_directory = function(){private$directory},
+                get_simTime = function(){private$simTime},
+                get_conADM = function(){private$conADM},
+                get_conAF1 = function(){private$conAF1},
+                get_tNow  = function(){private$tNow},
+                get_patchReleases = function(ix, sex = "M"){
+                                      switch(sex,
+                                        M = {private$patchReleases[[ix]]$maleReleases},
+                                        F = {private$patchReleases[[ix]]$femaleReleases}
+                                      )
+                                    },
+                get_migrationMale = function(patch = NULL){
+                                      if(is.null(patch)){private$migrationMale
+                                        } else {private$migrationMale[[patch]]}
+                                    },
+                get_migrationFemale = function(patch = NULL){
+                                        if(is.null(patch)){private$migrationFemale
+                                          } else {private$migrationFemale[[patch]]}
+                                      },
+                close_connections = function(){
+                                      close(private$conADM)
+                                      close(private$conAF1)
+                                    }
+              ),
+
+            # private members
+            private = list(
+
+                parameters = NULL,
+                patches = NULL, # list of patches
+                nPatch = NULL, # number of patches
+                simTime = NULL, # max time of sim
+                tNow = 2L, # time starts at 2 because time 1 is the initial condition
+                runID = numeric(1),
+
+                # output
+                directory = NULL, # directory to store all patch output
+                conADM = NULL,
+                conAF1 = NULL,
+
+                # inter-patch migration
+                migrationMale = NULL,
+                migrationFemale = NULL,
+
+                # release schedule
+                patchReleases = NULL
+
+              )
+)
+
+###############################################################################
+# Functions
+###############################################################################
+
+#######################################
+# These are from network-Simulation.R
+#######################################
+
+#' Reset Network
+#'
+#' Reset a \code{\link{Network}} between runs, useful for Monte Carlo simulation. This calls \code{\link{reset_Patch}} on each patch
+#' and resets \code{tNow = 2} and increments the \code{runID}.
+#'
+reset_Network <- function(){
+
+  cat("reset network\n",sep="")
+
+  for(i in 1:private$nPatch){
+    private$patches[[i]]$reset()
+  }
+
+  private$tNow = 2L
+  private$runID = private$runID + 1L
+
+}
+
+Network$set(which = "public",name = "reset",
+          value = reset_Network, overwrite = TRUE
+)
+
+#' Run Simulation
+#'
+#' Run a single simulation on this network.
+#'
+#' @param conADM an optional \code{\link[base]{connection}} to write male population dynamics to
+#' @param conAF1 an optional \code{\link[base]{connection}} to write female population dynamics to
+#'
+oneRun_Network <- function(conADM = NULL, conAF1 = NULL){
+
+  # open connections & write headers
+  # parallel
+if(private$parameters$parallel){
+
+    pid = Sys.getpid()
+    if(is.null(conADM)){
+      private$conADM = file(description = paste0(private$directory, .Platform$file.sep, "ADM_pid_",pid,"_Run",private$runID,".csv"),open = "wt")
+    } else {
+      private$conADM = file(description = file.path(private$directory, conADM),open = "wt")
+    }
+
+    if(is.null(conAF1)){
+      private$conAF1 = file(description = paste0(private$directory, .Platform$file.sep, "AF1_pid_",pid,"_Run",private$runID,".csv"),open = "wt")
+    } else {
+      private$conAF1 = file(description = file.path(private$directory, conAF1),open = "wt")
+    }
+
+  # serial
+  } else {
+    private$conADM = file(description = paste0(private$directory, .Platform$file.sep, "ADM_Run",private$runID,".csv"),open = "wt")
+    private$conAF1 = file(description = paste0(private$directory, .Platform$file.sep, "AF1_Run",private$runID,".csv"),open = "wt")
+
+  }
+
+  # males
+  writeLines(text = file.path("Time", "Patch", "Age", "Genotype", fsep = ","), 
+             con = private$conADM, sep = "\n")
+  
+  # females
+  writeLines(text = file.path("Time", "Patch", "Age", "Genotype", "Mate", fsep = ","),
+             con = private$conAF1, sep = "\n")
+  
+  cat("begin run ",private$runID,"\n",sep="")
+
+  # setup output
+  for(i in 1:private$nPatch){
+    private$patches[[i]]$oneDay_initOutput()
+  }
+
+  # initialize progress bar
+  pb = txtProgressBar(min = 0,max = private$simTime,style = 3)
+
+  # run simulation
+  while(private$simTime >= private$tNow){
+    
+    self$oneDay()
+
+    private$tNow = private$tNow + 1L
+    setTxtProgressBar(pb,value = private$tNow)
+  }
+
+  #close connections
+  close(private$conADM)
+  close(private$conAF1)
+
+  cat("run ",private$runID," over\n",sep="")
+}
+
+Network$set(which = "public",name = "oneRun",
+          value = oneRun_Network, overwrite = TRUE
+)
+
+#' Run a Single Day on a Network
+#'
+#' Runs a single day of simulation on a \code{\link{Network}} object, handling population dynamics, migration, population update, and output.
+#'
+oneDay_Network <- function(){
+
+  # intra-patch population dynamics
+  for(i in 1:private$nPatch){
+    private$patches[[i]]$oneDay_PopDynamics()
+  }
+
+  # inter-patch migration
+  self$oneDay_Migration()
+  
+  # write output
+  for(i in 1:private$nPatch){
+    private$patches[[i]]$oneDay_writeOutput()
+  }
+
+}
+
+Network$set(which = "public",name = "oneDay",
+          value = oneDay_Network, overwrite = TRUE
+)
+
+
+
+#######################################
+# These are from network-migration.R
+#######################################
+
+
+
+
+
+
+
+
+
+
+
+
+##htese need done##
+
+
+#' Inter-Patch Migration
+#'
+#' Simulate migration between patches.
+#'
+oneDay_Migration_Network <- function(){
+
+  ######################################
+  # migration out
+  ######################################
+
+  for(i in 1:private$nPatch){
+    private$patches[[i]]$oneDay_migrationOut()
+  }
+
+  ######################################
+  # male migration
+  ######################################
+
+  # grab moving males
+  maleMoveOut = vector(mode="list",length=private$nPatch)
+  for(ix in 1:private$nPatch){
+    maleMoveOut[[ix]] = private$patches[[ix]]$get_maleMigration()
+  }
+
+  # sum over patches
+  maleMoveIn = vector(mode="list",length=private$nPatch)
+  for(ix in 1:private$nPatch){
+    maleMoveIn[[ix]] = rowSums(vapply(X = maleMoveOut,FUN = function(x,ix){x[,ix]},FUN.VALUE = numeric(self$get_genotypesN()),ix=ix))
+  }
+
+  ######################################
+  # female migration
+  ######################################
+
+  # same thing as above for females
+  femaleMoveOut = vector(mode="list",length=private$nPatch)
+  for(ix in 1:private$nPatch){
+    femaleMoveOut[[ix]] = private$patches[[ix]]$get_femaleMigration()
+  }
+
+  # sum over patches
+  femaleMoveIn = vector(mode="list",length=private$nPatch)
+  for(ix in 1:private$nPatch){
+    femaleMoveIn[[ix]] = Reduce(f = "+",x = lapply(X = femaleMoveOut,FUN = function(x,ix){
+      x[,,ix]
+    },ix=ix))
+  }
+
+  ######################################
+  # migration in
+  ######################################
+
+  for(ix in 1:private$nPatch){
+    private$patches[[ix]]$oneDay_migrationIn(maleIn = maleMoveIn[[ix]], femaleIn = femaleMoveIn[[ix]])
+  }
+
+}
+
+Network$set(which = "public",name = "oneDay_Migration",
+            value = oneDay_Migration_Network, overwrite = TRUE
+)
+
+
+
+
+
+
+
