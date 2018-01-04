@@ -46,7 +46,7 @@ Network.Parameters <- function(
   tEgg = 1L,
   tLarva = 14L,
   tPupa = 1L,
-  tAdult = 21L
+  tAdult = 21L,
   beta = 32,
   muAd = 0.123,
   popGrowth = 1.096,
