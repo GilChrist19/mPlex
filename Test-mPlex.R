@@ -62,7 +62,7 @@ patchReleases[[1]]$larvaeReleases <- Release_basicRepeatedReleases(releaseStart 
 ###############################################################################
 
     # calculate network parameters, auxiliary function
-netPar = Network.Parameters(nPatch = N,simTime = 10,
+netPar = Network.Parameters(nPatch = N,simTime = 25,
                             alleloTypes = AllAlleles, tAdult = 21,
                             AdPopEQ = patchPops)
 

@@ -40,7 +40,11 @@ CreateMosquitoes_Distribution_Genotype <- function(numMos, minAge, maxAge, ageDi
 }
 
 
-
+for(critter in test){
+  
+  critter <- NULL
+  
+}
 
 
 
@@ -61,5 +65,15 @@ for(i in 1:numNodes){
 
 
 
+eggsHist <- rlnorm(n = 10000, meanlog = log(x = 1), sdlog = log(x = 2))
+larvaHist <- rlnorm(n = 1000000, meanlog = log(x = 1+14+1), sdlog = log(x = 1.3))
+larvaHist <- rpois(n = 10000, lambda = 15)
+larvaHist <- rgamma(n = 10000, shape = 15, scale = 1)
 
+
+hold <- hist(x = larvaHist, breaks = 50, plot = FALSE)
+
+hold$counts <- hold$counts/sum(hold$counts)
+
+plot(hold, xlim = c(0, max(larvaHist)))
 
