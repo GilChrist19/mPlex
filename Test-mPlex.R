@@ -38,22 +38,24 @@ AllAlleles <- replicate(n = N, expr = alleloTypes, simplify = FALSE)
 
   # create Release List
 patchReleases = replicate(n = N,
-                          expr = list(maleReleases = NULL,femaleReleases = NULL),
+                          expr = list(maleReleases = NULL,
+                                      femaleReleases = NULL,
+                                      larvaeReleases = NULL),
                           simplify = FALSE)
 
   # Create list of mosquitoes for a release
-releaseList <- CreateMosquitoes_Defined_Genotype(genMos = c("WWWWWW", "WHWWWW", "HHWWWW"),
-                                                 numMos = c(10,10,10),
+releaseList <- CreateMosquitoes_Defined_Genotype(genMos = c("HHHHHH", "WHWWWW", "HHWWWW"),
+                                                 numMos = c(100,100,100),
                                                  minAge = 16,
                                                  maxAge = 36,
                                                  ageDist = rep(x = 1, times = 36-16+1)/21)
 
   # Create release object to pass to patches
-patchReleases[[1]]$maleReleases <- Release_basicRepeatedReleases(releaseStart = 10,
-                                                                 releaseEnd = 100,
-                                                                 releaseInterval = 10,
+patchReleases[[1]]$larvaeReleases <- Release_basicRepeatedReleases(releaseStart = 5,
+                                                                 releaseEnd = 10,
+                                                                 releaseInterval = 5,
                                                                  releaseVector = releaseList,
-                                                                 sex = "M")
+                                                                 sex = "L")
 
 ###############################################################################
 # Calculate parameters and initialize network

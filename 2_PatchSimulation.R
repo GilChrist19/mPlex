@@ -33,14 +33,31 @@ oneDay_PopDynamics_Patch <- function(){
   
   
   
+  
+  
+  
+  
   ################
   # MATE
   ################
   self$oneDay_Mate()
-
-
-
-
+  
+  ################
+  # LAY EGGS
+  ################
+  
+  
+  
+  
+  
+  
+  
+  ################
+  # Releases
+  ################
+  self$oneDay_larvaeReleases()
+  self$oneDay_maleReleases()
+  self$oneDay_femaleReleases()
 }
 Patch$set(which = "public",name = "oneDay_PopDynamics",
           value = oneDay_PopDynamics_Patch, overwrite = TRUE
@@ -159,7 +176,7 @@ oneDay_Mate_Patch <- function(){
   
   if(numUnweds != 0){
     
-    mates <- vector(mode = "list", length = numUnweds)
+    mates <- vector(mode = "list", length = length(private$adult_male))
     
     #get males for mates, randomly sampled from population
     for(i in 1:length(private$adult_male)){

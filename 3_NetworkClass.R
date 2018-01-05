@@ -140,7 +140,8 @@ Network <- R6::R6Class(classname = "Network",
                 get_patchReleases = function(ix, sex = "M"){
                                       switch(sex,
                                         M = {private$patchReleases[[ix]]$maleReleases},
-                                        F = {private$patchReleases[[ix]]$femaleReleases}
+                                        F = {private$patchReleases[[ix]]$femaleReleases},
+                                        L = {private$patchReleases[[ix]]$larvaeReleases}
                                       )
                                     },
                 get_migrationMale = function(patch = NULL){

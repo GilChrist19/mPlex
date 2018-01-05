@@ -218,7 +218,6 @@ oneDay_maleReleases_Patch <- function(){
   }
 
 }
-
 Patch$set(which = "public",name = "oneDay_maleReleases",
           value = oneDay_maleReleases_Patch, overwrite = TRUE
 )
@@ -239,7 +238,6 @@ oneDay_femaleReleases_Patch <- function(){
   }
 
 }
-
 Patch$set(which = "public",name = "oneDay_femaleReleases",
           value = oneDay_femaleReleases_Patch, overwrite = TRUE
 )
@@ -257,7 +255,6 @@ oneDay_larvaeReleases_Patch <- function(){
   }
 
 }
-
 Patch$set(which = "public",name = "oneDay_larvaeReleases",
           value = oneDay_larvaeReleases_Patch, overwrite = TRUE
 )

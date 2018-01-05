@@ -46,7 +46,7 @@ CreateMosquitoes_Distribution_Genotype <- function(numMos, minAge, maxAge, ageDi
 
 
 
-test <- CreateMosquitoes_Defined_Genotype(numMos = c(25000,25000,25000), genMos = c("AABBCC", "DDDDDD", "DSDF"),minAge = 10, maxAge = 11,ageDist = c(1,0))
+test <- CreateMosquitoes_Defined_Genotype(numMos = c(2,2,2), genMos = c("AABBCC", "DDDDDD", "DSDF"),minAge = 10, maxAge = 11,ageDist = c(1,0))
 listedTest <- replicate(n = 10, expr = test, simplify = FALSE)
 listedTest2 <- replicate(n = 10, expr = listedTest, simplify = FALSE)
 
