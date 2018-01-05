@@ -1,5 +1,11 @@
-#this has auxiliary functions
-
+###############################################################################
+#                                    ____  _           
+#                          _ __ ___ |  _ \| | _____  __
+#                         | '_ ` _ \| |_) | |/ _ \ \/ /
+#                         | | | | | |  __/| |  __/>  < 
+#                         |_| |_| |_|_|   |_|\___/_/\_\                           
+#                                
+###############################################################################
 ###############################################################################
 # Release Functions
 ###############################################################################
@@ -74,7 +80,6 @@ Release_basicRepeatedReleases <- function(releaseStart, releaseEnd, releaseInter
 ###############################################################################
 # Network Initialization Functions
 ###############################################################################
-
 CreateMosquitoes_Distribution_Genotype <- function(numMos, minAge, maxAge, ageDist, aTypes){
   
   population <- vector(mode = "list", length = numMos)
@@ -101,11 +106,61 @@ CreateMosquitoes_Distribution_Genotype <- function(numMos, minAge, maxAge, ageDi
   return(population)
 }
 
-###############################################################################
-# 
-###############################################################################
+CreateMosquitoes_Eggs <- function(genMos, numMos){
+  #genMos is a list of genotypes to relaese
+  #numMos is a vector of the number of mosquitoes you want to make, corresponding
+  #  to the genotypes of genMos
 
+  
+  #return list
+  population <- vector(mode = "list", length = sum(numMos))
 
+  #external counter
+  count = 1L
+  
+  #loop over each genotype
+  for(gen in 1:length(genMos)){
+    #loop over number of mosquitoes of that genotype
+    for(num in 1:numMos[gen]){
+      #create new mosquito
+      population[[count]] <- Mosquito$new(genotype = genMos[gen], age = 0)
+      
+      count = count + 1L
+    }
+  }
+  
+  #list of new mosquitoes
+  return(population)
+
+}
+
+###############################################################################
+# Post-processing of Output
+###############################################################################
+#' Split Output by Patch
+#'
+#' Split output into multiple files by patches.
+#'
+#' @param directory directory where output was written to; must not end in path seperator
+#'
+#' @export
+splitOutput <- function(directory){
+  dirFiles = list.files(path = directory)
+  
+  # for each file read it in
+  for(file in dirFiles){
+    cat("processing ",file,"\n",sep="")
+    fileIn = read.csv(file.path(directory, file))
+    # for each file, get all the patches and split into multiple files
+    for(patch in unique(fileIn$Patch)){
+      patchIn = fileIn[fileIn$Patch==patch,]
+      patchName = gsub(pattern = ".csv",replacement = paste0("_Patch",patch,".csv"),x = file)
+      write.csv(x = patchIn,file = file.path(directory, patchName),row.names = FALSE)
+    }
+    cat("removing ",file,"\n",sep="")
+    file.remove(file.path(directory, file))
+  }
+}
 
 
 

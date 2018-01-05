@@ -1,8 +1,21 @@
-
-
 ###############################################################################
+#                                    ____  _           
+#                          _ __ ___ |  _ \| | _____  __
+#                         | '_ ` _ \| |_) | |/ _ \ \/ /
+#                         | | | | | |  __/| |  __/>  < 
+#                         |_| |_| |_|_|   |_|\___/_/\_\                           
+#                                
+###############################################################################
+#    ____       _       _        ____ _               
+#   |  _ \ __ _| |_ ___| |__    / ___| | __ _ ___ ___ 
+#   | |_) / _` | __/ __| '_ \  | |   | |/ _` / __/ __|
+#   |  __/ (_| | || (__| | | | | |___| | (_| \__ \__ \
+#   |_|   \__,_|\__\___|_| |_|  \____|_|\__,_|___/___/
+#                                                     
+###############################################################################
+#######################################
 # Daily Simulation
-###############################################################################
+#######################################
 
 #' Daily Population Dynamics for a Patch
 #'
@@ -39,15 +52,30 @@ oneDay_PopDynamics_Patch <- function(){
   ################
   self$oneDay_Mate()
   
+  
+  
+  
+  
+  
   cat("\nThere are this many unmated females:", length(private$unmated_female),"\n")
+  cat("\nThere are this many eggs:", length(private$eggs), "\n")
+  cat("\nThere are this many larva:", length(private$larva), "\n")
+  cat("\nThere are this many pupa:", length(private$pupa), "\n")
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
   ################
   # LAY EGGS
   ################
   
-  cat("\nThere are this many eggs:", length(private$eggs), "\n")
-  cat("\nThere are this many larva:", length(private$larva), "\n")
-  cat("\nThere are this many pupa:", length(private$pupa), "\n")
+
   
   
   
@@ -65,8 +93,11 @@ Patch$set(which = "public",name = "oneDay_PopDynamics",
 )
 
 ###############################################################################
-# Age Function
+# Functions
 ###############################################################################
+#######################################
+# Age Function
+#######################################
 oneDay_Age_Patch <- function(Population = NULL){
   
   for(critter in Population){
@@ -78,9 +109,9 @@ Patch$set(which = "public",name = "oneDay_Age",
           value = oneDay_Age_Patch, overwrite = TRUE
 )
 
-###############################################################################
+#######################################
 # Death Functions
-###############################################################################
+#######################################
 oneDay_EggDeath_Patch <- function(){
   
   #calculate other dependent factors
@@ -158,9 +189,9 @@ Patch$set(which = "public",name = "oneDay_AdultDeath",
           value = oneDay_AdultDeath_Patch, overwrite = TRUE
 )
 
-###############################################################################
+#######################################
 # Mature Functions
-###############################################################################
+#######################################
 oneDay_EggMature_Patch <- function(){
   
   num <- length(private$eggs)
@@ -283,9 +314,9 @@ Patch$set(which = "public",name = "oneDay_PupaMaturation",
           value = oneDay_PupaMature_Patch, overwrite = TRUE
 )
 
-###############################################################################
+#######################################
 # Mate Function
-###############################################################################
+#######################################
 
 oneDay_Mate_Patch <- function(){
 
@@ -317,4 +348,72 @@ oneDay_Mate_Patch <- function(){
 Patch$set(which = "public",name = "oneDay_Mate",
           value = oneDay_Mate_Patch, overwrite = TRUE
 )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#######################################
+# Lay Eggs Function
+#######################################
+oneDay_Reproduction_Patch <- function(){
+  
+  for(critter in private$adult_female){
+    
+    #pretend that this gives a list of 2 lists: genotype, fraction
+    offspring <- reproductionfunction(female = critter$get_genotype, 
+                                      male = critter$get_mate, 
+                                      reference = private$NetworkPointer$get_reference)
+    
+    
+    #This generates an egg distribution
+    eggNumber <- rmultinom(n = 1,
+                           size = rpois(n = 1, lambda = private$NetworkPointer$get_beta()),
+                           prob = offspring$Probabilities)
+    
+    #Generate new mosquitoes, put them in eggs class
+    private$eggs <- c(private$eggs,
+                      CreateMosquitoes_Eggs(genMos = offspring$Alleles, 
+                                            numMos = eggNumber)
+                      )
+    
+
+  }
+  
+}
+
+
+
 
