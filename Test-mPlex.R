@@ -4,10 +4,12 @@
 # Clean environment and source files
 ###############################################################################
 rm(list=ls());gc()
-source("~/Desktop/mPlex/MosquitoClass.R")
-source("~/Desktop/mPlex/PatchClass.R")
-source("~/Desktop/mPlex/NetworkClass.R")
+source("~/Desktop/mPlex/1_MosquitoClass.R")
+source("~/Desktop/mPlex/2_PatchClass.R")
+source("~/Desktop/mPlex/2_PatchSimulation.R")
+source("~/Desktop/mPlex/3_NetworkClass.R")
 source("~/Desktop/mPlex/Network_Parameters_Equilibrium.R")
+source("~/Desktop/mPlex/Auxiliary_Functions.R")
 
 ###############################################################################
 # Setup Parameters for Network
@@ -58,7 +60,7 @@ patchReleases[[1]]$maleReleases <- Release_basicRepeatedReleases(releaseStart = 
 ###############################################################################
 
     # calculate network parameters, auxiliary function
-netPar = Network.Parameters(nPatch = N,simTime = 1000,
+netPar = Network.Parameters(nPatch = N,simTime = 10,
                             alleloTypes = AllAlleles, tAdult = 21,
                             AdPopEQ = patchPops)
 
@@ -72,6 +74,7 @@ network = Network$new(networkParameters = netPar,
 
 
     #reset network
+network$oneRun()
 network$reset()
 
 

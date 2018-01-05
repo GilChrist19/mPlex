@@ -46,7 +46,7 @@ Network.Parameters <- function(
   tEgg = 1L,
   tLarva = 14L,
   tPupa = 1L,
-  tAdult = 21L,
+  tAdult = 21L, #fix this!! there is a parameter for this
   beta = 32,
   muAd = 0.123,
   popGrowth = 1.096,
@@ -70,7 +70,6 @@ Network.Parameters <- function(
   pars$beta = beta
 
   # initial parameters
-  pars$muAd = muAd
   pars$rm = popGrowth
 
   if(length(AdPopEQ)!=nPatch){
@@ -86,18 +85,25 @@ Network.Parameters <- function(
   # derived parameters
   pars$g = calcAverageGenerationTime(pars$timeAq,muAd)
   pars$Rm = calcPopulationGrowthRate(popGrowth,pars$g)
-  pars$muAq = calcLarvalStageMortalityRate(pars$Rm,muAd,beta,pars$timeAq)
-  pars$thetaAq = calcAquaticStagesSurvivalProbability(
-                    calcAquaticStageSurvivalProbability(pars$muAq,tEgg),
-                    calcAquaticStageSurvivalProbability(pars$muAq,tLarva),
-                    calcAquaticStageSurvivalProbability(pars$muAq,tPupa)
+  pars$mu = list("E" = calcLarvalStageMortalityRate(pars$Rm,muAd,beta,pars$timeAq),
+                 "L" = calcLarvalStageMortalityRate(pars$Rm,muAd,beta,pars$timeAq),
+                 "P" = calcLarvalStageMortalityRate(pars$Rm,muAd,beta,pars$timeAq),
+                 "A" = muAd)
+  
+  
+  # need these to get alpha. NEED TO CLEAN THIS UP
+  muAq = calcLarvalStageMortalityRate(pars$Rm,muAd,beta,pars$timeAq)
+  thetaAq = calcAquaticStagesSurvivalProbability(
+                    calcAquaticStageSurvivalProbability(muAq,tEgg),
+                    calcAquaticStageSurvivalProbability(muAq,tLarva),
+                    calcAquaticStageSurvivalProbability(muAq,tPupa)
                   )
 
   # patch-specific derived parameters
   pars$alpha = rep(0,nPatch)
   pars$Leq = rep(0,nPatch)
   for(i in 1:nPatch){
-    pars$alpha[i] = calcDensityDependentDeathRate(beta,pars$thetaAq,pars$timeAq,AdPopEQ[i],pars$Rm)
+    pars$alpha[i] = calcDensityDependentDeathRate(beta,thetaAq,pars$timeAq,AdPopEQ[i],pars$Rm)
     pars$Leq[i] = calcLarvalPopEquilibrium(pars$alpha[i],pars$Rm)
   }
 

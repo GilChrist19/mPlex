@@ -22,7 +22,7 @@ Patch <- R6::R6Class(classname = "Patch",
 
                 # Constructor
                 initialize = function(patchID, simTime, eggs_t0, larva_t0, pupa_t0,
-                                      adult_male_t0, adult_female_t0, maleReleases = NULL,
+                                      adult_male_t0, unmated_female_t0, maleReleases = NULL,
                                       femaleReleases = NULL, larvaeReleases = NULL){
 
                   # ID
@@ -33,16 +33,16 @@ Patch <- R6::R6Class(classname = "Patch",
                   private$larva_t0 = larva_t0
                   private$pupa_t0 = pupa_t0
                   private$adult_male_t0 = adult_male_t0
-                  private$adult_female_t0 = adult_female_t0
-                  private$unmated_female_t0 = NULL
+                  private$adult_female_t0 = NULL
+                  private$unmated_female_t0 = unmated_female_t0
 
                   # Population Lists
                   private$eggs = eggs_t0
                   private$larva = larva_t0
                   private$pupa = pupa_t0
                   private$adult_male = adult_male_t0
-                  private$adult_female = adult_female_t0
-                  private$unmated_female = NULL
+                  private$adult_female = NULL
+                  private$unmated_female = unmated_female_t0
 
                   # Mosquito Releases
                   private$maleReleases = maleReleases
@@ -103,7 +103,9 @@ Patch <- R6::R6Class(classname = "Patch",
                 larvaeReleases = NULL,
 
                 # pointers
-                NetworkPointer = NULL
+                NetworkPointer = NULL,
+                DenDep = NULL,
+                death =NULL
 
               )# end private
 )
@@ -157,8 +159,8 @@ oneDay_initOutput_Patch <- function(){
   }
 
   # Write Females
-  for(mosquito in private$adult_female){
-    writeLines(text = file.path(1, private$patchID, mosquito$print_female(), fsep = ","),
+  for(mosquito in private$unmated_female){
+    writeLines(text = file.path(1, private$patchID, mosquito$print_male(), "NULL", fsep = ","),
                con = private$NetworkPointer$get_conAF1(),
                sep = "\n")
   }

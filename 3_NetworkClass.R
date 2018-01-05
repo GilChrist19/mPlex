@@ -75,7 +75,7 @@ Network <- R6::R6Class(classname = "Network",
                                                                                                             ageDist = rep(x = 1, times = lenAgeAdult)/lenAgeAdult,
                                                                                                             aTypes = networkParameters$alleloTypes[[i]]),
                                                      
-                                                     adult_female_t0 = CreateMosquitoes_Distribution_Genotype(numMos = networkParameters$AdPopEQ[i]/2L,
+                                                     unmated_female_t0 = CreateMosquitoes_Distribution_Genotype(numMos = networkParameters$AdPopEQ[i]/2L,
                                                                                                               minAge = minAgeAdult, 
                                                                                                               maxAge = maxAgeAdult, 
                                                                                                               ageDist = rep(x = 1, times = lenAgeAdult)/lenAgeAdult,
@@ -119,14 +119,12 @@ Network <- R6::R6Class(classname = "Network",
                                 if(is.null(stage)){sum(private$parameters$timeAq)
                                 } else {private$parameters$timeAq[[stage]]}
                               },
-                get_thetaAq = function(stage){private$parameters$thetaAq[[stage]]},
                 get_beta = function(){private$parameters$beta},
-                get_muAd = function(){private$parameters$muAd},
                 get_rm = function(){private$parameters$rm},
                 get_AdPopEQ = function(ix){private$parameters$AdPopEQ[ix]},
                 get_g = function(){private$parameters$g},
                 get_Rm = function(){private$parameters$Rm},
-                get_muAq = function(){private$parameters$muAq},
+                get_mu = function(stage){private$parameters$mu[[stage]]},
                 get_alpha = function(ix){private$parameters$alpha[ix]},
                 get_Leq = function(ix){private$parameters$Leq[ix]},
                 get_patch = function(patch = NULl){
@@ -297,7 +295,7 @@ oneDay_Network <- function(){
   }
 
   # inter-patch migration
-  self$oneDay_Migration()
+  #self$oneDay_Migration()
   
   # write output
   for(i in 1:private$nPatch){
@@ -309,8 +307,6 @@ oneDay_Network <- function(){
 Network$set(which = "public",name = "oneDay",
           value = oneDay_Network, overwrite = TRUE
 )
-
-
 
 #######################################
 # These are from network-migration.R
