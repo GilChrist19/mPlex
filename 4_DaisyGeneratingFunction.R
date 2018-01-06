@@ -69,7 +69,7 @@ MakeReferenceDaisy <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/3, d=c
   
 }
 
-hold <- MakeReference(H = 0.9, R = 0, S = 0, d = .001)
+hold <- MakeReferenceDaisy(H = 0.9, R = 0, S = 0, d = .001)
 
 
 fGen <- "WW"

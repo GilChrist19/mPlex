@@ -86,3 +86,36 @@ hold$counts <- hold$counts/sum(hold$counts)
 
 plot(hold, xlim = c(0, max(larvaHist)))
 
+reference <- MakeReferenceMultiplex_oLocus(H=c(0.9, 0.9,0.9),R=c(0,0,0), S=c(0,0,0)/3, d=c(0,0,0))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
