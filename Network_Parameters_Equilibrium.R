@@ -42,7 +42,6 @@ Network.Parameters <- function(
   tEgg = 1L,
   tLarva = 14L,
   tPupa = 1L,
-  tAdult = 21L, #fix this!! there is a parameter for this
   beta = 32,
   muAd = 0.123,
   popGrowth = 1.096,
@@ -62,7 +61,7 @@ Network.Parameters <- function(
 
   # biological parameters
   pars$timeAq = setNames(object = c(tEgg, tLarva, tPupa), nm = c("E","L","P"))
-  pars$tAdult = tAdult
+  pars$tAdult = as.integer(x = round(x = 1/muAd))
   pars$beta = beta
 
   # initial parameters

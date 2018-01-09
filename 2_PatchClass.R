@@ -281,6 +281,39 @@ Patch$set(which = "public",name = "oneDay_larvaeReleases",
 
 ## figure out this one ##
 
+##thoughts
+##figure out how many choose to move!!
+number who move seems to be ADMnew[i]. Talk to Sean/Hector? THAT SEEMS WRONG!!!]
+dirichlet sampling
+maleMatrix = private$networkpointer$get_migrationMale(patch=privtite$patchID)
+  jaredDirichlet(n = 1, alpha = maleMatrix*private$networkpointer$get_moveVar)
+#guys who migrate <- sample(length of adult list, number to move, equal probs)
+#number who go where <- rmultinom(n=1, size = number to move, probs = dirichlet thing)
+stepper <- 1
+for(numPatches in 1:length(number of patches)){
+  
+  if(number_who_go_where[numPatches]==0){next}
+  for(numMosquitoes in 1:number_who_go_where[numPatches]){
+    someMigrationList[[numPatches]] <- population[guys_who_migrate[stepper]]
+    stepper <- stepper+1
+  }
+}
+population[guys_who_migrate] <- NULL
+
+someMigrationList will be length(number of patches), but each sub-list will be variable length
+  Ask Sean if this needs NULLed or rebuilt ked
+
+Use 2 separate loops for ease. One loop over patches would work, but the inner loop and if statements need to be separate
+Could create some patch-level variables
+  stepper is integer(length = 1)
+  guys_who_migrate is always integer(length = number to move)
+  number_who_go_where is always integer(length = related to places to move, maybe number of patches)
+  female/male will be the same length (unless I start giving sex-biased moving, then create one set for male and one set for female)
+  
+  
+  
+  
+
 #' Stochastic Oubound Migration
 #'
 #' Stochastic model of migration of \code{AF1new} females from this patch, fills up the \code{femaleMigration} array.

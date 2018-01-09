@@ -25,17 +25,29 @@ MakeReferenceMultiplex_mLoci <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), 
   # have the same or different values.
   
   
+  #Safety checks
+  if(any( c(length(H),length(R), length(S), length(d)) != length(H))){
+    return(cat("All inputs must be the same length!\n",
+           "i.e. length(H) == length(R) == length(S) == length(d)"))
+  }
+  if(any(H>1, R>1, S>1, d>1)){
+    return(cat("All rates must be less than or equal to 1\n"))
+  }
+  if(any((d+H) > 1)){
+    return(cat("Homing rates plus background mutation rates must be <= 1\n",
+           "i.e. H+d <= 1\n"))
+  }
+  if(any((R+S) > 1)){
+    return(cat("Negative and neutral repair rates must sum to <= 1\n",
+           "i.s. R+S <= 1"))
+  }
+
   
-  
-  
-  ##########
-  #Need safety checks!!!!
-  ##########
-  
-  
-  
-  
-  
+  #setup allele letters
+  #W = Wild-type
+  #H = Homing
+  #R = Deleterious resistant
+  #S = Neutral resistant
   gtype <- c("W", "H", "R", "S")
 
   #matrix to hold homing probs, then fill it

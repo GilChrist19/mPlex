@@ -21,6 +21,34 @@ MakeReferenceDaisy <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/3, d=c
   #d is the background mutation rate. Must be the same length as H, can
   # have the same or different values.
   
+
+  
+  #Safety checks
+  if(any( c(length(H),length(R), length(S), length(d)) != length(H))){
+    return(cat("All inputs must be the same length!\n",
+           "i.e. length(H) == length(R) == length(S) == length(d)"))
+  }
+  if(any(H[-length(H)]>1, R>1, S>1, d>1)){
+    #last H doesn't matter because it may/may not exist and isnt' used
+    return(cat("All rates must be less than or equal to 1\n"))
+  }
+  if(any((d+c(0, H[-length(H)])) > 1)){
+    #need the driving piece's haming rate plus the background mutation rate
+    #  of the piece being driven into.
+    return(cat("Homing rates plus background mutation rates must be <= 1\n",
+           "i.e. H+d <= 1\n"))
+  }
+  if(any((R+S) > 1)){
+    return(cat("Negative and neutral repair rates must sum to <= 1\n",
+           "i.s. R+S <= 1"))
+  }
+
+  
+  #setup allele letters
+  #W = Wild-type
+  #H = Homing
+  #R = Deleterious resistant
+  #S = Neutral resistant
   gtype <- c("W", "H", "R", "S")
   Hshift <- c(0, H[-length(H)]) #because each pieces relies on the efficiency of the previous piece
   

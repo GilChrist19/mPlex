@@ -159,11 +159,12 @@ Network <- R6::R6Class(classname = "Network",
                                     },
                 get_migrationMale = function(patch = NULL){
                                       if(is.null(patch)){private$migrationMale
-                                        } else {private$migrationMale[[patch]]}
+                                      } else {private$migrationMale[patch, ,drop=FALSE]}
+                  #Does this drop thing matter here?
                                     },
                 get_migrationFemale = function(patch = NULL){
                                         if(is.null(patch)){private$migrationFemale
-                                          } else {private$migrationFemale[[patch]]}
+                                          } else {private$migrationFemale[patch, ,drop=FALSE]}
                                       },
                 close_connections = function(){
                                       close(private$conADM)
