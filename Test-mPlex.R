@@ -1,36 +1,37 @@
 ###############################################################################
-#                                    ____  _           
+#                                    ____  _
 #                          _ __ ___ |  _ \| | _____  __
 #                         | '_ ` _ \| |_) | |/ _ \ \/ /
-#                         | | | | | |  __/| |  __/>  < 
-#                         |_| |_| |_|_|   |_|\___/_/\_\                           
-#                                
+#                         | | | | | |  __/| |  __/>  <
+#                         |_| |_| |_|_|   |_|\___/_/\_\
+#
 ###############################################################################
-#                        _____         _   _____ _ _      
-#                       |_   _|__  ___| |_|  ___(_) | ___ 
+#                        _____         _   _____ _ _
+#                       |_   _|__  ___| |_|  ___(_) | ___
 #                         | |/ _ \/ __| __| |_  | | |/ _ \
 #                         | |  __/\__ \ |_|  _| | | |  __/
-#                         |_|\___||___/\__|_|   |_|_|\___|                      
-#                                     
+#                         |_|\___||___/\__|_|   |_|_|\___|
+#
 ###############################################################################
 ###############################################################################
 # Clean environment and source files
 ###############################################################################
 rm(list=ls());gc()
-source("~/Desktop/mPlex/1_MosquitoClass.R")
-source("~/Desktop/mPlex/2_PatchClass.R")
-source("~/Desktop/mPlex/2_PatchSimulation.R")
-source("~/Desktop/mPlex/3_NetworkClass.R")
-source("~/Desktop/mPlex/Network_Parameters_Equilibrium.R")
-source("~/Desktop/mPlex/Auxiliary_Functions.R")
+source("~/Documents/mPlex/1_MosquitoClass.R")
+source("~/Documents/mPlex/2_PatchClass.R")
+source("~/Documents/mPlex/2_PatchSimulation.R")
+source("~/Documents/mPlex/3_NetworkClass.R")
+source("~/Documents/mPlex/Network_Parameters_Equilibrium.R")
+source("~/Documents/mPlex/Auxiliary_Functions.R")
 
 ###############################################################################
 # Setup Parameters for Network
 ###############################################################################
 
 migration = diag(4) #migration matrix
+migration2 <- matrix(c(0,0,0,1), 4, 4, TRUE)
 N = nrow(migration) #number of patches
-patchPops = rep(10,N) #population of eachpatch
+patchPops = rep(6,N) #population of eachpatch
 directory <- "~/Desktop/HOLD"
 
     #setup alleles to initiate patches
@@ -75,14 +76,14 @@ patchReleases[[1]]$larvaeReleases <- Release_basicRepeatedReleases(releaseStart 
 ###############################################################################
 
     # calculate network parameters, auxiliary function
-netPar = Network.Parameters(nPatch = N,simTime = 25,
-                            alleloTypes = AllAlleles, tAdult = 21,
+netPar = Network.Parameters(nPatch = N,simTime = 10,
+                            alleloTypes = AllAlleles,
                             AdPopEQ = patchPops)
 
     # initialize network!
 network = Network$new(networkParameters = netPar,
                       patchReleases = patchReleases,
-                      migrationMale = migration,
+                      migrationMale = migration2,
                       migrationFemale = migration,
                       directory = directory)
 

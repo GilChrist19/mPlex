@@ -1,17 +1,17 @@
 ###############################################################################
-#                                    ____  _           
+#                                    ____  _
 #                          _ __ ___ |  _ \| | _____  __
 #                         | '_ ` _ \| |_) | |/ _ \ \/ /
-#                         | | | | | |  __/| |  __/>  < 
-#                         |_| |_| |_|_|   |_|\___/_/\_\                           
-#                                
+#                         | | | | | |  __/| |  __/>  <
+#                         |_| |_| |_|_|   |_|\___/_/\_\
+#
 ###############################################################################
-#    ____       _       _        ____ _               
-#   |  _ \ __ _| |_ ___| |__    / ___| | __ _ ___ ___ 
+#    ____       _       _        ____ _
+#   |  _ \ __ _| |_ ___| |__    / ___| | __ _ ___ ___
 #   | |_) / _` | __/ __| '_ \  | |   | |/ _` / __/ __|
 #   |  __/ (_| | || (__| | | | | |___| | (_| \__ \__ \
 #   |_|   \__,_|\__\___|_| |_|  \____|_|\__,_|___/___/
-#                                                     
+#
 ###############################################################################
 #######################################
 # Well-mixed Patch
@@ -86,6 +86,7 @@ Patch <- R6::R6Class(classname = "Patch",
 
                 # patch-level parameters
                 patchID = NULL,
+                genericCounter = integer(length = 1),
 
                 # initial populations
                 eggs_t0 = NULL,
@@ -106,7 +107,9 @@ Patch <- R6::R6Class(classname = "Patch",
                 # migration
                 maleMigration = NULL,
                 femaleMigration = NULL,
-                
+                numMigrate = integer(length = 1),
+                migrationDist = NULL,
+
                 # Mosquito Releases
                 maleReleases = NULL,
                 femaleReleases = NULL,
@@ -114,7 +117,7 @@ Patch <- R6::R6Class(classname = "Patch",
 
                 # pointers
                 NetworkPointer = NULL,
-                DenDep = NULL,
+                DenDep = numeric(length = 1),
                 death =NULL
 
               )# end private
@@ -241,7 +244,7 @@ oneDay_femaleReleases_Patch <- function(){
 
   #clear unmated females. This will run every time.
   private$unmated_female = NULL
-  
+
   if( (length(private$femaleReleases) > 0) && (private$femaleReleases[[1]]$tRelease <= private$NetworkPointer$get_tNow()) ){
     private$unmated_female = c(private$unmated_female, private$femaleReleases[[1]]$nuF)
     private$femaleReleases[[1]] = NULL
@@ -272,83 +275,79 @@ Patch$set(which = "public",name = "oneDay_larvaeReleases",
 # These are from patch-migration.R
 #######################################
 
+oneDay_migrationOut_Patch <- function(){
 
+  #set empty return lists
+  private$maleMigration <- private$femaleMigration <- vector(mode = "list", length = private$NetworkPointer$get_nPatch())
 
+  #MALE
+  if(length(private$adult_male)>0 && any(private$NetworkPointer$get_migrationMale(private$patchID)[-private$patchID]!=0)){
+    #number who migrate: population times migration fraction
+    private$numMigrate <- as.integer(x = round(x = length(private$adult_male)*private$NetworkPointer$get_migrationFractionMale(private$patchID)))
 
+    #migration distribtuion, removing the current patch
+    private$migrationDist <- JaredDirichlet(n = 1, alpha = private$NetworkPointer$get_migrationMale(private$patchID)[-private$patchID]*private$NetworkPointer$get_moveVar())
 
+    #generate a random sample of the population who will migrate
+    male_who_migrate <- hold <- sample(x = 1:length(private$adult_male), size = private$numMigrate, replace = FALSE)
 
+    #place how many migrate where
+    male_num_migrate <- rmultinom(n = 1, size = private$numMigrate, prob = private$migrationDist)
 
+    private$genericCounter <- 1
+    #loop over other patches, not your own
+    for(patch in private$NetworkPointer$get_listPatch()[-private$patchID]){
+      #if no mosquitoes go there, skip it
+      if(male_num_migrate[private$genericCounter]==0){next}
 
-## figure out this one ##
+      #get all males who migrate, then remove those males and that number from lists
+      private$maleMigration[[patch]] <- private$adult_male[male_who_migrate[1:male_num_migrate[1]]]
+      male_who_migrate <- male_who_migrate[-1:male_num_migrate[1]]
+      male_num_migrate <- male_num_migrate[-1]
+    }
 
-##thoughts
-##figure out how many choose to move!!
-number who move seems to be ADMnew[i]. Talk to Sean/Hector? THAT SEEMS WRONG!!!]
-dirichlet sampling
-maleMatrix = private$networkpointer$get_migrationMale(patch=privtite$patchID)
-  jaredDirichlet(n = 1, alpha = maleMatrix*private$networkpointer$get_moveVar)
-#guys who migrate <- sample(length of adult list, number to move, equal probs)
-#number who go where <- rmultinom(n=1, size = number to move, probs = dirichlet thing)
-stepper <- 1
-for(numPatches in 1:length(number of patches)){
-  
-  if(number_who_go_where[numPatches]==0){next}
-  for(numMosquitoes in 1:number_who_go_where[numPatches]){
-    someMigrationList[[numPatches]] <- population[guys_who_migrate[stepper]]
-    stepper <- stepper+1
-  }
+    #remove all the mosquitoes who  migrated
+    private$adult_male[hold] <- NULL
+
+  }#end male migration
+
+  #FEMALE
+  if(length(private$adult_female)>0 && any(private$NetworkPointer$get_migrationFemale(private$patchID)[-private$patchID]!=0)){
+
+    #number who migrate: population times migration fraction
+    private$numMigrate <- as.integer(x = round(x = length(private$adult_female)*private$NetworkPointer$get_migrationFractionFemale(private$patchID)))
+
+    #migration distribtuion, removing the current patch
+    private$migrationDist <- JaredDirichlet(n = 1, alpha = private$NetworkPointer$get_migrationFemale(private$patchID)[-private$patchID]*private$NetworkPointer$get_moveVar())
+
+    #generate a random sample of the population who will migrate
+    female_who_migrate <- hold <- sample(x = 1:length(private$adult_female), size = private$numMigrate, replace = FALSE)
+
+    #place how many migrate where
+    female_num_migrate <- rmultinom(n = 1, size = private$numMigrate, prob = private$migrationDist)
+
+    private$genericCounter <- 1
+    #loop over other patches, not your own
+    for(patch in private$NetworkPointer$get_listPatch()[-private$patchID]){
+
+      #if no mosquitoes go there, skip it
+      if(female_num_migrate[private$genericCounter]==0) next
+
+      #get all males who migrate, then remove those males and that number from lists
+      private$femaleMigration[[patch]] <- private$adult_female[female_who_migrate[1:female_num_migrate[1]]]
+      female_who_migrate <- female_who_migrate[-1:female_num_migrate[1]]
+      female_num_migrate <- female_num_migrate[-1]
+    }
+
+    #remove all the mosquitoes who  migrated
+    private$adult_female[hold] <- NULL
+
+  }#end female migration
+
 }
-population[guys_who_migrate] <- NULL
-
-someMigrationList will be length(number of patches), but each sub-list will be variable length
-  Ask Sean if this needs NULLed or rebuilt ked
-
-Use 2 separate loops for ease. One loop over patches would work, but the inner loop and if statements need to be separate
-Could create some patch-level variables
-  stepper is integer(length = 1)
-  guys_who_migrate is always integer(length = number to move)
-  number_who_go_where is always integer(length = related to places to move, maybe number of patches)
-  female/male will be the same length (unless I start giving sex-biased moving, then create one set for male and one set for female)
-  
-  
-  
-  
-
-#' Stochastic Oubound Migration
-#'
-#' Stochastic model of migration of \code{AF1new} females from this patch, fills up the \code{femaleMigration} array.
-#' Migration is modeled as a Dirichlet-Multinomial process parameterized by \code{moveVar} multiplied by the row corresponding to this
-#' patch from the stochastic matrix. A Dirichlet distributed random variate is sampled from \code{\link[MCMCpack]{rdirichlet}} according to that
-#' parameter vector and then movement is sampled from \code{\link[stats]{rmultinom}}.
-#'
-oneDay_migrationOut_stochastic_Patch <- function(){
-
-  # values that are used more than once
-  mVar <- private$NetworkPointer$get_moveVar()
-  pNum <- private$patchID
-
-  # Males
-  # return matrix
-  private$maleMigration <-MaleMigrationC(Population = private$ADMnew,
-                                        migrationPoint = private$NetworkPointer$get_migrationMaleRow(pNum)*mVar)
-
-
-  # Females
-  # return array
-  private$femaleMigration <- FemaleMigrationC(Population = private$AF1new,
-                                             migrationPoint = private$NetworkPointer$get_migrationFemaleRow(pNum)*mVar)
-
-}
-
-
-
-
-
-
-
-
-
-
+Patch$set(which = "public",name = "oneDay_migrationOut",
+          value = oneDay_migrationOut_Patch, overwrite = TRUE
+)
 
 #' Inbound Migration
 #'
@@ -361,7 +360,6 @@ oneDay_migrationIn_Patch <- function(maleIn, femaleIn){
   private$adult_male = c(private$adult_male, maleIn)
   private$adult_female = c(private$adult_female, femaleIn)
 }
-
 Patch$set(which = "public",name = "oneDay_migrationIn",
           value = oneDay_migrationIn_Patch, overwrite = TRUE
 )
