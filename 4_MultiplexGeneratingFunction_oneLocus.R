@@ -1,34 +1,30 @@
 ###############################################################################
-#    __  __       _ _   _       _                      _                         
-#   |  \/  |_   _| | |_(_)_ __ | | _____  __      ___ | |    ___   ___ _   _ ___ 
+#    __  __       _ _   _       _                      _
+#   |  \/  |_   _| | |_(_)_ __ | | _____  __      ___ | |    ___   ___ _   _ ___
 #   | |\/| | | | | | __| | '_ \| |/ _ \ \/ /____ / _ \| |   / _ \ / __| | | / __|
 #   | |  | | |_| | | |_| | |_) | |  __/>  <_____| (_) | |__| (_) | (__| |_| \__ \
 #   |_|  |_|\__,_|_|\__|_| .__/|_|\___/_/\_\     \___/|_____\___/ \___|\__,_|___/
-#                        |_|                                                     
+#                        |_|
 ###############################################################################
 
 # one locus, multiple targets at that locus, gives many types of alleles
 # targets within loci are fully linked.
 
-###############################################################################
-# Functions for actual use
-###############################################################################
+MakeReference_Multiplex_oLocus <- function(H=c(0.9),R=c(0.0), S=R/3, d=c(0.0001)){
+  #H is homing rate. The length of this vector determines the number of loci
+  # in the multiplex drive. Each drive can have the same or different rates.
 
-MakeReferenceMultiplex_oLocus <- function(H=c(0.9),R=c(0.0), S=R/3, d=c(0.0001)){
-  #H is homing rate. The length of this vector determines the number of loci 
-  # in the multiplex drive. Each drive can have the same or different rates. 
+  #R is the NHEJ rate for deleterious alleles. Must be same length as H,
+  # can be the same or different values.
 
-  #R is the NHEJ rate for deleterious alleles. Must be same length as H, 
+  #S is the NHEJ rate for neutral alleles. Must be the same length as H,
   # can be the same or different values.
-                            
-  #S is the NHEJ rate for neutral alleles. Must be the same length as H, 
-  # can be the same or different values.
-  
+
   #d is the background mutation rate. Must be the same length as H, can
   # have the same or different values.
-  
-  
-  
+
+
+
   #Safety checks
   if(any( c(length(H),length(R), length(S), length(d)) != length(H))){
     return(cat("All inputs must be the same length!\n",
@@ -46,7 +42,7 @@ MakeReferenceMultiplex_oLocus <- function(H=c(0.9),R=c(0.0), S=R/3, d=c(0.0001))
            "i.s. R+S <= 1"))
   }
 
-  
+
   #setup allele letters
   #W = Wild-type
   #H = Homing
@@ -61,11 +57,11 @@ MakeReferenceMultiplex_oLocus <- function(H=c(0.9),R=c(0.0), S=R/3, d=c(0.0001))
   homingProbs[2, ] <- H*(1-R-S) #chance to become homing is H*1-H*R-H*S
   homingProbs[3, ] <- H*R   #NHEJ caused resistance, detrimentalt allele
   homingProbs[4, ] <- d+H*S #good resistant allele, from NHEJ and background mutation rate
-  
+
   #set up lists to hold probabilities
   mendProbsList <- vector(mode = "list", length = length(H))
   homProbsList <- vector(mode = "list", length = length(H))
-  
+
   #fill the lists
   for(i in 1:length(H)){
     #Mendelian Probabilities
@@ -80,12 +76,12 @@ MakeReferenceMultiplex_oLocus <- function(H=c(0.9),R=c(0.0), S=R/3, d=c(0.0001))
     homProbsList[[i]]$R <- 1
     homProbsList[[i]]$S <- 1
   }
-  
+
   return(list(
-    mendelian = mendProbsList, 
+    mendelian = mendProbsList,
     homing = homProbsList))
-  
-} 
+
+}
 
 
 MultiplexOffspring_oLocus <- function(fGen, mGen, reference){
@@ -95,32 +91,32 @@ MultiplexOffspring_oLocus <- function(fGen, mGen, reference){
   if(nchar(fGen) != nchar(mGen)){
     return(cat("Critters have different number of loci.\nCheck their genotypes."))
   }
-  
+
   #split genotypes
   #This splits all characters.
   fSplit <- strsplit(x = fGen, split = "")[[1]]
   mSplit <- strsplit(x = mGen, split = "")[[1]]
-  
+
   #get number of alleles. Divide by 2 is because diploid
   nHom <- length(fSplit)/2
-  
-  #the paste statement combines all targets in the first loci and all targets 
+
+  #the paste statement combines all targets in the first loci and all targets
   #  in the second loci into 2 complete alleles
   fmPlex <- list(allele1 = fSplit[1:nHom], allele2 = fSplit[(nHom+1):(2*nHom)] )
   mmPlex <- list(allele1 = mSplit[1:nHom], allele2 = mSplit[(nHom+1):(2*nHom)] )
-  
+
   #score them, assumes fGen and mGen are 1 character string, not a list of things
   #  If I stop pasting alleles together, we may have to change this!!
   fScore <- grepl(pattern = "H", x = fGen, ignore.case = FALSE, perl = FALSE, fixed = TRUE)
   mScore <- grepl(pattern = "H", x = mGen, ignore.case = FALSE, perl = FALSE, fixed = TRUE)
-  
+
   #setup offspring allele lists
   # assuem diploid organism with nHom homing sites
   fAllele <- rep(x = list(vector(mode = "list", nHom)), 2)
   fProbs <- rep(x = list(vector(mode = "list", nHom)), 2)
   mAllele <- rep(x = list(vector(mode = "list", nHom)), 2)
   mProbs <- rep(x = list(vector(mode = "list", nHom)), 2)
-  
+
   #Females!
   if(fScore) {
     #if homing allele present
@@ -144,7 +140,7 @@ MultiplexOffspring_oLocus <- function(fGen, mGen, reference){
         }#end if string
       }#end target loop
     }#end allele loop
-    
+
   } else {
     #if homing allele not present
     #loop over alleles, assume diploid
@@ -168,7 +164,7 @@ MultiplexOffspring_oLocus <- function(fGen, mGen, reference){
       }#end target loop
     }#end allele loop
   }#end Female if statement
-  
+
   #Males!
   if(mScore) {
     #if homing allele present
@@ -192,7 +188,7 @@ MultiplexOffspring_oLocus <- function(fGen, mGen, reference){
         }#end if string
       }#end target loop
     }#end allele loop
-    
+
   } else {
     #if homing allele not present
     #loop over alleles, assume diploid
@@ -216,53 +212,53 @@ MultiplexOffspring_oLocus <- function(fGen, mGen, reference){
       }#end target loop
     }#end allele loop
   }#end Female if statement
-  
-  
 
-  
-  
-  
+
+
+
+
+
   fAKids <- vector(mode = "list", length = 2)
   fPKids <- vector(mode = "list", length = 2)
   mAKids <- vector(mode = "list", length = 2)
   mPKids <- vector(mode = "list", length = 2)
-  
-  
+
+
   for(i in 1:2){
     #expand female alleles and probs
     fAHold <- expand.grid(fAllele[[i]], KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
     fPHold <- expand.grid(fProbs[[i]], KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
-    
+
     #expand male alleles and probs
     mAHold <- expand.grid(mAllele[[i]], KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
     mPHold <- expand.grid(mProbs[[i]], KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
-    
+
     #paste things in reverse
     fAKids[[i]] <- do.call(what = paste0, c(fAHold[, nHom:1,drop=FALSE], collapse = NULL))
     fPKids[[i]] <- apply(X = fPHold, MARGIN = 1, FUN = prod)
-    
+
     mAKids[[i]] <- do.call(what = paste0, c(mAHold[, nHom:1,drop=FALSE], collapse = NULL))
     mPKids[[i]] <- apply(X = mPHold, MARGIN = 1, FUN = prod)
-    
+
   }
-  
+
   #unlist so that alleles within parent don't combine, then expand all
   #  combinations of male/female alleles
   ExpandedGenotypes <- expand.grid(unlist(fAKids), unlist(mAKids), KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
   ExpandedGenotypeProbs <- expand.grid(unlist(fPKids), unlist(mPKids), KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
-  
-  
+
+
   CollapsedGen <- do.call(what = paste0, c(ExpandedGenotypes, collapse = NULL))
   CollapsedGenProbs <- apply(X = ExpandedGenotypeProbs, MARGIN = 1, FUN = prod)
   #could do hold[,1]*hold[,2]
-  
+
   #aggregate and return
   finalHold <- aggregate(CollapsedGenProbs~CollapsedGen, data=data.frame(CollapsedGen, CollapsedGenProbs), FUN=sum)
-  
+
   #get proper type and normalize, then return as list.
   return(list(
     Alleles = as.character(finalHold$CollapsedGen),
     Probabilities = finalHold$CollapsedGenProbs/sum(finalHold$CollapsedGenProbs)
   ))
-  
+
 }

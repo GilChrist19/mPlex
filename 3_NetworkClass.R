@@ -24,12 +24,9 @@ Network <- R6::R6Class(classname = "Network",
             public = list(
 
                 # Constructor
-                initialize = function(networkParameters, patchReleases, migrationMale, migrationFemale, directory){
+                initialize = function(networkParameters, patchReleases, reproductionType=NULL, offspringReference, migrationMale, migrationFemale, directory){
 
-                  if(length(patchReleases) != networkParameters$nPatch){
-                    stop("length of patchReleases must equal number of patches in networkParameters!")
-                  }
-
+                  #set basic things from Parameters
                   private$parameters = networkParameters
                   private$nPatch = networkParameters$nPatch
                   private$listPatch = 1:networkParameters$nPatch
@@ -37,6 +34,34 @@ Network <- R6::R6Class(classname = "Network",
                   private$simTime = networkParameters$simTime
                   private$directory = directory
                   private$runID = networkParameters$runID
+
+                  #Check releases and set them
+                  if(length(patchReleases) != networkParameters$nPatch){
+                    stop("length of patchReleases must equal number of patches in networkParameters!")
+                  }
+                  private$patchReleases = patchReleases
+
+                  #set reproduction type
+                  private$reference = offspringReference
+                  switch(EXPR = reproductionType,
+                         DaisyDrive = {Patch$set(which = "public",
+                                                 name = "offspringDistribution",
+                                                 value = DaisyOffspring,
+                                                 overwrite = TRUE)
+                           cat("Using DaisyOffspring() for reproduction.\n\n")},
+                         mPlex_oLocus = {Patch$set(which = "public",
+                                                   name = "offspringDistribution",
+                                                   value = MultiplexOffspring_oLocus,
+                                                   overwrite = TRUE)
+                           cat("Using MultiplexOffspring_oLocus() for reproduction.\n\n")},
+                         mPlex_mLoci = {Patch$set(which = "public",
+                                                  name = "offspringDistribution",
+                                                  value = MultiplexOffspring_mLoci,
+                                                  overwrite = TRUE)
+                           cat("Using MultiplexOffspring_mLoci() for reproduction.\n\n")},
+                         stop("\n\nreproductionType must match one of these choices:\n",
+                              " DaisyDrive\n mPlex_oLocus\n mPlex_mLoci\n")
+                         )
 
                   #set migration matrices
                   private$migrationMale = migrationMale
@@ -50,8 +75,6 @@ Network <- R6::R6Class(classname = "Network",
                     private$migrationFractionMale[i] = sum(migrationMale[i,-i,drop=FALSE])
                     private$migrationFractionFemale[i] = sum(migrationFemale[i,-i,drop=FALSE])
                   }
-
-                  private$patchReleases = patchReleases
 
                   # age ranges became a pain
                   lenAgeEgg <- length(0:networkParameters$timeAq["E"])
@@ -144,6 +167,7 @@ Network <- R6::R6Class(classname = "Network",
                                 } else {private$parameters$timeAq[[stage]]}
                               },
                 get_beta = function(){private$parameters$beta},
+                get_reference = function(){private$reference},
                 get_rm = function(){private$parameters$rm},
                 get_AdPopEQ = function(ix){private$parameters$AdPopEQ[ix]},
                 get_g = function(){private$parameters$g},
@@ -190,6 +214,7 @@ Network <- R6::R6Class(classname = "Network",
             private = list(
 
                 parameters = NULL,
+                reference = NULL, # reference rates for offspring
                 patches = NULL, # list of patches
                 nPatch = NULL, # number of patches
                 listPatch = NULL, #list of patch numbers
@@ -354,7 +379,7 @@ oneDay_Migration_Network <- function(){
   # migration out
   ######################################
 
-  for(i in 1:private$nPatch){
+  for(i in private$listPatch){
     private$patches[[i]]$oneDay_migrationOut()
   }
 
@@ -366,10 +391,10 @@ oneDay_Migration_Network <- function(){
   maleMoveOut = vector(mode="list",length=private$nPatch)
   femaleMoveOut = vector(mode="list",length=private$nPatch)
 
-  for(ix in 1:private$nPatch){
+  for(i in private$listPatch){
 
-    maleMoveOut[[ix]] = private$patches[[ix]]$get_maleMigration()
-    femaleMoveOut[[ix]] = private$patches[[ix]]$get_femaleMigration()
+    maleMoveOut[[i]] = private$patches[[i]]$get_maleMigration()
+    femaleMoveOut[[i]] = private$patches[[i]]$get_femaleMigration()
 
   }
 
@@ -377,13 +402,13 @@ oneDay_Migration_Network <- function(){
   maleMoveIn = vector(mode="list",length=private$nPatch)
   femaleMoveIn = vector(mode="list",length=private$nPatch)
 
-  for(first in 1:private$nPatch){
+  for(first in private$listPatch){
     #dummy variables that won't disappear when NULL is appended to them
     holdMale <- NULL
     holdFemale <- NULL
-    for(second in 1:private$nPatch){
-      holdMale <- c(holdMale, maleMoveOut[[first]][[second]])
-      holdFemale <- c(holdFemale, femaleMoveOut[[first]][[second]])
+    for(second in private$listPatch){
+      holdMale <- c(holdMale, maleMoveOut[[second]][[first]])
+      holdFemale <- c(holdFemale, femaleMoveOut[[second]][[first]])
     }
 
     #only if they aren't null, add them to the list. Otherwise, it destroys
@@ -396,9 +421,9 @@ oneDay_Migration_Network <- function(){
   # migration in
   ######################################
 
-  for(ix in 1:private$nPatch){
-    private$patches[[ix]]$oneDay_migrationIn(maleIn = maleMoveIn[[ix]],
-                                             femaleIn = femaleMoveIn[[ix]])
+  for(i in private$listPatch){
+    private$patches[[i]]$oneDay_migrationIn(maleIn = maleMoveIn[[i]],
+                                             femaleIn = femaleMoveIn[[i]])
   }
 
 }

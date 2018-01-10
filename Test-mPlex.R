@@ -21,6 +21,11 @@ source("~/Documents/mPlex/1_MosquitoClass.R")
 source("~/Documents/mPlex/2_PatchClass.R")
 source("~/Documents/mPlex/2_PatchSimulation.R")
 source("~/Documents/mPlex/3_NetworkClass.R")
+
+source("~/Documents/mPlex/4_DaisyGeneratingFunction.R")
+source("~/Documents/mPlex/4_MultiplexGeneratingFunction_multiLocus.R")
+source("~/Documents/mPlex/4_MultiplexGeneratingFunction_oneLocus.R")
+
 source("~/Documents/mPlex/Network_Parameters_Equilibrium.R")
 source("~/Documents/mPlex/Auxiliary_Functions.R")
 
@@ -28,8 +33,8 @@ source("~/Documents/mPlex/Auxiliary_Functions.R")
 # Setup Parameters for Network
 ###############################################################################
 
-migration = diag(4) #migration matrix
-migration2 <- matrix(c(0,0,0,1), 4, 4, TRUE)
+migration = diag(2) #migration matrix
+migration2 <- matrix(c(0,1), 2, 2, TRUE)
 N = nrow(migration) #number of patches
 patchPops = rep(6,N) #population of eachpatch
 directory <- "~/Desktop/HOLD"
@@ -45,6 +50,21 @@ alleloTypes[[3]]$probs <- c(1,0)
 
 AllAlleles <- replicate(n = N, expr = alleloTypes, simplify = FALSE)
 
+###############################################################################
+# reproduction Setup
+###############################################################################
+  #setup reference for offspring production.
+  # This must match the reproductionType in network initialization
+  #   "DaisyDrive" = MakeReference_DaisyDrive()
+  #   "mPlex_oLocus" = MakeReference_Multiplex_oLocus()
+  #   "mPlex_mLoci" = MakeReference_Multiplex_mLoci()
+
+#these numbers are made up. Just need them all the same length, and that length
+# must match the length of AlleloTypes
+reproductionReference <- MakeReference_Multiplex_oLocus(H = c(0.9, 0.9, 0.9),
+                                                       R = c(0.0001, 0.0001, 0.0001),
+                                                       S = c(0.00003,0.00003,0.00003),
+                                                       d = c(0.00001,0.00001,0.00001))
 
 ###############################################################################
 # Release Setup
@@ -83,7 +103,9 @@ netPar = Network.Parameters(nPatch = N,simTime = 10,
     # initialize network!
 network = Network$new(networkParameters = netPar,
                       patchReleases = patchReleases,
-                      migrationMale = migration2,
+                      reproductionType = "FUCKS",
+                      offspringReference = reproductionReference,
+                      migrationMale = migration,
                       migrationFemale = migration,
                       directory = directory)
 

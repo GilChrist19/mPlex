@@ -1,28 +1,28 @@
 ###############################################################################
-#    ____        _           ____       _           
-#   |  _ \  __ _(_)___ _   _|  _ \ _ __(_)_   _____ 
+#    ____        _           ____       _
+#   |  _ \  __ _(_)___ _   _|  _ \ _ __(_)_   _____
 #   | | | |/ _` | / __| | | | | | | '__| \ \ / / _ \
 #   | |_| | (_| | \__ \ |_| | |_| | |  | |\ V /  __/
 #   |____/ \__,_|_|___/\__, |____/|_|  |_| \_/ \___|
-#                      |___/                        
+#                      |___/
 ###############################################################################
 
-MakeReferenceDaisy <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/3, d=c(0.0001, 0.0001, 0.0001)){
+MakeReference_DaisyDrive <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/3, d=c(0.0001, 0.0001, 0.0001)){
 
   #H is homing rate. The length of this vector determines the number of pieces
-  # in the daisy drive. Each drive can have the same or different rates. 
+  # in the daisy drive. Each drive can have the same or different rates.
 
-  #R is the NHEJ rate for deleterious alleles. Must be same length as H, 
+  #R is the NHEJ rate for deleterious alleles. Must be same length as H,
   # can be the same or different values.
-                            
-  #S is the NHEJ rate for neutral alleles. Must be the same length as H, 
+
+  #S is the NHEJ rate for neutral alleles. Must be the same length as H,
   # can be the same or different values.
-  
+
   #d is the background mutation rate. Must be the same length as H, can
   # have the same or different values.
-  
 
-  
+
+
   #Safety checks
   if(any( c(length(H),length(R), length(S), length(d)) != length(H))){
     return(cat("All inputs must be the same length!\n",
@@ -43,7 +43,7 @@ MakeReferenceDaisy <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/3, d=c
            "i.s. R+S <= 1"))
   }
 
-  
+
   #setup allele letters
   #W = Wild-type
   #H = Homing
@@ -51,61 +51,59 @@ MakeReferenceDaisy <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/3, d=c
   #S = Neutral resistant
   gtype <- c("W", "H", "R", "S")
   Hshift <- c(0, H[-length(H)]) #because each pieces relies on the efficiency of the previous piece
-  
+
   #matrix to hold homing probs, then fill it
   homingProbs <- matrix(data = 0, nrow = 4, ncol = length(H), dimnames = list(gtype, NULL))
   cuttingProbs <- matrix(data = 0, nrow = 3, ncol = length(H), dimnames = list(gtype[-2], NULL))
-  
+
   homingProbs[1, ] <- 1-d-Hshift #chance to stay W is 1-homing-background mutation
   homingProbs[2, ] <- Hshift*(1-R-S) #chance to become homing is H*1-H*R-H*S
   homingProbs[3, ] <- Hshift*R   #NHEJ caused resistance, detrimentalt allele
   homingProbs[4, ] <- d+Hshift*S #good resistant allele, from NHEJ and background mutation rate
-  
+
   cuttingProbs[1, ] <- 1-d-Hshift*(R+S) #chance to stay W, 1-homingrate*mutations-background
   cuttingProbs[2, ] <- Hshift*R #chance to become R, cutting*NHEJ deleterious rate
   cuttingProbs[3, ] <- Hshift*S+d #become S, cutting*NHEJ neutral + background
-  
-  
+
+
   #set up lists to hold probabilities
   mendProbsList <- vector(mode = "list", length = length(H))
   cutProbsList <- vector(mode = "list", length = length(H))
   homProbsList <- vector(mode = "list", length = length(H))
-  
+
   #fill the lists
   for(i in 1:length(H)){
     mendProbsList[[i]]$W <- setNames(object = c(1-d[i], d[i]), nm = c("W", "S"))
     mendProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "S"))
     mendProbsList[[i]]$R <- 1
     mendProbsList[[i]]$S <- 1
-    
+
     cutProbsList[[i]]$W <- cuttingProbs[ ,i]
     cutProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "S"))
     cutProbsList[[i]]$R <- 1
     cutProbsList[[i]]$S <- 1
-    
+
     homProbsList[[i]]$W <- homingProbs[ ,i]
     homProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "S"))
     homProbsList[[i]]$R <- 1
     homProbsList[[i]]$S <- 1
   }
-  
-  
+
+
   return(list(
-    mendelian = mendProbsList, 
-    cutting = cutProbsList, 
+    mendelian = mendProbsList,
+    cutting = cutProbsList,
     homing = homProbsList))
-  
+
 }
-
-hold <- MakeReferenceDaisy(H = 0.9, R = 0, S = 0, d = .001)
-
-
-fGen <- "WW"
-mGen <- "WW"
-reference <- hold
-
-
-
+#
+# hold <- MakeReferenceDaisy(H = 0.9, R = 0, S = 0, d = .001)
+#
+#
+# fGen <- "WW"
+# mGen <- "WW"
+# reference <- hold
+#
 
 DaisyOffspring <- function(fGen, mGen, reference){
   #fGen is mother genotype
@@ -122,12 +120,12 @@ DaisyOffspring <- function(fGen, mGen, reference){
   fDaisy <- paste0(fSplit[c(TRUE, FALSE)], fSplit[c(FALSE, TRUE)], collapse = NULL)
   mSplit <- strsplit(x = mGen, split = "")[[1]]
   mDaisy <- paste0(mSplit[c(TRUE, FALSE)], mSplit[c(FALSE, TRUE)], collapse = NULL)
-  
+
   #score them
   fscore <- c(FALSE, grepl(pattern = "H", x = fDaisy, ignore.case = FALSE, perl = FALSE, fixed = TRUE))
   mscore <- c(FALSE, grepl(pattern = "H", x = mDaisy, ignore.case = FALSE, perl = FALSE, fixed = TRUE))
-  
-  
+
+
   nDaisies <- length(fDaisy)
   #setup offspring allele lists
   fAllele <- rep(x = list(vector(mode = "list", 2)), nDaisies)
@@ -135,19 +133,19 @@ DaisyOffspring <- function(fGen, mGen, reference){
   mAllele <- rep(x = list(vector(mode = "list", 2)), nDaisies)
   mProbs <- rep(x = list(vector(mode = "list", 2)), nDaisies)
 
-  
+
   #this for loop runs over the number of daisy drive constructs
   for(i in 1:nDaisies){
-    
+
     ## FEMALES
     #3 if statements for 3 cases
     if((fscore[i]==FALSE && fscore[i+1]==FALSE) ||(fscore[i]==FALSE && fscore[i+1]==TRUE)){
       #FF or FT case
-      
+
       for(j in 1:2){
         #get the single allele
         allele <- substr(x = fDaisy[i], start = j, stop = j)
-        
+
         #Fill allele with letter and probs
         if(allele=="W"){
           fAllele[[i]][[j]] <- c("W","S")
@@ -162,15 +160,15 @@ DaisyOffspring <- function(fGen, mGen, reference){
           fAllele[[i]][[j]] <- "S"
           fProbs[[i]][[j]] <- reference$mendelian[[i]]$S
         }
-        
+
       }#end of inner for loop
     } else if(fscore[i]==TRUE && fscore[i+1]==FALSE){
       #TF case
-      
+
       for(j in 1:2){
         #get the single allele
         allele <- substr(x = fDaisy[i], start = j, stop = j)
-        
+
         #Fill allele with letter and probs
         if(allele=="W"){
           fAllele[[i]][[j]] <- c("W","R","S")
@@ -185,15 +183,15 @@ DaisyOffspring <- function(fGen, mGen, reference){
           fAllele[[i]][[j]] <- "S"
           fProbs[[i]][[j]] <- reference$cutting[[i]]$S
         }
-        
+
       }#end of inner for loop
     } else if(fscore[i]==TRUE && fscore[i+1]==TRUE){
       #TT case
-      
+
       for(j in 1:2){
         #get the single allele
         allele <- substr(x = fDaisy[i], start = j, stop = j)
-        
+
         #Fill allele with letter and probs
         if(allele=="W"){
           fAllele[[i]][[j]] <- c("W","H","R","S")
@@ -208,20 +206,20 @@ DaisyOffspring <- function(fGen, mGen, reference){
           fAllele[[i]][[j]] <- "S"
           fProbs[[i]][[j]] <- reference$homing[[i]]$S
         }
-        
+
       }#end of inner for loop
     }#end female else if statements
 
-    
+
     ## MALES
     #3 if statements for 3 cases
     if((mscore[i]==FALSE && mscore[i+1]==FALSE) ||(mscore[i]==FALSE && mscore[i+1]==TRUE)){
       #FF or FT case
-      
+
       for(j in 1:2){
         #get the single allele
         allele <- substr(x = mDaisy[i], start = j, stop = j)
-        
+
         #Fill allele with letter and probs
         if(allele=="W"){
           mAllele[[i]][[j]] <- c("W","S")
@@ -236,15 +234,15 @@ DaisyOffspring <- function(fGen, mGen, reference){
           mAllele[[i]][[j]] <- "S"
           mProbs[[i]][[j]] <- reference$mendelian[[i]]$S
         }
-        
+
       }#end of inner for loop
     } else if(mscore[i]==TRUE && mscore[i+1]==FALSE){
       #TF case
-      
+
       for(j in 1:2){
         #get the single allele
         allele <- substr(x = mDaisy[i], start = j, stop = j)
-        
+
         #Fill allele with letter and probs
         if(allele=="W"){
           mAllele[[i]][[j]] <- c("W","R","S")
@@ -259,15 +257,15 @@ DaisyOffspring <- function(fGen, mGen, reference){
           mAllele[[i]][[j]] <- "S"
           mProbs[[i]][[j]] <- reference$cutting[[i]]$S
         }
-        
+
       }#end of inner for loop
     } else if(mscore[i]==TRUE && mscore[i+1]==TRUE){
       #TT case
-      
+
       for(j in 1:2){
         #get the single allele
         allele <- substr(x = mDaisy[i], start = j, stop = j)
-        
+
         #Fill allele with letter and probs
         if(allele=="W"){
           mAllele[[i]][[j]] <- c("W","H","R","S")
@@ -282,13 +280,13 @@ DaisyOffspring <- function(fGen, mGen, reference){
           mAllele[[i]][[j]] <- "S"
           mProbs[[i]][[j]] <- reference$homing[[i]]$S
         }
-        
+
       }#end of inner for loop
     }#end male else if statements
-    
+
   }#end of outermost for loop
-  
-  
+
+
   #combine each locus into single lists, so that alleles within a locus can't
   # be combined with each other, but do get combined with allelels for the
   # other loci.
@@ -298,94 +296,51 @@ DaisyOffspring <- function(fGen, mGen, reference){
   fProbsDaisy <- lapply(X = fProbs, FUN = unlist, recursive=TRUE)
   mAllDaisy <- lapply(X = mAllele, FUN = unlist, recursive=TRUE)
   mProbsDaisy <- lapply(X = mProbs, FUN = unlist, recursive=TRUE)
-  
-  #combine male and female alleles at each locus. 
-  # This requires looping through each locus, getting all combinations of 
+
+  #combine male and female alleles at each locus.
+  # This requires looping through each locus, getting all combinations of
   lociAList <- vector(mode = "list", length = nDaisies)
   lociPList <- vector(mode = "list", length = nDaisies)
-  
+
   for( i in 1:nDaisies){
-    
+
     #get all combinationes of male/female for each allele
     holdAllele <- expand.grid(fAllDaisy[[i]], mAllDaisy[[i]], KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
     holdProb <- expand.grid(fProbsDaisy[[i]], mProbsDaisy[[i]], KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
-    
+
     #sort each combination so they are the same.
     sortedAlleles <- apply(X = holdAllele, MARGIN = 1, FUN = sort)
-    
+
     #paste alleles togheter
     pastedAlleles <- do.call(what = "paste0", list(sortedAlleles[1, ], sortedAlleles[2, ]))
     pastedProbs <- holdProb[ ,1]*holdProb[ ,2]
-    
+
     #aggregate and return
     finalHold <- aggregate(pastedProbs~pastedAlleles, data=data.frame(pastedAlleles, pastedProbs), FUN=sum)
-    
+
     #fill lists
     lociAList[[i]] <- as.character(finalHold$pastedAlleles)
     lociPList[[i]] <- finalHold$pastedProbs
-    
+
   }
-  
-  
-  
+
+
   #get all combinations of each loci. This gives the total genotype
   outAList <- expand.grid(lociAList, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
   outPList <- expand.grid(lociPList, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
-  
+
   #combine allele names and probabilities
   AlleleComb <- apply(X = outAList, MARGIN = 1, FUN = paste0, collapse="")
   ProbsComb <- apply(X = outPList, MARGIN = 1, FUN = prod)
   #can use matrixStats::rowProds(x = as.matrix(outPList))
-  
+
   #normalize probs
   # if need to check sums, check before this step!
   normProbsComb <- ProbsComb/sum(ProbsComb)
-  
+
   return(list(
     Alleles = AlleleComb,
     Probabilities = normProbsComb
   ))
-  
+
 }
-
-
-
-
-hold1 <- MakeReference(H = c(1.0), R = c(0), S = c(0)/3, d = c(0.1))
-hold2 <- MakeReference(H = c(1.0, 1.0), R = c(0,0), S = c(0,0)/3, d = c(0.1, 0.1))
-hold3 <- MakeReference(H = c(1.0, 1.0, 1.0), R = c(0,0,0), S = c(0,0,0)/3, d = c(0.1, 0.4, 0.1))
-hold4 <- MakeReference(H = c(1.0, 1.0, 1.0, 1.0), R = c(0,0,0,0), S = c(0,0,0,0)/3, d = c(0.1, 0.4, 0.1, 0.1))
-
-#H+d <= 1             
-# R+S <= 1
-
-
-
-
-fGen <- "WW"
-mGen <- "WW"
-reference <- hold
-
-test <- DaisyOffspring(fGen = "HWHW", mGen = "WWWW", reference = hold2)
-test
-
-#linear scaling! 
-microbenchmark::microbenchmark(DaisyOffspring(fGen = "HH", mGen = "WW", reference = hold1),
-                               DaisyOffspring(fGen = "HHWW", mGen = "WWWW", reference = hold2),
-                               DaisyOffspring(fGen = "HHWWWW", mGen = "WWWWWW", reference = hold3),
-                               DaisyOffspring(fGen = "HHWWWWHH", mGen = "WWWWWWWW", reference = hold4),
-                               times = 10)
-
-
-
-
-
-
-
-
-
-
-
-
-
-

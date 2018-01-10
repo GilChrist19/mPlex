@@ -302,7 +302,7 @@ oneDay_migrationOut_Patch <- function(){
 
       #get all males who migrate, then remove those males and that number from lists
       private$maleMigration[[patch]] <- private$adult_male[male_who_migrate[1:male_num_migrate[1]]]
-      male_who_migrate <- male_who_migrate[-1:male_num_migrate[1]]
+      male_who_migrate <- male_who_migrate[-(1:male_num_migrate[1])]
       male_num_migrate <- male_num_migrate[-1]
     }
 
@@ -335,7 +335,7 @@ oneDay_migrationOut_Patch <- function(){
 
       #get all males who migrate, then remove those males and that number from lists
       private$femaleMigration[[patch]] <- private$adult_female[female_who_migrate[1:female_num_migrate[1]]]
-      female_who_migrate <- female_who_migrate[-1:female_num_migrate[1]]
+      female_who_migrate <- female_who_migrate[-(1:female_num_migrate[1])]
       female_num_migrate <- female_num_migrate[-1]
     }
 

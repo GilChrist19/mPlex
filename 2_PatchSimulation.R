@@ -32,20 +32,26 @@ oneDay_PopDynamics_Patch <- function(){
   self$oneDay_Age(Population = private$adult_male)
   self$oneDay_Age(Population = private$adult_female)
 
+  cat("\nEggs:", length(private$eggs), "\n")
+  cat("Larva:", length(private$larva), "\n")
+  cat("Pupa:", length(private$pupa), "\n")
+  cat("Male:", length(private$adult_male), "\n")
+  cat("Female:", length(private$adult_female), "\n")
+
   ################
   # DEATH
   ################
-  self$oneDay_EggDeath()
-  self$oneDay_LarvalDeath()
-  self$oneDay_PupaDeath()
-  self$oneDay_AdultDeath()
+  #self$oneDay_EggDeath()
+  #self$oneDay_LarvalDeath()
+  #self$oneDay_PupaDeath()
+  #self$oneDay_AdultDeath()
 
   ################
   # MATURE
   ################
-  self$oneDay_PupaMaturation()
-  self$oneDay_LarvaMaturation()
-  self$oneDay_EggMaturation()
+  #self$oneDay_PupaMaturation()
+  #self$oneDay_LarvaMaturation()
+  #self$oneDay_EggMaturation()
 
   ################
   # MATE
@@ -55,7 +61,7 @@ oneDay_PopDynamics_Patch <- function(){
   ################
   # LAY EGGS
   ################
-
+  self$oneDay_Reproduction()
 
 
 
@@ -373,11 +379,11 @@ oneDay_Reproduction_Patch <- function(){
 
   for(critter in private$adult_female){
 
-    #pretend that this gives a list of 2 lists: genotype, fraction
-    offspring <- reproductionfunction(female = critter$get_genotype,
-                                      male = critter$get_mate,
-                                      reference = private$NetworkPointer$get_reference)
-
+    #This produces a list of 2 lists: Alleles, Probabilities
+    # This function is set during initialization
+    offspring <- self$offspringDistribution(fGen = critter$get_genotype(),
+                                      mGen = critter$get_mate(),
+                                      reference = private$NetworkPointer$get_reference())
 
     #This generates an egg distribution
     eggNumber <- rmultinom(n = 1,
@@ -390,11 +396,11 @@ oneDay_Reproduction_Patch <- function(){
                                             numMos = eggNumber)
                       )
 
-
-  }
-
-}
-
+  }#end loop
+}#end function
+Patch$set(which = "public",name = "oneDay_Reproduction",
+          value = oneDay_Reproduction_Patch, overwrite = TRUE
+)
 
 
 

@@ -120,6 +120,8 @@ CreateMosquitoes_Eggs <- function(genMos, numMos){
 
   #loop over each genotype
   for(gen in 1:length(genMos)){
+    #skip if there are no mosquitoes of this genotype
+    if(numMos[gen]==0){next}
     #loop over number of mosquitoes of that genotype
     for(num in 1:numMos[gen]){
       #create new mosquito
