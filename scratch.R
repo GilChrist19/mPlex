@@ -450,14 +450,20 @@ Multiplex_FULL <- function(H=c(0.9, .6), R=0.0001, S=R/3, d=0.0001){
 # Figure out how to analyze
 ###############################################################################
 genotypes <- list(c("HH", "HR", "HS", "HW"), c("WW"), c("WW"))
-genotypes <- list(c("HH"), c("WW"), c("WW"))
-genotypes <- list(c("HH"), NULL, c("WW"))
-collapse <- c(T,F,F)
+genotypes <- list(c("HH", "WW"), c("WW"), c("WW"))
+genotypes <- list(c("WW"), NULL, c("WW"))
+collapse <- c(F,F,F)
+
+list.files(path = ".", pattern = NULL, all.files = FALSE,
+           full.names = FALSE, recursive = FALSE,
+           ignore.case = FALSE, include.dirs = FALSE, no.. = FALSE)
+
+
 
 AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, genotypes, collapse){
 
   #get list of all files, unique runs, and unique patches
-  dirFiles = list.files(path = readDirectory)
+  dirFiles = list.files(path = readDirectory, pattern = ".*\\.csv$")
   runID = unique(x = regmatches(x = dirFiles, m = regexpr(pattern = "Run[0-9]+", text = dirFiles)))
   patches = unique(x = regmatches(x = dirFiles, m = regexpr(pattern = "Patch[0-9]+", text = dirFiles)))
 
@@ -537,15 +543,18 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, genotyp
 
     #save output for each run.
     if(is.null(saveDirectory)){saveDirectory <- readDirectory}
-    fileName <- paste0(run, "_", paste0(gOI, collapse = "_"),
-                       "_", format(x = Sys.Date(), "%Y%m%d"), ".rds")
+    fileName <- paste0(format(x = Sys.Date(), "%Y%m%d"), "_", run, "_",
+                       paste0(gOI, collapse = "_"), ".rds")
 
     saveRDS(object = list(metaData=note, maleData=mArray, femaleData=fArray),
             file = file.path(saveDirectory,fileName),
             compress = "gzip")
 
   }#end run loop
-}
+}#end function
+
+
+AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, alleles, collapse)
 
 
 
