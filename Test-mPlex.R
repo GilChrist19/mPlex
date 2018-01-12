@@ -33,7 +33,7 @@ source("~/Documents/mPlex/Auxiliary_Functions.R")
 # Setup Parameters for Network
 ###############################################################################
 
-migration = diag(2) #migration matrix
+migration = diag(3) #migration matrix
 migration2 <- matrix(c(0,1), 2, 2, TRUE)
 N = nrow(migration) #number of patches
 patchPops = rep(6,N) #population of eachpatch
@@ -61,7 +61,7 @@ AllAlleles <- replicate(n = N, expr = alleloTypes, simplify = FALSE)
 
 #these numbers are made up. Just need them all the same length, and that length
 # must match the length of AlleloTypes
-reproductionReference <- MakeReference_Multiplex_oLocus(H = c(0.9, 0.9, 0.9),
+reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.9, 0.9, 0.9),
                                                        R = c(0.0001, 0.0001, 0.0001),
                                                        S = c(0.00003,0.00003,0.00003),
                                                        d = c(0.00001,0.00001,0.00001))
@@ -96,14 +96,15 @@ patchReleases[[1]]$larvaeReleases <- Release_basicRepeatedReleases(releaseStart 
 ###############################################################################
 
     # calculate network parameters, auxiliary function
-netPar = Network.Parameters(nPatch = N,simTime = 10,
+netPar = Network.Parameters(nPatch = N,simTime = 25,
                             alleloTypes = AllAlleles,
-                            AdPopEQ = patchPops)
+                            AdPopEQ = patchPops,
+                            parallel = FALSE) #don't think parallel works?
 
     # initialize network!
 network = Network$new(networkParameters = netPar,
                       patchReleases = patchReleases,
-                      reproductionType = "FUCKS",
+                      reproductionType = "mPlex_mLoci",
                       offspringReference = reproductionReference,
                       migrationMale = migration,
                       migrationFemale = migration,

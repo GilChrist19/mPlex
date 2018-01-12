@@ -41,17 +41,17 @@ oneDay_PopDynamics_Patch <- function(){
   ################
   # DEATH
   ################
-  #self$oneDay_EggDeath()
-  #self$oneDay_LarvalDeath()
-  #self$oneDay_PupaDeath()
-  #self$oneDay_AdultDeath()
+  self$oneDay_EggDeath()
+  self$oneDay_LarvalDeath()
+  self$oneDay_PupaDeath()
+  self$oneDay_AdultDeath()
 
   ################
   # MATURE
   ################
-  #self$oneDay_PupaMaturation()
-  #self$oneDay_LarvaMaturation()
-  #self$oneDay_EggMaturation()
+  self$oneDay_PupaMaturation()
+  self$oneDay_LarvaMaturation()
+  self$oneDay_EggMaturation()
 
   ################
   # MATE
@@ -62,11 +62,6 @@ oneDay_PopDynamics_Patch <- function(){
   # LAY EGGS
   ################
   self$oneDay_Reproduction()
-
-
-
-
-
 
   ################
   # Releases
