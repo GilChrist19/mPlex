@@ -331,42 +331,6 @@ Patch$set(which = "public",name = "oneDay_Mate",
           value = oneDay_Mate_Patch, overwrite = TRUE
 )
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #######################################
 # Lay Eggs Function
 #######################################

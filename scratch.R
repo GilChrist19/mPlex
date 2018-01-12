@@ -454,13 +454,11 @@ genotypes <- list(c("HH", "WW"), c("WW"), c("WW"))
 genotypes <- list(c("WW"), NULL, c("WW"))
 collapse <- c(F,F,F)
 
-list.files(path = ".", pattern = NULL, all.files = FALSE,
-           full.names = FALSE, recursive = FALSE,
-           ignore.case = FALSE, include.dirs = FALSE, no.. = FALSE)
+#must give in order: "H", "R", "S", "W"
+alleles <- list(list(c("H","W"),"W", "W"),list(c("H","W"),NULL, "W"))
+collapse <- list(c(F,T,F), c(T,F,F))
 
-
-
-AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, genotypes, collapse){
+AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, alleles, collapse){
 
   #get list of all files, unique runs, and unique patches
   dirFiles = list.files(path = readDirectory, pattern = ".*\\.csv$")
@@ -474,30 +472,42 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, genotyp
 
   #safety checks
   #check that the number of loci is equal to the genotype length
-  if(nchar(testFile$Genotype[1])/2 != length(genotypes)){
-    stop("genotypes must be the length of loci in the critters to analyze.
-         list(c(locus_1),c(locus_2),etc)
-         NULL -> all genotypes")
+  if(length(alleles)!=2){
+    stop("There are 2 alleles in this simulation
+         list(list(locus_1, locus_2), list(locus_1, locus_2))")
+  }
+  if(any(nchar(testFile$Genotype[1])/2 != lengths(alleles))){
+    stop("Each allele list must be the length of loci in the allele.
+         list(list(locus_1, locus_2), list(locus_1, locus_2))
+         NULL -> all possible alleles")
   }
   #check that the collapse length is equal to genotype length
-  if(length(genotypes) != length(collapse)){
-    stop("collapse must be specified for each loci.
-         length(collapse) == length(genotypes)")
+  if(length(alleles) != length(collapse) || lengths(alleles) != lengths(collapse)){
+    stop("collapse must be specified for each locus in each allele.
+         length(collapse) == length(alleles)
+         lengths(collapse) == lengths(alleles)")
   }
 
   #do collapse if there is some
-  for(i in 1:numLoci){
-    #if null, look at all possible genotypes at that locus
-    if( is.null(genotypes[[i]]) ){
-      genotypes[[i]] <- "(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)"
-    }
-    #if collapse is true, collapse the genotypes so all are searched for as one
-    if(collapse[i]){
-      genotypes[[i]] <- paste0("(",paste0(genotypes[[i]], collapse = "|") , ")", collapse = "")
-    }
-  }
+  for(outer in 1:2){
+    for(inner in 1:length(alleles[[1]])){
+      #if null, look at all possible genotypes at that locus
+      if( is.null(alleles[[outer]][[inner]]) ){
+        alleles[[outer]][[inner]] <- "(H|R|S|W)"
+      }
+      #if collapse is true, collapse the genotypes so all are searched for as one
+      if(collapse[[outer]][inner]){
+        alleles[[outer]][[inner]] <- paste0("(",paste0(alleles[[outer]][[inner]], collapse = "|") , ")", collapse = "")
+      }
+    }#end loop over each loci
+
+    #expand and paste all possible loci combinations in each allele
+    alleles[[outer]] <- do.call(what = paste0,
+                   args = expand.grid(alleles[[outer]], KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE))
+
+  }#end loop over each allele
   #expand all combinations of alleles at each site
-  gOI <- expand.grid(genotypes, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
+  gOI <- expand.grid(alleles, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
   #bind all combinations into complete genotypes
   gOI <- do.call(what = paste0, args = gOI)
 
@@ -554,7 +564,6 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, genotyp
 }#end function
 
 
-AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, alleles, collapse)
 
 
 
@@ -563,96 +572,3 @@ AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, alleles, col
 
 
 
-#' Aggregate Female Output by Genotype
-#'
-#' Aggregate over male mate genotype to convert female matrix output into vector output.
-#'
-#' @param directory directory where output was written to; must not end in path seperator
-#' @param genotypes character vector of possible genotypes; found in \code{driveCube$genotypesID}
-#' @param remove boolean flag to remove original (unaggregated) file
-#'
-#' @export
-aggregateFemales <- function(directory, genotypes, remove = FALSE){
-  dirFiles = list.files(path = directory)
-
-  femaleFiles = dirFiles[grep(pattern = "AF1",x = dirFiles)]
-
-  for(file in femaleFiles){
-    cat("processing ",file,"\n",sep="")
-    thisPatch = regmatches(x = file, m = regexpr(pattern = "Patch[0-9]+", text = file))
-    thisOutput = read.csv(file = file.path(directory, file))
-
-    timePatch = thisOutput[,c(1,2)]
-    thisOutput = thisOutput[,-c(1,2)]
-    thisOutputNames = names(thisOutput)
-
-    sizeGenotype = nchar(genotypes)[1]
-    subNames = substr(thisOutputNames,1,sizeGenotype)
-
-    aggregateOut = vapply(X = genotypes,FUN = function(x){
-      cols = which(subNames==x)
-      rowSums(thisOutput[,cols])
-    },FUN.VALUE = numeric(nrow(thisOutput)))
-
-    fileName = sub(pattern = "_",replacement = "_Aggregate_",x = file)
-    cat("writing ",fileName,"\n",sep="")
-    write.table(x = cbind(timePatch,aggregateOut),file=file.path(directory, fileName),
-                row.names = FALSE,col.names = TRUE,sep = ",",quote = FALSE)
-    if(remove){
-      cat("removing ",file,"\n",sep="")
-      file.remove(file.path(directory, file))
-    }
-  }
-}
-
-#' Retrieve Output
-#'
-#' Read in output from directory. The resulting object will be a nested list; outermost nesting dimension indexes runID, within runID elements are split by sex
-#' and innermost nesting is over patches.
-#'
-#' @param directory directory where output was written to; must not end in path seperator
-#' @param genotypes character vector of possible genotypes; found in \code{driveCube$genotypesID}
-#'
-#' @export
-retrieveOutput <- function(directory, genotypes){
-  dirFiles = list.files(path = directory)
-
-  runID = strsplit(x = dirFiles,split = "_")
-  runID = unique(x = grep( pattern = "Run", x = unlist(x = runID), value = TRUE))
-
-  output = setNames(object = vector(mode = "list",length = length(runID)), runID)
-  for(run in runID){
-    cat("processing ",run,"\n",sep="")
-
-    runFiles = dirFiles[grep(pattern = run,x = dirFiles)]
-    patches = regmatches(x = runFiles, m = regexpr(pattern = "Patch[0-9]+", text = runFiles))
-    patches = as.integer(gsub(pattern = "Patch",replacement = "",x = patches))
-    patches = sort(unique(patches))
-
-    output[[run]]$F = setNames(object = vector(mode = "list",length = length(patches)),
-                               nm = paste0("Patch",patches))
-    output[[run]]$M = setNames(object = vector(mode = "list",length = length(patches)),
-                               nm = paste0("Patch",patches))
-
-    # retrieve males for this run
-    males = runFiles[grep(pattern = "ADM",x = runFiles)]
-    for(male in males){
-      thisPatch = regmatches(x = male, m = regexpr(pattern = "Patch[0-9]+", text = male))
-      thisOutput = read.csv(file = file.path(directory, male))
-      thisOutput = as.matrix(thisOutput)
-      rownames(thisOutput) = NULL
-      output[[run]]$M[[thisPatch]] = thisOutput[,-c(1,2)]
-    }
-
-    # retrieve females for this run
-    females = runFiles[grep(pattern = "AF1_Aggregate",x = runFiles)]
-    for(female in females){
-      thisPatch = regmatches(x = female, m = regexpr(pattern = "Patch[0-9]+", text = female))
-      thisOutput = read.csv(file = file.path(directory, female))
-      thisOutput = thisOutput[,-c(1,2)]
-      output[[run]]$F[[thisPatch]] = as.matrix(thisOutput)
-    }
-
-  }
-  return(output)
-}
