@@ -27,13 +27,20 @@ Network <- R6::R6Class(classname = "Network",
                 initialize = function(networkParameters, patchReleases, reproductionType=NULL, offspringReference, migrationMale, migrationFemale, directory){
 
                   #set basic things from Parameters
-                  private$parameters = networkParameters
                   private$nPatch = networkParameters$nPatch
+                  private$simTime = networkParameters$simTime
+                  private$parallel = networkParameters$parallel
+                  private$moveVar = networkParameters$moveVar
+                  private$runID = networkParameters$runID
+                  private$stageTime = networkParameters$stageTime
+                  private$beta = networkParameters$beta
+                  private$mu = networkParameters$mu
+                  private$alpha = networkParameters$alpha
+
                   private$listPatch = 1:networkParameters$nPatch
                   private$patches = vector(mode="list",length=private$nPatch)
-                  private$simTime = networkParameters$simTime
+
                   private$directory = directory
-                  private$runID = networkParameters$runID
 
                   #Check releases and set them
                   if(length(patchReleases) != networkParameters$nPatch){
@@ -77,18 +84,18 @@ Network <- R6::R6Class(classname = "Network",
                   }
 
                   # age ranges became a pain
-                  lenAgeEgg <- length(0:networkParameters$timeAq["E"])
+                  lenAgeEgg <- length(0:networkParameters$stageTime["E"])
 
-                  minAgeLarva <- networkParameters$timeAq["E"] + 1L
-                  maxAgeLarva <- minAgeLarva + networkParameters$timeAq["L"]
+                  minAgeLarva <- networkParameters$stageTime["E"] + 1L
+                  maxAgeLarva <- minAgeLarva + networkParameters$stageTime["L"]
                   lenAgeLarva <- length(minAgeLarva:maxAgeLarva)
 
                   minAgePupa <- maxAgeLarva + 1L
-                  maxAgePupa <- minAgePupa + networkParameters$timeAq["P"]
+                  maxAgePupa <- minAgePupa + networkParameters$stageTime["P"]
                   lenAgePupa <- length(minAgePupa:maxAgePupa)
 
                   minAgeAdult <- maxAgePupa + 1L
-                  maxAgeAdult <- minAgeAdult + networkParameters$tAdult
+                  maxAgeAdult <- minAgeAdult + networkParameters$stageTime["A"]
                   lenAgeAdult <- length(minAgeAdult:maxAgeAdult)
 
                   # initialize patches
@@ -100,7 +107,7 @@ Network <- R6::R6Class(classname = "Network",
                     private$patches[[i]] = Patch$new(patchID = i,
                                                      simTime = private$simTime,
                                                      eggs_t0 = CreateMosquitoes_Distribution_Genotype(numMos = networkParameters$Leq[i],
-                                                                                                      minAge = 0L, maxAge = networkParameters$timeAq["E"],
+                                                                                                      minAge = 0L, maxAge = networkParameters$stageTime["E"],
                                                                                                       ageDist =  rep(x = 1, times = lenAgeEgg)/lenAgeEgg,
                                                                                                       aTypes = networkParameters$alleloTypes[[i]]),
 
@@ -161,71 +168,72 @@ Network <- R6::R6Class(classname = "Network",
                 }, # end constructor
 
                 #getters and setters
-                get_moveVar = function() {private$parameters$moveVar},
-                get_timeAq = function(stage = NULL){
-                                if(is.null(stage)){sum(private$parameters$timeAq)
-                                } else {private$parameters$timeAq[[stage]]}
-                              },
-                get_beta = function(){private$parameters$beta},
-                get_reference = function(){private$reference},
-                get_rm = function(){private$parameters$rm},
-                get_AdPopEQ = function(ix){private$parameters$AdPopEQ[ix]},
-                get_g = function(){private$parameters$g},
-                get_Rm = function(){private$parameters$Rm},
-                get_mu = function(stage){private$parameters$mu[[stage]]},
-                get_alpha = function(ix){private$parameters$alpha[ix]},
-                get_Leq = function(ix){private$parameters$Leq[ix]},
-                get_patch = function(patch = NULl){
+                get_nPatch = function(){private$nPatch},
+                get_simTime = function(){private$simTime},
+                get_parallel = function(){private$parallel},
+                get_moveVar = function(){private$moveVar},
+                get_runID = function(){private$runID},
+                get_stageTime = function(stage = NULL){private$stageTime[stage]},
+                get_beta = function(){private$beta},
+                get_mu = function(stage=NULL){private$mu[stage]},
+                get_alpha = function(patch=NULL){private$alpha[patch]},
+                get_listPatch = function(){private$listPatch},
+                get_patch = function(patch = NULL){
                               if(is.null(patch)){private$patches
                               } else {private$patches[[patch]]}
                             },
-                get_nPatch = function(){private$nPatch},
-                get_listPatch = function(){private$listPatch},
-                get_directory = function(){private$directory},
-                get_simTime = function(){private$simTime},
-                get_conADM = function(){private$conADM},
-                get_conAF1 = function(){private$conAF1},
+                get_reference = function(){private$reference},
                 get_tNow  = function(){private$tNow},
-                get_patchReleases = function(ix, sex = "M"){
-                                      switch(sex,
-                                        M = {private$patchReleases[[ix]]$maleReleases},
-                                        F = {private$patchReleases[[ix]]$femaleReleases},
-                                        L = {private$patchReleases[[ix]]$larvaeReleases}
-                                      )
+
+                get_directory = function(){private$directory},
+                get_conADM = function(){private$conADM},
+                get_conADF = function(){private$conADF},
+                close_connections = function(){
+                                      close(private$conADM)
+                                      close(private$conADF)
                                     },
+
                 get_migrationMale = function(patch = NULL){
                                       if(is.null(patch)){private$migrationMale
                                       } else {private$migrationMale[patch, ,drop=FALSE]}
-                  #Does this drop thing matter here?
+                                      #Does this drop thing matter here?
                                     },
                 get_migrationFemale = function(patch = NULL){
                                         if(is.null(patch)){private$migrationFemale
-                                          } else {private$migrationFemale[patch, ,drop=FALSE]}
+                                        } else {private$migrationFemale[patch, ,drop=FALSE]}
                                       },
                 get_migrationFractionMale = function(patch=NULL){private$migrationFractionMale[patch]},
                 get_migrationFractionFemale = function(patch=NULL){private$migrationFractionFemale[patch]},
-                close_connections = function(){
-                                      close(private$conADM)
-                                      close(private$conAF1)
+
+                get_patchReleases = function(patch, sex = "M"){
+                                      switch(sex,
+                                        M = {private$patchReleases[[patch]]$maleReleases},
+                                        F = {private$patchReleases[[patch]]$femaleReleases},
+                                        L = {private$patchReleases[[patch]]$larvaeReleases}
+                                      )
                                     }
               ),
 
             # private members
             private = list(
-
-                parameters = NULL,
-                reference = NULL, # reference rates for offspring
-                patches = NULL, # list of patches
                 nPatch = NULL, # number of patches
-                listPatch = NULL, #list of patch numbers
                 simTime = NULL, # max time of sim
+                parallel = logical(1),
+                moveVar = numeric(1),
+                runID = integer(1),
+                stageTime = numeric(4),
+                beta = integer(1),
+                mu = numeric(4),
+                alpha = NULL,
+                listPatch = NULL, #list of patch numbers
+                patches = NULL, # list of patches
+                reference = NULL, # reference rates for offspring
                 tNow = 2L, # time starts at 2 because time 1 is the initial condition
-                runID = numeric(1),
 
                 # output
                 directory = NULL, # directory to store all patch output
                 conADM = NULL,
-                conAF1 = NULL,
+                conADF = NULL,
 
                 # inter-patch migration
                 migrationMale = NULL,
@@ -274,13 +282,13 @@ Network$set(which = "public",name = "reset",
 #' Run a single simulation on this network.
 #'
 #' @param conADM an optional \code{\link[base]{connection}} to write male population dynamics to
-#' @param conAF1 an optional \code{\link[base]{connection}} to write female population dynamics to
+#' @param conADF an optional \code{\link[base]{connection}} to write female population dynamics to
 #'
-oneRun_Network <- function(conADM = NULL, conAF1 = NULL){
+oneRun_Network <- function(conADM = NULL, conADF = NULL){
 
   # open connections & write headers
   # parallel
-if(private$parameters$parallel){
+if(private$parallel){
 
     pid = Sys.getpid()
     if(is.null(conADM)){
@@ -289,16 +297,16 @@ if(private$parameters$parallel){
       private$conADM = file(description = file.path(private$directory, conADM),open = "wt")
     }
 
-    if(is.null(conAF1)){
-      private$conAF1 = file(description = paste0(private$directory, .Platform$file.sep, "AF1_pid_",pid,"_Run",private$runID,".csv"),open = "wt")
+    if(is.null(conADF)){
+      private$conADF = file(description = paste0(private$directory, .Platform$file.sep, "ADF_pid_",pid,"_Run",private$runID,".csv"),open = "wt")
     } else {
-      private$conAF1 = file(description = file.path(private$directory, conAF1),open = "wt")
+      private$conADF = file(description = file.path(private$directory, conADF),open = "wt")
     }
 
   # serial
   } else {
     private$conADM = file(description = paste0(private$directory, .Platform$file.sep, "ADM_Run",private$runID,".csv"),open = "wt")
-    private$conAF1 = file(description = paste0(private$directory, .Platform$file.sep, "AF1_Run",private$runID,".csv"),open = "wt")
+    private$conADF = file(description = paste0(private$directory, .Platform$file.sep, "ADF_Run",private$runID,".csv"),open = "wt")
 
   }
 
@@ -308,7 +316,7 @@ if(private$parameters$parallel){
 
   # females
   writeLines(text = file.path("Time", "Patch", "Age", "Genotype", "Mate", fsep = ","),
-             con = private$conAF1, sep = "\n")
+             con = private$conADF, sep = "\n")
 
   cat("begin run ",private$runID,"\n",sep="")
 
@@ -331,7 +339,7 @@ if(private$parameters$parallel){
 
   #close connections
   close(private$conADM)
-  close(private$conAF1)
+  close(private$conADF)
 
   cat("run ",private$runID," over\n",sep="")
 }

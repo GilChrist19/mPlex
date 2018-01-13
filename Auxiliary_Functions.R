@@ -237,7 +237,7 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, genotyp
                    x = dirFiles, ignore.case = FALSE, value = TRUE)
       mFile = read.csv(file = file.path(readDirectory, mName),
                        header = TRUE, stringsAsFactors = FALSE)
-      fName = grep(pattern = paste("AF1", run, patch, sep = ".*"),
+      fName = grep(pattern = paste("ADF", run, patch, sep = ".*"),
                    x = dirFiles, ignore.case = FALSE, value = TRUE)
       fFile = read.csv(file = file.path(readDirectory, fName),
                        header = TRUE, stringsAsFactors = FALSE)
@@ -362,7 +362,7 @@ AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, alleles, col
                    x = dirFiles, ignore.case = FALSE, value = TRUE)
       mFile = read.csv(file = file.path(readDirectory, mName),
                        header = TRUE, stringsAsFactors = FALSE)
-      fName = grep(pattern = paste("AF1", run, patch, sep = ".*"),
+      fName = grep(pattern = paste("ADF", run, patch, sep = ".*"),
                    x = dirFiles, ignore.case = FALSE, value = TRUE)
       fFile = read.csv(file = file.path(readDirectory, fName),
                        header = TRUE, stringsAsFactors = FALSE)

@@ -21,6 +21,86 @@
 #   Each patch can be mapped to a node within a network of connected populations in
 #   which adult mosquitoes can migrate. This is a fully independent and self-contained unit,
 #   so it can be treated as an atomic entity.
+
+#' Patch Class Definition
+#'
+#' A Patch represents a single, well-mixed population of Mosquitoes.
+#'
+#' @docType class
+#' @format An \code{\link{R6Class}} generator object
+#' @keywords R6 class
+#'
+#' @section **Constructor**:
+#'  * patchID: Integer ID of this patch
+#'  * simTime: Maximum time of simulation
+#'  * eggs_t0: List of Mosquito objects as the initial egg population, \eqn{L_{eq}}
+#'  * larva_t0: List of Mosquito objects as the initial larval population, \eqn{L_{eq}}
+#'  * pupa_t0: List of Mosquito objects as the initial pupae population, \eqn{L_{eq}}
+#'  * adult_male_t0: List of Mosquito objects as the initial adult male population, \eqn{Ad_{eq}}
+#'  * unmated_female_t0: List of Mosquito objects as the initial adult female population, \eqn{Ad_{eq}}
+#'  * maleReleases: Male release schedule for this patch, see \code{\link{Release_basicRepeatedReleases}}
+#'  * femaleReleases: Female release schedule for this patch, see \code{\link{Release_basicRepeatedReleases}}
+#'  * larvaeReleases: Larvae release schedule for this patch, see \code{\link{Release_basicRepeatedReleases}}
+#'
+#' @section **Methods**:
+#'  * get_patchID: Return ID of current patch
+#'  * get_egg: Return current egg population
+#'  * get_larva: Return current larva population
+#'  * get_pupa: Return current pupa population
+#'  * get_adult_male: Return current adult male population
+#'  * get_adult_female: Return current adult female population
+#'  * get_unmated_female: Return current adult, unmated female population
+#'  * get_maleMigration: Return migratory males (nPatch length list of lists)
+#'  * get_femaleMigration: Return migratory females (nPatch length list of lists)
+#'  * set_NetworkPointer: Set a referenced to the enclosing \code{\link{Network}} object
+#'  * get_NetworkPointer: Return a reference to the enclosing \code{\link{Network}} object
+#'  * reset: see \code{\link{reset_Patch}}
+#'  * oneDay_initOutput: see \code{\link{oneDay_initOutput_Patch}}
+#'  * oneDay_writeOutput: see \code{\link{oneDay_writeOutput_Patch}}
+#'  * oneDay_maleReleases: see \code{\link{oneDay_maleReleases_Patch}}
+#'  * oneDay_femaleReleases: see \code{\link{oneDay_femaleReleases_Patch}}
+#'  * oneDay_larvaeReleases: see \code{\link{oneDay_larvaeReleases_Patch}}
+#'  * oneDay_migrationOut: see \code{\link{oneDay_migrationOut_Patch}}
+#'  * oneDay_migrationIn: see \code{\link{oneDay_migrationIn_Patch}}
+#'  * oneDay_PopDynamics: see \code{\link{oneDay_PopDynamics_Patch}}
+#'  * oneDay_Age: see \code{\link{oneDay_Age_Patch}}
+#'  * oneDay_EggDeath: see\code{\link{oneDay_EggDeath_Patch}}
+#'  * oneDay_LarvalDeath: see \code{\link{oneDay_LarvalDeath_Patch}}
+#'  * oneDay_PupaDeath: see \code{\link{oneDay_PupaDeath_Patch}}
+#'  * oneDay_AdultDeath: see \code{\link{oneDay_AdultDeath_Patch}}
+#'  * oneDay_EggMaturation: see \code{\link{oneDay_EggMature_Patch}}
+#'  * oneDay_LarvaMaturation: see \code{\link{oneDay_LarvaMature_Patch}}
+#'  * oneDay_PupaMature: see \code{\link{oneDay_PupaMature_Patch}}
+#'  * oneDay_Mate: see \code{\link{oneDay_Mate_Patch}}
+#'  * oneDay_Reproduction: See \code{\link{oneDay_Reproduction_Patch}}
+#'
+#' @section **Fields**:
+#'  * patchID: Integer ID of current patch
+#'  * genericCounter: Generic counter used for indexing
+#'  * eggs_t0: List of Mosquitoes comprising the initial egg population
+#'  * larva_t0: List of Mosquitoes comprising the initial larval population
+#'  * pupa_t0: List of Mosquitoes comprising the initial pupa population
+#'  * adult_male_t0: List of Mosquitoes comprising the initial adult male population
+#'  * adult_female_t0: List of Mosquitoes comprising the initial adult female population
+#'  * unmated_female_t0: List of Mosquitoes comprising the initial unmated female population
+#'  * eggs: List of Mosquitoes comprising the current egg population
+#'  * larva: List of Mosquitoes comprising the current larval population
+#'  * pupa: List of Mosquitoes comprising the current pupa population
+#'  * adult_male: List of Mosquitoes comprising the current adult male population
+#'  * adult_female: List of Mosquitoes comprising the current adult female population
+#'  * unmated_female: List of Mosquitoes comprising the current unmated female population
+#'  * maleMigration: List of outbound male Mosquitoes, length nPatch
+#'  * femaleMigration: List of outbound female Mosquitoes, length nPatch
+#'  * numMigration: Holder for the number of migratory Mosquitoes, integer
+#'  * migrationDist: Holder for the distribution of Mosquitoes over patches, vector length nPatch-1
+#'  * maleReleases: Male release schedule and list of Mosquitoes to release
+#'  * femaleReleases: female release schedule and list of Mosquitoes to release
+#'  * larvaeReleases: Larval release schedule and list of Mosquitoes to release
+#'  * NetworkPointer: a reference to enclosing \code{\link{Network}}
+#'  * DenDep: Density-dependent parameter for larvae
+#'  * death: Vector of T/F death at each stage. Slowly grows with population size
+#'
+#' @export
 Patch <- R6::R6Class(classname = "Patch",
             portable = TRUE,
             cloneable = FALSE,
@@ -118,7 +198,7 @@ Patch <- R6::R6Class(classname = "Patch",
                 # pointers
                 NetworkPointer = NULL,
                 DenDep = numeric(length = 1),
-                death =NULL
+                death = NULL
 
               )# end private
 )
@@ -133,8 +213,8 @@ Patch <- R6::R6Class(classname = "Patch",
 
 #' Reset Patch to Initial Conditions
 #'
-#' Resets a patch to its initial configuration so that a new one does not have to be created and
-#'     allocated in the network (for Monte Carlo simulation).
+#' Resets a patch to its initial configuration so that a new one does not have
+#' to be created and allocated in the network (for Monte Carlo simulation).
 #'
 reset_Patch <- function(){
 
@@ -153,14 +233,14 @@ reset_Patch <- function(){
   private$femaleReleases = private$NetworkPointer$get_patchReleases(private$patchID,"F")
 
 }
-
 Patch$set(which = "public",name = "reset",
           value = reset_Patch, overwrite = TRUE
 )
 
 #' Initialize Output from Focal Patch
 #'
-#' Writes output to the text connections specified in the enclosing \code{\link{Network}}
+#' Writes initial output to the text connections specified in the enclosing
+#' \code{\link{Network}}
 #'
 oneDay_initOutput_Patch <- function(){
 
@@ -174,19 +254,19 @@ oneDay_initOutput_Patch <- function(){
   # Write Females
   for(mosquito in private$unmated_female){
     writeLines(text = file.path(1, private$patchID, mosquito$print_male(), "NULL", fsep = ","),
-               con = private$NetworkPointer$get_conAF1(),
+               con = private$NetworkPointer$get_conADF(),
                sep = "\n")
   }
 
 }
-
 Patch$set(which = "public",name = "oneDay_initOutput",
           value = oneDay_initOutput_Patch, overwrite = TRUE
 )
 
 #' Write Output from Focal Patch
 #'
-#' Writes output to the text connections specified in the enclosing \code{\link{Network}}
+#' Writes daily output to the text connections specified in the enclosing
+#' \code{\link{Network}}
 #'
 oneDay_writeOutput_Patch <- function(){
 
@@ -204,12 +284,11 @@ oneDay_writeOutput_Patch <- function(){
 
     writeLines(text = file.path(private$NetworkPointer$get_tNow(), private$patchID,
                                 mosquito$print_female(), fsep = ","),
-               con = private$NetworkPointer$get_conAF1(),
+               con = private$NetworkPointer$get_conADF(),
                sep = "\n")
   }
 
 }
-
 Patch$set(which = "public",name = "oneDay_writeOutput",
           value = oneDay_writeOutput_Patch, overwrite = TRUE
 )
@@ -275,6 +354,16 @@ Patch$set(which = "public",name = "oneDay_larvaeReleases",
 # These are from patch-migration.R
 #######################################
 
+#' Oubound Migration
+#'
+#' Stochastic model of migration of adults from this patch.
+#'
+#' @details Migration is modeled as a Dirichlet-Multinomial process parameterized
+#' by \code{moveVar} multiplied by the row corresponding to this patch from the
+#' migration matrix. A Dirichlet distributed random variate is sampled over the
+#' other patch frequency and then from \code{JaredDirichlet} according to that
+#' parameter vector and then movement is sampled from \code{\link[stats]{rmultinom}}.
+#'
 oneDay_migrationOut_Patch <- function(){
 
   #set empty return lists

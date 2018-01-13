@@ -32,7 +32,8 @@ oneDay_PopDynamics_Patch <- function(){
   self$oneDay_Age(Population = private$adult_male)
   self$oneDay_Age(Population = private$adult_female)
 
-  cat("\nEggs:", length(private$eggs), "\n")
+  cat("\nDay:",private$NetworkPointer$get_tNow(), "\n" )
+  cat("Eggs:", length(private$eggs), "\n")
   cat("Larva:", length(private$larva), "\n")
   cat("Pupa:", length(private$pupa), "\n")
   cat("Male:", length(private$adult_male), "\n")
@@ -80,6 +81,12 @@ Patch$set(which = "public",name = "oneDay_PopDynamics",
 #######################################
 # Age Function
 #######################################
+#' Daily Aging
+#'
+#' Age all Mosquitoes in the population by 1 day
+#'
+#' @param Population The population to age
+#'
 oneDay_Age_Patch <- function(Population = NULL){
 
   for(critter in Population){
@@ -94,6 +101,10 @@ Patch$set(which = "public",name = "oneDay_Age",
 #######################################
 # Death Functions
 #######################################
+#' Daily Egg Death
+#'
+#' Kill eggs based on a chance of death specified by mu("E")
+#'
 oneDay_EggDeath_Patch <- function(){
 
   #calculate other dependent factors
@@ -109,19 +120,26 @@ Patch$set(which = "public",name = "oneDay_EggDeath",
           value = oneDay_EggDeath_Patch, overwrite = TRUE
 )
 
+#' Daily Larvae Death
+#'
+#' Kill larvae based on a chance of death specified by mu("L") and a density
+#' dependend parameter alpha
+#'
 oneDay_LarvalDeath_Patch <- function(){
 
   #calculate density-dependent portion
-  stageDur <- private$NetworkPointer$get_timeAq("L")
+  stageDur <- private$NetworkPointer$get_stageTime(stage = "L")
   alpha = private$NetworkPointer$get_alpha(private$patchID)
 
   private$DenDep <- (alpha/(alpha+length(private$larva)) )^(1/stageDur)
 
+  cat("Larval density dependence is:", private$DenDep, "\n")
+
   #calculate death
-  ### CAN I MULTIPLY THIS?????? ########
+  # This is done as 1-probLife
   private$death <- rbinom(n = length(private$larva),
                   size = 1,
-                  prob = private$DenDep*private$NetworkPointer$get_mu("L"))
+                  prob = 1-(private$DenDep*(1-private$NetworkPointer$get_mu("L"))))
 
   private$larva[as.logical(private$death)] <- NULL
 }
@@ -181,7 +199,7 @@ oneDay_EggMature_Patch <- function(){
   if(num > 0){
 
     #set mean age and sd. THESE NEED TO BE CHECKED or PROVEN
-    meanAge <- log(x = private$NetworkPointer$get_timeAq(stage = "E"))
+    meanAge <- log(x = private$NetworkPointer$get_stageTime(stage = "E"))
     sdAge <- log(x = 1.2)
 
     #draw all the ages since this can probably be done.
@@ -217,8 +235,7 @@ oneDay_LarvaMature_Patch <- function(){
   if(num > 0){
 
     #set mean age and sd. THESE NEED TO BE CHECKED or PROVEN
-    meanAge <- log(x = private$NetworkPointer$get_timeAq(stage = "E")+
-                     private$NetworkPointer$get_timeAq(stage = "L"))
+    meanAge <- log(x = sum(private$NetworkPointer$get_stageTime(stage = c("E", "L") ) ) )
     sdAge <- log(x = 1.2)
 
     #draw all the ages since this can probably be done.
@@ -255,7 +272,7 @@ oneDay_PupaMature_Patch <- function(){
   if(num > 0){
 
     #set mean age and sd. THESE NEED TO BE CHECKED or PROVEN
-    meanAge <- log(x = private$NetworkPointer$get_timeAq())
+    meanAge <- log(x = sum(private$NetworkPointer$get_stageTime(stage = c("E", "L", "P")) ) )
     sdAge <- log(x = 1.2)
 
     #draw all the ages since this can probably be done.
