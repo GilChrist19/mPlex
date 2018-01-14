@@ -10,7 +10,8 @@
 #' Network Parameters
 #'
 #' Generate parameters for simulation on a \code{\link{Network}}.
-#' Parameters average generation time \eqn{g}, population growth rate \eqn{R_{m}},
+#'
+#' @details Parameters average generation time \eqn{g}, population growth rate \eqn{R_{m}},
 #' aquatic mortality \eqn{\mu_{Aq}}, and aquatic survival \eqn{\theta_{Aq}}
 #' are shared between patches and calculated by \code{\link{calcAverageGenerationTime}},
 #' \code{\link{calcPopulationGrowthRate}}, \code{\link{calcLarvalStageMortalityRate}},
@@ -21,6 +22,8 @@
 #'
 #' @param nPatch number of \code{\link{Patch}}
 #' @param simTime maximum time to run simulation
+#' @param alleloTypes list of allele probabilities for each patch in the simulation
+#' \code{\link{CreateMosquitoes_Distribution_Genotype}}
 #' @param parallel append process id (see \code{link[base]{Sys.getpid}})
 #' to output files for running in parallel
 #' @param moveVar variance of stochastic movement (not used in diffusion model of migration).
@@ -34,6 +37,15 @@
 #' @param dayGrowthRate daily population growth rate (used to calculate equilibrium)
 #' @param AdPopEQ vector of adult population size at equilibrium
 #' @param runID begin counting runs with this set of parameters from this value
+#'
+#' @return List(nPatch=int, simTime=vec int, parallel=logical, moveVar=numeric,
+#' runID=int, stageTime=vec int, beta=int, dayGrowthRate=numeric, AdPopEq=int vec,
+#' alleloTypes=list, genTime=numeric, genGrowthRate=numeric, mu=vec numeric,
+#' thetaAq=vec numeric, alpha=vec numeric, Leq=vec int)
+#'
+#' @examples
+#' This is an example
+#' So is this
 #'
 #' @export
 Network.Parameters <- function(
@@ -98,8 +110,8 @@ Network.Parameters <- function(
                      nm = c("E","L","P"))
 
   # patch-specific derived parameters
-  pars$alpha = rep(0,nPatch)
-  pars$Leq = rep(0,nPatch)
+  pars$alpha = numeric(length = nPatch)
+  pars$Leq = numeric(length = nPatch)
   for(i in 1:nPatch){
     pars$alpha[i] = calcDensityDependentDeathRate(beta,pars$thetaAq,pars$stageTime["L"],AdPopEQ[i],pars$genGrowthRate)
     pars$Leq[i] = calcLarvalPopEquilibrium(pars$alpha[i],pars$genGrowthRate)

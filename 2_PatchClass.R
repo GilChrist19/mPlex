@@ -24,7 +24,7 @@
 
 #' Patch Class Definition
 #'
-#' A Patch represents a single, well-mixed population of Mosquitoes.
+#' A Patch represents a single, well-mixed population of \code{\link{Mosquito}}
 #'
 #' @docType class
 #' @format An \code{\link{R6Class}} generator object

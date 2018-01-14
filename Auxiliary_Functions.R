@@ -10,6 +10,45 @@
 # Release Functions
 ###############################################################################
 
+#' Create new Mosquito objects
+#'
+#' Creates new Mosquito objects specifically for releases
+#'
+#' @usage CreateMosquitoes_Defined_Genotype(genMos, numMos, minAge, maxAge, ageDist)
+#'
+#' @param genMos List of genotypes for new Mosquitoes
+#' @param numMos Integer number of Mosquitoes to create
+#' @param minAge Integer specifying the minimum age of Mosquitoes
+#' @param maxAge Integer specifying the maximum age of Mosquiotes
+#' @param ageDist Distribution for ages of Mosquitoes. Must be length(maxAge-minAge+1)
+#'
+#' @details This function creates new mosquitoes. It is similar to \code{\link{CreateMosquitoes_Eggs}}
+#' and \code{\link{CreateMosquitoes_Distribution_Genotype}}, but intended for releases setup.
+#' The assumption is that scientists can control the genotype of lab populations,
+#' so this function takes a list of genotypes, then a vector of how many of each
+#' genotype to release. There is some age variation, though that can be specified
+#' precisely.
+#'
+#' @return List of Mosquito objects length(sum(numMos))
+#'
+#' @examples
+#' set.seed(42)
+#' genMos <- c("A","B","C")
+#' numMos <- c(10,20,30)
+#' minAge <- 1
+#' maxAge <- 10
+#' ageDist <- rep(x = 1, times = 10-1+1)/(10-1+1) #uniform distribution
+#' CreateMosquitoes_Defined_Genotype(genMos, numMos, minAge, maxAge, ageDist)
+#'
+#' set.seed(42)
+#' genMos <- c("A","B","C")
+#' numMos <- c(10,20,30)
+#' minAge <- 5
+#' maxAge <- 10
+#' ageDist <- c(0,0,0,0,0,1) #all ages will be 10
+#' CreateMosquitoes_Defined_Genotype(genMos, numMos, minAge, maxAge, ageDist)
+#'
+#' @export
 CreateMosquitoes_Defined_Genotype <- function(genMos, numMos, minAge, maxAge, ageDist){
   #genMos is a list of genotypes to relaese
   #numMos is a vector of the number of mosquitoes you want to make, corresponding
@@ -43,7 +82,51 @@ CreateMosquitoes_Defined_Genotype <- function(genMos, numMos, minAge, maxAge, ag
   return(population)
 }
 
-
+#' Make List of Mosquito Releases
+#'
+#' Sets up a release schedule for a single patch, returns a list to be used in
+#' \code{\link{oneDay_maleReleases_Patch}}, \code{\link{oneDay_femaleReleases_Patch}},
+#' or \code{\link{oneDay_larvaeReleases_Patch}}.
+#'
+#' @param releaseStart Day releases start
+#' @param releaseEnd Day releases end
+#' @param releaseInterval Interval between releases
+#' @param releaseVector List of Mosquitoe objects to be releases
+#' @param sex Character in c('M', 'F', 'L')
+#'
+#' @details See \code{\link{CreateMosquitoes_Defined_Genotype}} for how to setup
+#' the release vector.
+#'
+#' @return List of release dates and the population to be released on that day.
+#'
+#' @examples
+#' # to setup for 3 patches but only release in the first with a defined release schedule:
+#'
+#' patchReleases = replicate(n = 3,
+#'                           expr = list(maleReleases = NULL,femaleReleases = NULL,larvaeReleases=NULL),
+#'                           simplify = FALSE)
+#'
+#' releaseMosquitoes <- CreateMosquitoes_Defined_Genotype(genMos, numMos, minAge, maxAge, ageDist)
+#'
+#' patchReleases[[1]]$femaleReleases = Release_basicRepeatedReleases(releaseStart = 5,
+#' releaseEnd = 30,
+#' releaseInterval = 5,
+#' releaseVector = releaseMosquitoes,
+#' sex = "F")
+#'
+#' patchReleases[[1]]$maleReleases = Release_basicRepeatedReleases(releaseStart = 50,
+#' releaseEnd = 60,
+#' releaseInterval = 1,
+#' releaseVector = releaseMosquitoes,
+#' sex = "M")
+#'
+#' patchReleases[[1]]$larvaeReleases = Release_basicRepeatedReleases(releaseStart = 1,
+#' releaseEnd = 5,
+#' releaseInterval = 1,
+#' releaseVector = releaseMosquitoes,
+#' sex = "L")
+#'
+#' @export
 Release_basicRepeatedReleases <- function(releaseStart, releaseEnd, releaseInterval, releaseVector, sex="M"){
 
   # check timing of releases
@@ -80,6 +163,43 @@ Release_basicRepeatedReleases <- function(releaseStart, releaseEnd, releaseInter
 ###############################################################################
 # Network Initialization Functions
 ###############################################################################
+
+#' Create new Mosquito objects
+#'
+#' Creates new Mosquito objects specifically for simulation setup
+#'
+#' @usage CreateMosquitoes_Distribution_Genotype(numMos, minAge, maxAge, ageDist, aTypes)
+#'
+#' @param numMos Integer number of Mosquitoes to create
+#' @param minAge Integer specifying the minimum age of Mosquitoes
+#' @param maxAge Integer specifying the maximum age of Mosquiotes
+#' @param ageDist Distribution for ages of Mosquitoes. Must be length(maxAge-minAge+1)
+#' @param aTypes Nested list containing the alleles and their probabilities at each locus
+#'
+#' @details This function creates new mosquitoes. It is similar to \code{\link{CreateMosquitoes_Eggs}}
+#' and \code{\link{CreateMosquitoes_Defined_Genotype}}, but intended for simulation setup.
+#' It takes a list of alleles and their frequency in the population, then creates
+#' genotypes based on that distribution. Then it samples the age distribtuion, and
+#' creates new Mosquitoes with the proper distributions of genotypes and age.
+#'
+#' @return List of Mosquito objects length(sum(numMos))
+#'
+#' @examples
+#' set.seed(42)
+#' numMos <- 10
+#' minAge <- 1
+#' maxAge <- 10
+#' ageDist <- rep(x = 1, times = 10-1+1)/(10-1+1) #uniform distribution
+#'
+#' alleloTypes <- vector(mode = "list", length = 2) #2 loci
+#' alleloTypes[[1]]$alleles <- c("W","H")
+#' alleloTypes[[1]]$probs <- c(1,0)
+#' alleloTypes[[2]]$alleles <- c("W","H")
+#' alleloTypes[[2]]$probs <- c(1,0)
+#'
+#' CreateMosquitoes_Distribution_Genotype(numMos, minAge, maxAge, ageDist, AlleloTypes)
+#'
+#' @export
 CreateMosquitoes_Distribution_Genotype <- function(numMos, minAge, maxAge, ageDist, aTypes){
 
   population <- vector(mode = "list", length = numMos)
@@ -106,6 +226,26 @@ CreateMosquitoes_Distribution_Genotype <- function(numMos, minAge, maxAge, ageDi
   return(population)
 }
 
+#' Create new Mosquito objects
+#'
+#' Creates new Mosquito objects specifically for egg stage during reproduction
+#'
+#' @usage CreateMosquitoes_Eggs(genMos, numMos)
+#'
+#' @param genMos List of genotypes of Mosquitoes to create
+#' @param numMos Vector specifying the number of each mosquito to create
+#'
+#' @details This function creates new mosquitoes. It is similar to \code{\link{CreateMosquitoes_Distribution_Genotype}}
+#' and \code{\link{CreateMosquitoes_Defined_Genotype}}. It takes a list of genotypes
+#' and the number of each to create. The difference is that this function always
+#' creates them with age=0, as they are newly laid.
+#'
+#' @return List of Mosquito objects length(sum(numMos))
+#'
+#' @example
+#' CreateMosquitoes_Eggs(genMos = c("AA","BB"), numMos = c(10,20))
+#'
+#' @export
 CreateMosquitoes_Eggs <- function(genMos, numMos){
   #genMos is a list of genotypes to relaese
   #numMos is a vector of the number of mosquitoes you want to make, corresponding
@@ -133,18 +273,21 @@ CreateMosquitoes_Eggs <- function(genMos, numMos){
 
   #list of new mosquitoes
   return(population)
-
 }
 
 ###############################################################################
 # Post-processing of Output
 ###############################################################################
+
 #' Split Output by Patch
 #'
 #' Split each run output into multiple files by patch.
 #'
+#' @usage splitOutput(directory)
+#'
 #' @param directory directory where output was written to; must not end in path seperator
 #'
+#' @return *.csv files for each patch and each run
 #' @export
 splitOutput <- function(directory){
   dirFiles = list.files(path = directory)
@@ -272,10 +415,9 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, genotyp
   }#end run loop
 }#end function
 
-
 #' Analyze output for mPlex-oLocus
 #'
-#' This function takes all the files in a directory and analyzes the population by
+#' @details This function takes all the files in a directory and analyzes the population by
 #' genotype of interest. It saves output by run, and inside each run it contains
 #' arrays corresponding to the male and female of each patch. The arrays are organzed
 #' by time, then each genotype and total population, and the array depth is each
@@ -401,6 +543,24 @@ AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, alleles, col
 # Random Others
 ###############################################################################
 
+#' R Dirichlet
+#'
+#' Calculates a Dirichlet distribution.
+#'
+#' @usage JaredDirichlet(n, alpha)
+#'
+#' @param n Number of draws to perform
+#' @param alpha vector length(n) as a shape parameter
+#'
+#' @details This function makes draws from a Dirichlet dristribution. It is slow,
+#' but entirely written in R.
+#'
+#' @return matrix(nrow=n, ncol=length(alpha))
+#'
+#' @example
+#' JaredDirichlet(n=4, alpha = c(0.1,0.2,0.3,0.4))
+#'
+#' @export
 JaredDirichlet <- function(n=1,alpha){
   Gam <- matrix(0,n,length(alpha))
   for(i in 1:length(alpha)) {Gam[,i] <- rgamma(n,shape=alpha[i])}

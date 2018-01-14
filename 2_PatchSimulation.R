@@ -147,6 +147,10 @@ Patch$set(which = "public",name = "oneDay_LarvalDeath",
           value = oneDay_LarvalDeath_Patch, overwrite = TRUE
 )
 
+#' Daily Pupa Death
+#'
+#' Density independent pupa death specified by mu("P")
+#'
 oneDay_PupaDeath_Patch <- function(){
 
   #calculate other dependent factors
@@ -162,6 +166,10 @@ Patch$set(which = "public",name = "oneDay_PupaDeath",
           value = oneDay_PupaDeath_Patch, overwrite = TRUE
 )
 
+#' Daily Adult Death
+#'
+#' Density independent adult death specified by mu("A")
+#'
 oneDay_AdultDeath_Patch <- function(){
 
   #MALE
@@ -192,6 +200,13 @@ Patch$set(which = "public",name = "oneDay_AdultDeath",
 #######################################
 # Mature Functions
 #######################################
+
+#' Daily Egg Maturation
+#'
+#' Eggs mature into larva. The average time spent as an egg is specified in
+#' stageTime("E"). This is used to parametrize a lognormal function with
+#' standard deviation log(1.2), slightly right-skewing the distribution.
+#'
 oneDay_EggMature_Patch <- function(){
 
   num <- length(private$eggs)
@@ -228,6 +243,12 @@ Patch$set(which = "public",name = "oneDay_EggMaturation",
           value = oneDay_EggMature_Patch, overwrite = TRUE
 )
 
+#' Daily Larva Maturation
+#'
+#' Larva mature into pupa. The average time spent as a larva is specified in
+#' stageTime("L"). This is used to parametrize a lognormal function with
+#' standard deviation log(1.2), slightly right-skewing the distribution.
+#'
 oneDay_LarvaMature_Patch <- function(){
 
   num <- length(private$larva)
@@ -265,6 +286,15 @@ Patch$set(which = "public",name = "oneDay_LarvaMaturation",
           value = oneDay_LarvaMature_Patch, overwrite = TRUE
 )
 
+#' Daily Pupa Maturation
+#'
+#' Pupae mature into adults. The average time spent as a pupa is specified in
+#' stageTime("P"). This is used to parametrize a lognormal function with
+#' standard deviation log(1.2), slightly right-skewing the distribution. A binomial
+#' distribtution with p=0.5 specifies the sex of maturing pupae. If male, pupa are
+#' immediately added to the adult_male population. If female, pupa are added to
+#' the unmated_female population.
+#'
 oneDay_PupaMature_Patch <- function(){
 
   num <- length(private$pupa)
@@ -317,6 +347,13 @@ Patch$set(which = "public",name = "oneDay_PupaMaturation",
 # Mate Function
 #######################################
 
+#' Daily Mating
+#'
+#' Freshly matured pupa that become females and female releases exist as unmated
+#' females. This function mates unmated_females with any member of the current male
+#' population, with the possibility that males can mate multiple times per mating.
+#' After mating, unmated_females are put into the general adult_female population.
+#'
 oneDay_Mate_Patch <- function(){
 
   #number of unwed females
@@ -351,6 +388,15 @@ Patch$set(which = "public",name = "oneDay_Mate",
 #######################################
 # Lay Eggs Function
 #######################################
+
+#' Daily Egg Laying
+#'
+#' The number of eggs laid per female is a Poisson distribution with \lambda =
+#' beta, the fertility. A multinomial is then used to distribute the number of
+#' eggs laid over the offspring distribution (see \code{\link{DaisyOffspring}},
+#' \code{\link{MultiplexOffspring_mLoci}}, or \code{\link{MultiplexOffspring_oLocus}}).
+#' The new eggs are created by \code{\link{CreateMosquitoes_Eggs}}
+#'
 oneDay_Reproduction_Patch <- function(){
 
   for(critter in private$adult_female){

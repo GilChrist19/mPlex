@@ -14,6 +14,75 @@
 #
 ###############################################################################
 
+#' Network Class Definition
+#'
+#' A Network is a collection of \code{\link{Patch}} with migration between them.
+#'
+#' @docType class
+#' @format An \code{\link{R6Class}} generator object
+#' @keywords R6 class
+#'
+#' @section **Constructor**:
+#'  * networkParameters: see \code{\link{Network.Parameters}}
+#'  * patchReleases: see \code{\link{Release_basicRepeatedReleases}}
+#'  * reproductionType: one of c("DaisyDrive", "mPlex_oLocus", "mPlex_mLoci") specifying
+#'  the type of reproduction to use. Options are: \code{\link{DaisyOffspring}},
+#'  \code{\link{MultiplexOffspring_oLocus}}, or \code{\link{MultiplexOffspring_mLoci}}.
+#'  * offspringReference: Inheritance patterns for the offspring. Must match reproductionType.
+#'  See \code{\link{MakeReference_DaisyDrive}}, \code{\link{MakeReference_Multiplex_oLocus}},
+#'  or \code{\link{MakeReference_Multiplex_mLoci}}.
+#'  * migrationMale: a stochastic matrix whose dimensions conform to the number of patches
+#'  * migrationFemale: a stochastic matrix whose dimensions conform to the number of patches
+#'  * directory: character string specifying the output directory
+#'
+#' @section **Methods**:
+#'  * get_nPatch: Return the number of patches in the Network
+#'  * get_simTime: Return total time for the simulation
+#'  * get_parallel: Return boolean if running parallel networks
+#'  * get_moveVar: Return numeric variance in Dirchlet-Multinomial movement
+#'  * get_runID: Return the run identifier
+#'  * get_stageTime: Return duration of life stage
+#'  * get_beta: Return wild-type daily fertility
+#'  * get_mu: Return stage-specific density-independent death rate
+#'  * get_alpha: Return larval density-dependent parameter
+#'  * get_listPatch: Integer list of Patches in the Network
+#'  * get_patch: Return a list of all patches or a single Patch specified by PatchID
+#'  * get_reference: Return reference list for calculating offspring distribution
+#'  * get_tNow: Return current simulation time
+#'  * get_directory: Return output directory
+#'  * get_conADM: Return adult_male file connection
+#'  * get_conADF: Return adult_female file connection
+#'  * close_connections: Close conADM and conADF
+#'  * get_migrationMale: Return the migrationMale matrix or a single row specified by PatchID
+#'  * get_migrationFemale: Return the migrationFemale matrix or a single row specified by PatchID
+#'  * get_migrationFractionMale: Return fraction of adult_male population that migrates, specified by PatchID
+#'  * get_migrationFractionFemale: Return fraction of adult_female population that migrates, specified by PatchID
+#'  * get_patchReleases: Return release schedule, specified by PatchID and sex
+#'
+#' @section **Fields**:
+#'  * nPatch: Number of patches
+#'  * simTime: Maximum time of simulation
+#'  * parallel: Boolean if running several patches as the same time
+#'  * moveVar: Variation in Dirichlet sampling for migration
+#'  * runID: Run identifier
+#'  * stageTime: Integer vector specifying the time spent in each life stage
+#'  * beta: Integer wild-type daily fertility
+#'  * mu: Integer vector specifying density-independent death rate for each life stage
+#'  * alpha: Numeric vector specifying larval density factor for each patch
+#'  * listPatch: Integer vector listing all the patches, 1:nPatch
+#'  * patches: A list of \code{\link{Patch}} objects
+#'  * reference: Inheritance pattern list
+#'  * tNow: Current simulation time
+#'  * directory: a character string of where to store output
+#'  * conADM: a \code{\link[base]{connection}} to write male population dynamics out to
+#'  * conAF1: a \code{\link[base]{connection}} to write female population dynamics out to
+#'  * migrationMale: a stochastic matrix whose dimensions conform to the number of patches
+#'  * migrationFractionMale: Numeric vector specifing the fraction of the population that migrates
+#'  * migrationFemale: a stochastic matrix whose dimensions conform to the number of patches
+#'  * migrationFractionFemale: Numeric vector specifing the fraction of the population that migrates
+#'  * patchReleases: a list of release schedules for each patch
+#'
+#'  @export
 Network <- R6::R6Class(classname = "Network",
             portable = TRUE,
             cloneable = FALSE,
@@ -350,7 +419,8 @@ Network$set(which = "public",name = "oneRun",
 
 #' Run a Single Day on a Network
 #'
-#' Runs a single day of simulation on a \code{\link{Network}} object, handling population dynamics, migration, population update, and output.
+#' Runs a single day of simulation on a \code{\link{Network}} object,
+#' handling population dynamics, migration, population update, and output.
 #'
 oneDay_Network <- function(){
 
@@ -439,10 +509,3 @@ oneDay_Migration_Network <- function(){
 Network$set(which = "public",name = "oneDay_Migration",
             value = oneDay_Migration_Network, overwrite = TRUE
 )
-
-
-
-
-
-
-
