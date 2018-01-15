@@ -17,25 +17,15 @@
 # Clean environment and source files
 ###############################################################################
 rm(list=ls());gc()
-source("~/Documents/mPlex/1_MosquitoClass.R")
-source("~/Documents/mPlex/2_PatchClass.R")
-source("~/Documents/mPlex/2_PatchSimulation.R")
-source("~/Documents/mPlex/3_NetworkClass.R")
-
-source("~/Documents/mPlex/4_DaisyGeneratingFunction.R")
-source("~/Documents/mPlex/4_MultiplexGeneratingFunction_multiLocus.R")
-source("~/Documents/mPlex/4_MultiplexGeneratingFunction_oneLocus.R")
-
-source("~/Documents/mPlex/Network_Parameters_Equilibrium.R")
-source("~/Documents/mPlex/Auxiliary_Functions.R")
+library(mPlexR)
 
 ###############################################################################
 # Setup Parameters for Network
 ###############################################################################
 
-migration = diag(1) #migration matrix
+migration = matrix(data = c(0,1,0,1), nrow = 2, ncol = 2, byrow = T)#diag(1) #migration matrix
 N = nrow(migration) #number of patches
-patchPops = rep(10,N) #population of eachpatch
+patchPops = rep(5*2,N) #population of eachpatch
 directory <- "~/Desktop/HOLD"
 
     #setup alleles to initiate patches
@@ -95,7 +85,7 @@ patchReleases[[1]]$larvaeReleases <- Release_basicRepeatedReleases(releaseStart 
 ###############################################################################
 
     # calculate network parameters, auxiliary function
-netPar = Network.Parameters(nPatch = N,simTime = 150,
+netPar = Network.Parameters(nPatch = N,simTime = 75,
                             alleloTypes = AllAlleles,
                             AdPopEQ = patchPops,
                             parallel = FALSE)
