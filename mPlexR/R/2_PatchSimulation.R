@@ -210,33 +210,33 @@ Patch$set(which = "public",name = "oneDay_AdultDeath",
 #'
 oneDay_EggMature_Patch <- function(){
 
-  num <- length(private$eggs)
+  private$genericCounter <- length(private$eggs)
   #only do if there are eggs
-  if(num > 0){
+  if(private$genericCounter > 0){
 
     #set mean age and sd. THESE NEED TO BE CHECKED or PROVEN
-    meanAge <- log(x = private$NetworkPointer$get_stageTime(stage = "E"))
-    sdAge <- log(x = 1.2)
+    private$meanAge <- log(x = private$NetworkPointer$get_stageTime(stage = "E"))
+    private$sdAge <- log(x = 1.2)
 
-    #draw all the ages since this can probably be done.
+    #draw all the private$ages since this can probably be done.
     # if not, do it one at a time in the loop.
     # This could maybe become a patch variable, so we don't reallocate space.??
-    ages <- rlnorm(n = num, meanlog = meanAge, sdlog = sdAge)
-    matured <- logical(length = num)
+    private$ages <- rlnorm(n = private$genericCounter, meanlog = private$meanAge, sdlog = private$sdAge)
+    private$matured <- logical(length = private$genericCounter)
 
     #loop over all eggs
-    #This maybe could be  vectorized in R, getting all ages is the only problem.
-    for(i in 1:num){
+    #This maybe could be  vectorized in R, getting all private$ages is the only problem.
+    for(i in 1:private$genericCounter){
 
       #check if they mature, move it up, then delete egg
-      if(ages[i] <= private$eggs[[i]]$get_age()){
+      if(private$ages[i] <= private$eggs[[i]]$get_age()){
         private$larva <- c(private$larva, private$eggs[[i]])
-        matured[i] <- TRUE
+        private$matured[i] <- TRUE
       }
 
     }
 
-    private$eggs[matured] <- NULL
+    private$eggs[private$matured] <- NULL
   }
 
 }
@@ -252,34 +252,34 @@ Patch$set(which = "public",name = "oneDay_EggMaturation",
 #'
 oneDay_LarvaMature_Patch <- function(){
 
-  num <- length(private$larva)
+  private$genericCounter <- length(private$larva)
   #only do if things are there
-  if(num > 0){
+  if(private$genericCounter > 0){
 
     #set mean age and sd. THESE NEED TO BE CHECKED or PROVEN
-    meanAge <- log(x = sum(private$NetworkPointer$get_stageTime(stage = c("E", "L") ) ) )
-    sdAge <- log(x = 1.2)
+    private$meanAge <- log(x = sum(private$NetworkPointer$get_stageTime(stage = c("E", "L") ) ) )
+    private$sdAge <- log(x = 1.2)
 
-    #draw all the ages since this can probably be done.
+    #draw all the private$ages since this can probably be done.
     # if not, do it one at a time in the loop.
     # This could maybe become a patch variable, so we don't reallocate space.??
-    ages <- rlnorm(n = num, meanlog = meanAge, sdlog = sdAge)
-    matured <- logical(length = num)
+    private$ages <- rlnorm(n = private$genericCounter, meanlog = private$meanAge, sdlog = private$sdAge)
+    private$matured <- logical(length = private$genericCounter)
 
     #loop over all eggs
-    #This maybe could be  vectorized in R, getting all ages is the only problem.
-    for(i in 1:num){
+    #This maybe could be  vectorized in R, getting all private$ages is the only problem.
+    for(i in 1:private$genericCounter){
 
       #check if they mature, move it up, then delete egg
-      if(ages[i] <= private$larva[[i]]$get_age()){
+      if(private$ages[i] <= private$larva[[i]]$get_age()){
         private$pupa <- c(private$pupa, private$larva[[i]])
-        matured[i] <- TRUE
+        private$matured[i] <- TRUE
       }
 
     }
 
     #remove matured larva
-    private$larva[matured] <- NULL
+    private$larva[private$matured] <- NULL
   }
 
 }
@@ -298,26 +298,26 @@ Patch$set(which = "public",name = "oneDay_LarvaMaturation",
 #'
 oneDay_PupaMature_Patch <- function(){
 
-  num <- length(private$pupa)
+  private$genericCounter <- length(private$pupa)
   #only do things if there are pupa
-  if(num > 0){
+  if(private$genericCounter > 0){
 
     #set mean age and sd. THESE NEED TO BE CHECKED or PROVEN
-    meanAge <- log(x = sum(private$NetworkPointer$get_stageTime(stage = c("E", "L", "P")) ) )
-    sdAge <- log(x = 1.2)
+    private$meanAge <- log(x = sum(private$NetworkPointer$get_stageTime(stage = c("E", "L", "P")) ) )
+    private$sdAge <- log(x = 1.2)
 
-    #draw all the ages since this can probably be done.
+    #draw all the private$ages since this can probably be done.
     # if not, do it one at a time in the loop.
     # This could maybe become a patch variable, so we don't reallocate space.??
-    ages <- rlnorm(n = num, meanlog = meanAge, sdlog = sdAge)
-    matured <- logical(length = num)
+    private$ages <- rlnorm(n = private$genericCounter, meanlog = private$meanAge, sdlog = private$sdAge)
+    private$matured <- logical(length = private$genericCounter)
 
     #loop over all eggs
-    #This maybe could be  vectorized in R, getting all ages is the only problem.
-    for(i in 1:num){
+    #This maybe could be  vectorized in R, getting all private$ages is the only problem.
+    for(i in 1:private$genericCounter){
 
       #check if they mature, move it up, then delete egg
-      if(ages[i] <= private$pupa[[i]]$get_age()){
+      if(private$ages[i] <= private$pupa[[i]]$get_age()){
 
         #binomial over sex. Need to add genotype deviance
         sex <- as.logical(x = rbinom(n = 1, size = 1, prob = 0.5))
@@ -330,13 +330,13 @@ oneDay_PupaMature_Patch <- function(){
           private$adult_male <- c(private$adult_male, private$pupa[[i]])
         }
 
-        matured[i] <- TRUE
+        private$matured[i] <- TRUE
       }
 
     }
 
     #remove matured pupa
-    private$pupa[matured] <- NULL
+    private$pupa[private$matured] <- NULL
   }
 
 }
@@ -358,27 +358,28 @@ Patch$set(which = "public",name = "oneDay_PupaMaturation",
 oneDay_Mate_Patch <- function(){
 
   #number of unwed females
-  numUnweds <- length(private$unmated_female)
-  numMates <- length(private$adult_male)
+  private$numUnweds <- length(private$unmated_female)
+  private$numMates <- length(private$adult_male)
 
-  if(numUnweds != 0 && numMates != 0){
+  if(private$numUnweds != 0 && private$numMates != 0){
 
-    mates <- vector(mode = "list", length = numMates)
+    private$mates <- character(length = private$numMates)
 
     #get males for mates, randomly sampled from population
-    for(i in 1:numMates){
-      mates[[i]] <- private$adult_male[[i]]$get_genotype()
+    for(i in 1:private$numMates){
+      private$mates[[i]] <- private$adult_male[[i]]$get_genotype()
     }
 
-    mates <- sample(x = mates, size = numUnweds, replace = TRUE)
+    private$mates <- sample(x = private$mates, size = private$numUnweds, replace = TRUE)
 
     #set mates
-    for(i in 1:numUnweds){
-      private$unmated_female[[i]]$set_mate(mate=mates[[i]])
+    for(i in 1:private$numUnweds){
+      private$unmated_female[[i]]$set_mate(mate=private$mates[[i]])
     }
 
-    #add to adult females
+    #add to adult females, clear unmated females
     private$adult_female <- c(private$adult_female,private$unmated_female)
+    private$unmated_female = NULL
   }
 
 }
@@ -409,21 +410,34 @@ oneDay_Reproduction_Patch <- function(){
                                       reference = private$NetworkPointer$get_reference())
 
     #This generates an egg distribution
-    eggNumber <- rmultinom(n = 1,
+    private$eggNumber <- rmultinom(n = 1,
                            size = rpois(n = 1, lambda = private$NetworkPointer$get_beta()),
                            prob = offspring$Probabilities)
 
-    #Generate new mosquitoes, put them in eggs class
-    private$eggs <- c(private$eggs,
-                      CreateMosquitoes_Eggs(genMos = offspring$Alleles,
-                                            numMos = eggNumber)
-                      )
 
-  }#end loop
+    #Generate new mosquitoe population
+    private$newEggs <- vector(mode = "list", length = sum(private$eggNumber))
+
+    private$genericCounter = 1L
+    #loop over each genotype
+    for(gen in 1:length(offspring$Alleles)){
+      #skip if there are no mosquitoes of this genotype
+      if(private$eggNumber[gen]==0){next}
+
+      #loop over number of mosquitoes of that genotype
+      for(num in 1:private$eggNumber[gen]){
+        #create new mosquito
+        private$newEggs[[private$genericCounter]] <- Mosquito$new(genotype = offspring$Alleles[gen], age = 0)
+
+        private$genericCounter = private$genericCounter + 1L
+      }# end egg number loop
+    }# end allele loop
+
+    # add new eggs to the pile
+    private$eggs <- c(private$eggs, private$newEggs)
+
+  }#end critter loop
 }#end function
 Patch$set(which = "public",name = "oneDay_Reproduction",
           value = oneDay_Reproduction_Patch, overwrite = TRUE
 )
-
-
-

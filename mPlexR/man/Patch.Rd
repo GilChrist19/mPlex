@@ -84,12 +84,23 @@ A Patch represents a single, well-mixed population of \code{\link{Mosquito}}
 \item femaleMigration: List of outbound female Mosquitoes, length nPatch
 \item numMigration: Holder for the number of migratory Mosquitoes, integer
 \item migrationDist: Holder for the distribution of Mosquitoes over patches, vector length nPatch-1
+\item whoMigrate: Holder for which mosquitoes migrate, vector of indices
+\item numMigrateWhere: Holder for where and how many mosquitoes migrate, vector of integers
 \item maleReleases: Male release schedule and list of Mosquitoes to release
 \item femaleReleases: female release schedule and list of Mosquitoes to release
 \item larvaeReleases: Larval release schedule and list of Mosquitoes to release
 \item NetworkPointer: a reference to enclosing \code{\link{Network}}
 \item DenDep: Density-dependent parameter for larvae
 \item death: Vector of T/F death at each stage. Slowly grows with population size
+\item meanAge: Holder for maturation functions
+\item sdAge: Holder for maturation functions
+\item ages: Holder for maturation functions
+\item matured: Holder for maturation functions
+\item numUnweds: Number of unmated females. Holder for mating function
+\item numMates: Number of adult males. Holder for mating function
+\item mates: Character vector of male genotypes. Holder for mating function
+\item eggNumber: Integer vector of how many eggs to lay. Holder for reproduction function
+\item newEggs: list of new Mosquitoes laid. Holder for reproduction function
 }
 }
 

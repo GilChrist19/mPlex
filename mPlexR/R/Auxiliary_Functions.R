@@ -22,8 +22,8 @@
 #' @param maxAge Integer specifying the maximum age of Mosquiotes
 #' @param ageDist Distribution for ages of Mosquitoes. Must be length(maxAge-minAge+1)
 #'
-#' @details This function creates new mosquitoes. It is similar to \code{\link{CreateMosquitoes_Eggs}}
-#' and \code{\link{CreateMosquitoes_Distribution_Genotype}}, but intended for releases setup.
+#' @details This function creates new mosquitoes. It is similar to
+#' \code{\link{CreateMosquitoes_Distribution_Genotype}}, but intended for releases setup.
 #' The assumption is that scientists can control the genotype of lab populations,
 #' so this function takes a list of genotypes, then a vector of how many of each
 #' genotype to release. There is some age variation, though that can be specified
@@ -176,8 +176,8 @@ Release_basicRepeatedReleases <- function(releaseStart, releaseEnd, releaseInter
 #' @param ageDist Distribution for ages of Mosquitoes. Must be length(maxAge-minAge+1)
 #' @param aTypes Nested list containing the alleles and their probabilities at each locus
 #'
-#' @details This function creates new mosquitoes. It is similar to \code{\link{CreateMosquitoes_Eggs}}
-#' and \code{\link{CreateMosquitoes_Defined_Genotype}}, but intended for simulation setup.
+#' @details This function creates new mosquitoes. It is similar to
+#'  \code{\link{CreateMosquitoes_Defined_Genotype}}, but intended for simulation setup.
 #' It takes a list of alleles and their frequency in the population, then creates
 #' genotypes based on that distribution. Then it samples the age distribtuion, and
 #' creates new Mosquitoes with the proper distributions of genotypes and age.
@@ -223,51 +223,6 @@ CreateMosquitoes_Distribution_Genotype <- function(numMos, minAge, maxAge, ageDi
                                     age = holdAge)
   }
 
-  return(population)
-}
-
-#' Create new Mosquito objects
-#'
-#' Creates new Mosquito objects specifically for egg stage during reproduction
-#'
-#' @usage CreateMosquitoes_Eggs(genMos, numMos)
-#'
-#' @param genMos List of genotypes of Mosquitoes to create
-#' @param numMos Vector specifying the number of each mosquito to create
-#'
-#' @details This function creates new mosquitoes. It is similar to \code{\link{CreateMosquitoes_Distribution_Genotype}}
-#' and \code{\link{CreateMosquitoes_Defined_Genotype}}. It takes a list of genotypes
-#' and the number of each to create. The difference is that this function always
-#' creates them with age=0, as they are newly laid.
-#'
-#' @return List of Mosquito objects length(sum(numMos))
-#'
-#' @examples
-#' CreateMosquitoes_Eggs(genMos = c("AA","BB"), numMos = c(10,20))
-#'
-#' @export
-CreateMosquitoes_Eggs <- function(genMos, numMos){
-
-  #return list
-  population <- vector(mode = "list", length = sum(numMos))
-
-  #external counter
-  count = 1L
-
-  #loop over each genotype
-  for(gen in 1:length(genMos)){
-    #skip if there are no mosquitoes of this genotype
-    if(numMos[gen]==0){next}
-    #loop over number of mosquitoes of that genotype
-    for(num in 1:numMos[gen]){
-      #create new mosquito
-      population[[count]] <- Mosquito$new(genotype = genMos[gen], age = 0)
-
-      count = count + 1L
-    }
-  }
-
-  #list of new mosquitoes
   return(population)
 }
 

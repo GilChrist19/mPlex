@@ -93,12 +93,23 @@
 #'  * femaleMigration: List of outbound female Mosquitoes, length nPatch
 #'  * numMigration: Holder for the number of migratory Mosquitoes, integer
 #'  * migrationDist: Holder for the distribution of Mosquitoes over patches, vector length nPatch-1
+#'  * whoMigrate: Holder for which mosquitoes migrate, vector of indices
+#'  * numMigrateWhere: Holder for where and how many mosquitoes migrate, vector of integers
 #'  * maleReleases: Male release schedule and list of Mosquitoes to release
 #'  * femaleReleases: female release schedule and list of Mosquitoes to release
 #'  * larvaeReleases: Larval release schedule and list of Mosquitoes to release
 #'  * NetworkPointer: a reference to enclosing \code{\link{Network}}
 #'  * DenDep: Density-dependent parameter for larvae
 #'  * death: Vector of T/F death at each stage. Slowly grows with population size
+#'  * meanAge: Holder for maturation functions
+#'  * sdAge: Holder for maturation functions
+#'  * ages: Holder for maturation functions
+#'  * matured: Holder for maturation functions
+#'  * numUnweds: Number of unmated females. Holder for mating function
+#'  * numMates: Number of adult males. Holder for mating function
+#'  * mates: Character vector of male genotypes. Holder for mating function
+#'  * eggNumber: Integer vector of how many eggs to lay. Holder for reproduction function
+#'  * newEggs: list of new Mosquitoes laid. Holder for reproduction function
 #'
 #' @export
 Patch <- R6::R6Class(classname = "Patch",
@@ -189,6 +200,8 @@ Patch <- R6::R6Class(classname = "Patch",
                 femaleMigration = NULL,
                 numMigrate = integer(length = 1),
                 migrationDist = NULL,
+                whoMigrate = NULL,
+                numMigrateWhere = NULL,
 
                 # Mosquito Releases
                 maleReleases = NULL,
@@ -197,8 +210,25 @@ Patch <- R6::R6Class(classname = "Patch",
 
                 # pointers
                 NetworkPointer = NULL,
+
+                # daily death storage
                 DenDep = numeric(length = 1),
-                death = NULL
+                death = NULL,
+
+                # daily mature storage
+                meanAge = numeric(length = 1),
+                sdAge = numeric(length = 1),
+                ages = NULL,
+                matured = NULL,
+
+                # daily mating storage
+                numUnweds = integer(length = 1),
+                numMates = integer(length = 1),
+                mates = NULL,
+
+                # daily reproduction
+                eggNumber = NULL,
+                newEggs = NULL
 
               )# end private
 )
@@ -321,9 +351,6 @@ Patch$set(which = "public",name = "oneDay_maleReleases",
 oneDay_femaleReleases_Patch <- function(){
   # female releases
 
-  #clear unmated females. This will run every time.
-  private$unmated_female = NULL
-
   if( (length(private$femaleReleases) > 0) && (private$femaleReleases[[1]]$tRelease <= private$NetworkPointer$get_tNow()) ){
     private$unmated_female = c(private$unmated_female, private$femaleReleases[[1]]$nuF)
     private$femaleReleases[[1]] = NULL
@@ -378,25 +405,23 @@ oneDay_migrationOut_Patch <- function(){
     private$migrationDist <- JaredDirichlet(n = 1, alpha = private$NetworkPointer$get_migrationMale(private$patchID)[-private$patchID]*private$NetworkPointer$get_moveVar())
 
     #generate a random sample of the population who will migrate
-    male_who_migrate <- hold <- sample(x = 1:length(private$adult_male), size = private$numMigrate, replace = FALSE)
+    private$whoMigrate <- sample(x = 1:length(private$adult_male), size = private$numMigrate, replace = FALSE)
 
     #place how many migrate where
-    male_num_migrate <- rmultinom(n = 1, size = private$numMigrate, prob = private$migrationDist)
+    private$numMigrateWhere <- cumsum(x = c(1, rmultinom(n = 1, size = private$numMigrate, prob = private$migrationDist)))
 
     private$genericCounter <- 1
     #loop over other patches, not your own
     for(patch in private$NetworkPointer$get_listPatch()[-private$patchID]){
       #if no mosquitoes go there, skip it
-      if(male_num_migrate[private$genericCounter]==0){next}
+      if(private$numMigrateWhere[private$genericCounter] - private$numMigrateWhere[private$genericCounter+1]==0){next}
 
-      #get all males who migrate, then remove those males and that number from lists
-      private$maleMigration[[patch]] <- private$adult_male[male_who_migrate[1:male_num_migrate[1]]]
-      male_who_migrate <- male_who_migrate[-(1:male_num_migrate[1])]
-      male_num_migrate <- male_num_migrate[-1]
+      #get all males who migrate
+      private$maleMigration[[patch]] <- private$adult_male[private$whoMigrate[private$numMigrateWhere[private$genericCounter]:(private$numMigrateWhere[private$genericCounter+1]-1)]]
     }
 
     #remove all the mosquitoes who  migrated
-    private$adult_male[hold] <- NULL
+    private$adult_male[private$whoMigrate] <- NULL
 
   }#end male migration
 
@@ -410,26 +435,24 @@ oneDay_migrationOut_Patch <- function(){
     private$migrationDist <- JaredDirichlet(n = 1, alpha = private$NetworkPointer$get_migrationFemale(private$patchID)[-private$patchID]*private$NetworkPointer$get_moveVar())
 
     #generate a random sample of the population who will migrate
-    female_who_migrate <- hold <- sample(x = 1:length(private$adult_female), size = private$numMigrate, replace = FALSE)
+    private$whoMigrate <- sample(x = 1:length(private$adult_female), size = private$numMigrate, replace = FALSE)
 
     #place how many migrate where
-    female_num_migrate <- rmultinom(n = 1, size = private$numMigrate, prob = private$migrationDist)
+    private$numMigrateWhere <- cumsum(x = c(1, rmultinom(n = 1, size = private$numMigrate, prob = private$migrationDist)))
 
     private$genericCounter <- 1
     #loop over other patches, not your own
     for(patch in private$NetworkPointer$get_listPatch()[-private$patchID]){
-
       #if no mosquitoes go there, skip it
-      if(female_num_migrate[private$genericCounter]==0) next
+      if(private$numMigrateWhere[private$genericCounter] - private$numMigrateWhere[private$genericCounter+1]==0){next}
 
       #get all males who migrate, then remove those males and that number from lists
-      private$femaleMigration[[patch]] <- private$adult_female[female_who_migrate[1:female_num_migrate[1]]]
-      female_who_migrate <- female_who_migrate[-(1:female_num_migrate[1])]
-      female_num_migrate <- female_num_migrate[-1]
+      private$femaleMigration[[patch]] <- private$adult_female[private$whoMigrate[private$numMigrateWhere[private$genericCounter]:(private$numMigrateWhere[private$genericCounter+1]-1)]]
+
     }
 
     #remove all the mosquitoes who  migrated
-    private$adult_female[hold] <- NULL
+    private$adult_female[private$whoMigrate] <- NULL
 
   }#end female migration
 
