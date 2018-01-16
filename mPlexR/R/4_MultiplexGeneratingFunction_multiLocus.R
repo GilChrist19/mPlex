@@ -128,7 +128,7 @@ MakeReference_Multiplex_mLoci <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0),
 #' @return List(Alleles, Probabilities)
 #'
 #' @examples
-#' ref <- MakeReferenceDaisy(H = 0.98, R = 0.001, S = 0.0003, d = .00001)
+#' ref <- MakeReference_Multiplex_mLoci(H = 0.98, R = 0.001, S = 0.0003, d = .00001)
 #' fGen <- "WW"
 #' mGen <- "WW"
 #'
@@ -143,19 +143,21 @@ MultiplexOffspring_mLoci <- function(fGen, mGen, reference){
 
   #split mother genotype
   #This splits all characters.
-  #the paste statement auto-replicates c(TRUE, FALSE), pulling odd values
-  # from the first and even from the second, thereby getting every two added
   fSplit <- strsplit(x = fGen, split = "")[[1]]
-  fmPlex <- paste0(fSplit[c(TRUE, FALSE)], fSplit[c(FALSE, TRUE)], collapse = NULL)
   mSplit <- strsplit(x = mGen, split = "")[[1]]
-  mmPlex <- paste0(mSplit[c(TRUE, FALSE)], mSplit[c(FALSE, TRUE)], collapse = NULL)
+
+  #get number of alleles. Divide by two because diploid
+  nmPlex <- length(fSplit)/2
+
+  #make a list of each allele at every locus. This list is length nmPlex, and each
+  # sublist has length 2
+  fmPlex <- lapply(X = seq.int(from = 1, to = 2*nmPlex, by = 2), FUN = function(X){fSplit[X:(X+1)]})
+  mmPlex <- lapply(X = seq.int(from = 1, to = 2*nmPlex, by = 2), FUN = function(X){mSplit[X:(X+1)]})
 
   #score them
   fscore <- grepl(pattern = "H", x = fmPlex, ignore.case = FALSE, perl = FALSE, fixed = TRUE)
   mscore <- grepl(pattern = "H", x = mmPlex, ignore.case = FALSE, perl = FALSE, fixed = TRUE)
 
-
-  nmPlex <- length(fmPlex)
   #setup offspring allele lists
   fAllele <- rep(x = list(vector(mode = "list", 2)), nmPlex)
   fProbs <- rep(x = list(vector(mode = "list", 2)), nmPlex)
@@ -171,20 +173,17 @@ MultiplexOffspring_mLoci <- function(fGen, mGen, reference){
       #loop over alleles at the locus. Everything is diploid here.
       for(j in 1:2){
 
-        #get the single allele
-        allele <- substr(x = fmPlex[i], start = j, stop = j)
-
         #Fill allele with letter and probs
-        if(allele=="W"){
+        if(fmPlex[[i]][[j]]=="W"){
           fAllele[[i]][[j]] <- c("W","H","R","S")
           fProbs[[i]][[j]] <- reference$homing[[i]]$W
-        } else if(allele=="H"){
+        } else if(fmPlex[[i]][[j]]=="H"){
           fAllele[[i]][[j]] <- c("H", "S")
           fProbs[[i]][[j]] <- reference$homing[[i]]$H
-        } else if(allele=="R"){
+        } else if(fmPlex[[i]][[j]]=="R"){
           fAllele[[i]][[j]] <- "R"
           fProbs[[i]][[j]] <- reference$homing[[i]]$R
-        } else if(allele=="S"){
+        } else if(fmPlex[[i]][[j]]=="S"){
           fAllele[[i]][[j]] <- "S"
           fProbs[[i]][[j]] <- reference$homing[[i]]$S
         }
@@ -195,20 +194,17 @@ MultiplexOffspring_mLoci <- function(fGen, mGen, reference){
       #loop over alleles at the locus. Everything is diploid here.
       for(j in 1:2){
 
-        #get the single allele
-        allele <- substr(x = fmPlex[i], start = j, stop = j)
-
         #Fill allele with letter and probs
-        if(allele=="W"){
+        if(fmPlex[[i]][[j]]=="W"){
           fAllele[[i]][[j]] <- c("W","S")
           fProbs[[i]][[j]] <- reference$mendelian[[i]]$W
-        } else if(allele=="H"){
+        } else if(fmPlex[[i]][[j]]=="H"){
           fAllele[[i]][[j]] <- c("H", "S")
           fProbs[[i]][[j]] <- reference$mendelian[[i]]$H
-        } else if(allele=="R"){
+        } else if(fmPlex[[i]][[j]]=="R"){
           fAllele[[i]][[j]] <- "R"
           fProbs[[i]][[j]] <- reference$mendelian[[i]]$R
-        } else if(allele=="S"){
+        } else if(fmPlex[[i]][[j]]=="S"){
           fAllele[[i]][[j]] <- "S"
           fProbs[[i]][[j]] <- reference$mendelian[[i]]$S
         }
@@ -222,20 +218,17 @@ MultiplexOffspring_mLoci <- function(fGen, mGen, reference){
       #loop over alleles at the locus. Everything is diploid here.
       for(j in 1:2){
 
-        #get the single allele
-        allele <- substr(x = mmPlex[i], start = j, stop = j)
-
         #Fill allele with letter and probs
-        if(allele=="W"){
+        if(mmPlex[[i]][[j]]=="W"){
           mAllele[[i]][[j]] <- c("W","H","R","S")
           mProbs[[i]][[j]] <- reference$homing[[i]]$W
-        } else if(allele=="H"){
+        } else if(mmPlex[[i]][[j]]=="H"){
           mAllele[[i]][[j]] <- c("H", "S")
           mProbs[[i]][[j]] <- reference$homing[[i]]$H
-        } else if(allele=="R"){
+        } else if(mmPlex[[i]][[j]]=="R"){
           mAllele[[i]][[j]] <- "R"
           mProbs[[i]][[j]] <- reference$homing[[i]]$R
-        } else if(allele=="S"){
+        } else if(mmPlex[[i]][[j]]=="S"){
           mAllele[[i]][[j]] <- "S"
           mProbs[[i]][[j]] <- reference$homing[[i]]$S
         }
@@ -246,20 +239,17 @@ MultiplexOffspring_mLoci <- function(fGen, mGen, reference){
       #loop over alleles at the locus. Everything is diploid here.
       for(j in 1:2){
 
-        #get the single allele
-        allele <- substr(x = mmPlex[i], start = j, stop = j)
-
         #Fill allele with letter and probs
-        if(allele=="W"){
+        if(mmPlex[[i]][[j]]=="W"){
           mAllele[[i]][[j]] <- c("W","S")
           mProbs[[i]][[j]] <- reference$mendelian[[i]]$W
-        } else if(allele=="H"){
+        } else if(mmPlex[[i]][[j]]=="H"){
           mAllele[[i]][[j]] <- c("H", "S")
           mProbs[[i]][[j]] <- reference$mendelian[[i]]$H
-        } else if(allele=="R"){
+        } else if(mmPlex[[i]][[j]]=="R"){
           mAllele[[i]][[j]] <- "R"
           mProbs[[i]][[j]] <- reference$mendelian[[i]]$R
-        } else if(allele=="S"){
+        } else if(mmPlex[[i]][[j]]=="S"){
           mAllele[[i]][[j]] <- "S"
           mProbs[[i]][[j]] <- reference$mendelian[[i]]$S
         }
