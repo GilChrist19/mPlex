@@ -11,5 +11,4 @@ The number of eggs laid per female is a Poisson distribution with a mean of
 beta, the fertility. A multinomial is then used to distribute the number of
 eggs laid over the offspring distribution (see \code{\link{DaisyOffspring}},
 \code{\link{MultiplexOffspring_mLoci}}, or \code{\link{MultiplexOffspring_oLocus}}).
-The new eggs are created by \code{\link{CreateMosquitoes_Eggs}}
 }

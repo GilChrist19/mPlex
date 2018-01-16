@@ -24,8 +24,8 @@ List of Mosquito objects length(sum(numMos))
 Creates new Mosquito objects specifically for simulation setup
 }
 \details{
-This function creates new mosquitoes. It is similar to \code{\link{CreateMosquitoes_Eggs}}
-and \code{\link{CreateMosquitoes_Defined_Genotype}}, but intended for simulation setup.
+This function creates new mosquitoes. It is similar to
+\code{\link{CreateMosquitoes_Defined_Genotype}}, but intended for simulation setup.
 It takes a list of alleles and their frequency in the population, then creates
 genotypes based on that distribution. Then it samples the age distribtuion, and
 creates new Mosquitoes with the proper distributions of genotypes and age.

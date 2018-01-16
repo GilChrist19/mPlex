@@ -24,8 +24,8 @@ List of Mosquito objects length(sum(numMos))
 Creates new Mosquito objects specifically for releases
 }
 \details{
-This function creates new mosquitoes. It is similar to \code{\link{CreateMosquitoes_Eggs}}
-and \code{\link{CreateMosquitoes_Distribution_Genotype}}, but intended for releases setup.
+This function creates new mosquitoes. It is similar to
+\code{\link{CreateMosquitoes_Distribution_Genotype}}, but intended for releases setup.
 The assumption is that scientists can control the genotype of lab populations,
 so this function takes a list of genotypes, then a vector of how many of each
 genotype to release. There is some age variation, though that can be specified

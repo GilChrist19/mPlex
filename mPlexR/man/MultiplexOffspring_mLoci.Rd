@@ -26,7 +26,7 @@ that they occur. Similar to \code{\link{DaisyOffspring}} and
 \code{\link{MultiplexOffspring_oLocus}}.
 }
 \examples{
-ref <- MakeReferenceDaisy(H = 0.98, R = 0.001, S = 0.0003, d = .00001)
+ref <- MakeReference_Multiplex_mLoci(H = 0.98, R = 0.001, S = 0.0003, d = .00001)
 fGen <- "WW"
 mGen <- "WW"
 
