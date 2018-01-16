@@ -402,11 +402,11 @@ oneDay_Reproduction_Patch <- function(){
 
   for(critter in private$adult_female){
 
-    #This produces a list of 2 lists: Alleles, Probabilities
+    #This fills offpsring list, a list of 2 lists: Alleles, Probabilities
     # This function is set during initialization
-    offspring <- self$offspringDistribution(fGen = critter$get_genotype(),
-                                      mGen = critter$get_mate(),
-                                      reference = private$NetworkPointer$get_reference())
+    self$offspringDistribution(fGen = critter$get_genotype(),
+                               mGen = critter$get_mate(),
+                               reference = private$NetworkPointer$get_reference())
 
     #This generates an egg distribution
     private$eggNumber <- rmultinom(n = 1,
