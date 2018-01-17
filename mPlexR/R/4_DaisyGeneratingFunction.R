@@ -162,93 +162,93 @@ DaisyOffspring <- function(fGen, mGen, reference){
 
   #split mother genotype
   #This splits all characters.
-  fSplit <- strsplit(x = fGen, split = "")[[1]]
-  mSplit <- strsplit(x = mGen, split = "")[[1]]
+  private$fSplit <- strsplit(x = fGen, split = "")[[1]]
+  private$mSplit <- strsplit(x = mGen, split = "")[[1]]
 
   #get number of drives. Divide by 2 because diploid
-  numAlleles <- length(fSplit)/2
+  private$numAlleles <- length(private$fSplit)/2
 
   #make a list of each allele at every locus. This list is length nmPlex, and each
   # sublist has length 2
-  momAlleles <- lapply(X = seq.int(from = 1, to = 2*numAlleles, by = 2), FUN = function(X){fSplit[X:(X+1)]})
-  dadAlleles <- lapply(X = seq.int(from = 1, to = 2*numAlleles, by = 2), FUN = function(X){mSplit[X:(X+1)]})
+  private$momAlleles <- lapply(X = seq.int(from = 1, to = 2*private$numAlleles, by = 2), FUN = function(X){private$fSplit[X:(X+1)]})
+  private$dadAlleles <- lapply(X = seq.int(from = 1, to = 2*private$numAlleles, by = 2), FUN = function(X){private$mSplit[X:(X+1)]})
 
   #score them
-  fscore <- c(FALSE, grepl(pattern = "H", x = momAlleles, ignore.case = FALSE, perl = FALSE, fixed = TRUE))
-  mscore <- c(FALSE, grepl(pattern = "H", x = dadAlleles, ignore.case = FALSE, perl = FALSE, fixed = TRUE))
+  private$fScore <- c(FALSE, grepl(pattern = "H", x = private$momAlleles, ignore.case = FALSE, perl = FALSE, fixed = TRUE))
+  private$mScore <- c(FALSE, grepl(pattern = "H", x = private$dadAlleles, ignore.case = FALSE, perl = FALSE, fixed = TRUE))
 
   #setup offspring allele lists
-  fAllele <- rep(x = list(vector(mode = "list", 2)), numAlleles)
-  fProbs <- rep(x = list(vector(mode = "list", 2)), numAlleles)
-  mAllele <- rep(x = list(vector(mode = "list", 2)), numAlleles)
-  mProbs <- rep(x = list(vector(mode = "list", 2)), numAlleles)
+  private$fAllele <- rep(x = list(vector(mode = "list", 2)), private$numAlleles)
+  private$fProbs <- rep(x = list(vector(mode = "list", 2)), private$numAlleles)
+  private$mAllele <- rep(x = list(vector(mode = "list", 2)), private$numAlleles)
+  private$mProbs <- rep(x = list(vector(mode = "list", 2)), private$numAlleles)
 
 
   #this for loop runs over the number of daisy drive constructs
-  for(i in 1:numAlleles){
+  for(i in 1:private$numAlleles){
 
     ## FEMALES
     #3 if statements for 3 cases
-    if((fscore[i]==FALSE && fscore[i+1]==FALSE) ||(fscore[i]==FALSE && fscore[i+1]==TRUE)){
+    if((private$fScore[i]==FALSE && private$fScore[i+1]==FALSE) ||(private$fScore[i]==FALSE && private$fScore[i+1]==TRUE)){
       #FF or FT case
 
       for(j in 1:2){
 
         #Fill allele with letter and probs
-        if(momAlleles[[i]][[j]]=="W"){
-          fAllele[[i]][[j]] <- c("W","S")
-          fProbs[[i]][[j]] <- reference$mendelian[[i]]$W
-        } else if(momAlleles[[i]][[j]]=="H"){
-          fAllele[[i]][[j]] <- c("H", "S")
-          fProbs[[i]][[j]] <- reference$mendelian[[i]]$H
-        } else if(momAlleles[[i]][[j]]=="R"){
-          fAllele[[i]][[j]] <- "R"
-          fProbs[[i]][[j]] <- reference$mendelian[[i]]$R
-        } else if(momAlleles[[i]][[j]]=="S"){
-          fAllele[[i]][[j]] <- "S"
-          fProbs[[i]][[j]] <- reference$mendelian[[i]]$S
+        if(private$momAlleles[[i]][[j]]=="W"){
+          private$fAllele[[i]][[j]] <- c("W","S")
+          private$fProbs[[i]][[j]] <- reference$mendelian[[i]]$W
+        } else if(private$momAlleles[[i]][[j]]=="H"){
+          private$fAllele[[i]][[j]] <- c("H", "S")
+          private$fProbs[[i]][[j]] <- reference$mendelian[[i]]$H
+        } else if(private$momAlleles[[i]][[j]]=="R"){
+          private$fAllele[[i]][[j]] <- "R"
+          private$fProbs[[i]][[j]] <- reference$mendelian[[i]]$R
+        } else if(private$momAlleles[[i]][[j]]=="S"){
+          private$fAllele[[i]][[j]] <- "S"
+          private$fProbs[[i]][[j]] <- reference$mendelian[[i]]$S
         }
 
       }#end of inner for loop
-    } else if(fscore[i]==TRUE && fscore[i+1]==FALSE){
+    } else if(private$fScore[i]==TRUE && private$fScore[i+1]==FALSE){
       #TF case
 
       for(j in 1:2){
 
         #Fill allele with letter and probs
-        if(momAlleles[[i]][[j]]=="W"){
-          fAllele[[i]][[j]] <- c("W","R","S")
-          fProbs[[i]][[j]] <- reference$cutting[[i]]$W
-        } else if(momAlleles[[i]][[j]]=="H"){
-          fAllele[[i]][[j]] <- c("H", "S")
-          fProbs[[i]][[j]] <- reference$cutting[[i]]$H
-        } else if(momAlleles[[i]][[j]]=="R"){
-          fAllele[[i]][[j]] <- "R"
-          fProbs[[i]][[j]] <- reference$cutting[[i]]$R
-        } else if(momAlleles[[i]][[j]]=="S"){
-          fAllele[[i]][[j]] <- "S"
-          fProbs[[i]][[j]] <- reference$cutting[[i]]$S
+        if(private$momAlleles[[i]][[j]]=="W"){
+          private$fAllele[[i]][[j]] <- c("W","R","S")
+          private$fProbs[[i]][[j]] <- reference$cutting[[i]]$W
+        } else if(private$momAlleles[[i]][[j]]=="H"){
+          private$fAllele[[i]][[j]] <- c("H", "S")
+          private$fProbs[[i]][[j]] <- reference$cutting[[i]]$H
+        } else if(private$momAlleles[[i]][[j]]=="R"){
+          private$fAllele[[i]][[j]] <- "R"
+          private$fProbs[[i]][[j]] <- reference$cutting[[i]]$R
+        } else if(private$momAlleles[[i]][[j]]=="S"){
+          private$fAllele[[i]][[j]] <- "S"
+          private$fProbs[[i]][[j]] <- reference$cutting[[i]]$S
         }
 
       }#end of inner for loop
-    } else if(fscore[i]==TRUE && fscore[i+1]==TRUE){
+    } else if(private$fScore[i]==TRUE && private$fScore[i+1]==TRUE){
       #TT case
 
       for(j in 1:2){
 
         #Fill allele with letter and probs
-        if(momAlleles[[i]][[j]]=="W"){
-          fAllele[[i]][[j]] <- c("W","H","R","S")
-          fProbs[[i]][[j]] <- reference$homing[[i]]$W
-        } else if(momAlleles[[i]][[j]]=="H"){
-          fAllele[[i]][[j]] <- c("H", "S")
-          fProbs[[i]][[j]] <- reference$homing[[i]]$H
-        } else if(momAlleles[[i]][[j]]=="R"){
-          fAllele[[i]][[j]] <- "R"
-          fProbs[[i]][[j]] <- reference$homing[[i]]$R
-        } else if(momAlleles[[i]][[j]]=="S"){
-          fAllele[[i]][[j]] <- "S"
-          fProbs[[i]][[j]] <- reference$homing[[i]]$S
+        if(private$momAlleles[[i]][[j]]=="W"){
+          private$fAllele[[i]][[j]] <- c("W","H","R","S")
+          private$fProbs[[i]][[j]] <- reference$homing[[i]]$W
+        } else if(private$momAlleles[[i]][[j]]=="H"){
+          private$fAllele[[i]][[j]] <- c("H", "S")
+          private$fProbs[[i]][[j]] <- reference$homing[[i]]$H
+        } else if(private$momAlleles[[i]][[j]]=="R"){
+          private$fAllele[[i]][[j]] <- "R"
+          private$fProbs[[i]][[j]] <- reference$homing[[i]]$R
+        } else if(private$momAlleles[[i]][[j]]=="S"){
+          private$fAllele[[i]][[j]] <- "S"
+          private$fProbs[[i]][[j]] <- reference$homing[[i]]$S
         }
 
       }#end of inner for loop
@@ -257,66 +257,66 @@ DaisyOffspring <- function(fGen, mGen, reference){
 
     ## MALES
     #3 if statements for 3 cases
-    if((mscore[i]==FALSE && mscore[i+1]==FALSE) ||(mscore[i]==FALSE && mscore[i+1]==TRUE)){
+    if((private$mScore[i]==FALSE && private$mScore[i+1]==FALSE) ||(private$mScore[i]==FALSE && private$mScore[i+1]==TRUE)){
       #FF or FT case
 
       for(j in 1:2){
 
         #Fill allele with letter and probs
-        if(dadAlleles[[i]][[j]]=="W"){
-          mAllele[[i]][[j]] <- c("W","S")
-          mProbs[[i]][[j]] <- reference$mendelian[[i]]$W
-        } else if(dadAlleles[[i]][[j]]=="H"){
-          mAllele[[i]][[j]] <- c("H", "S")
-          mProbs[[i]][[j]] <- reference$mendelian[[i]]$H
-        } else if(dadAlleles[[i]][[j]]=="R"){
-          mAllele[[i]][[j]] <- "R"
-          mProbs[[i]][[j]] <- reference$mendelian[[i]]$R
-        } else if(dadAlleles[[i]][[j]]=="S"){
-          mAllele[[i]][[j]] <- "S"
-          mProbs[[i]][[j]] <- reference$mendelian[[i]]$S
+        if(private$dadAlleles[[i]][[j]]=="W"){
+          private$mAllele[[i]][[j]] <- c("W","S")
+          private$mProbs[[i]][[j]] <- reference$mendelian[[i]]$W
+        } else if(private$dadAlleles[[i]][[j]]=="H"){
+          private$mAllele[[i]][[j]] <- c("H", "S")
+          private$mProbs[[i]][[j]] <- reference$mendelian[[i]]$H
+        } else if(private$dadAlleles[[i]][[j]]=="R"){
+          private$mAllele[[i]][[j]] <- "R"
+          private$mProbs[[i]][[j]] <- reference$mendelian[[i]]$R
+        } else if(private$dadAlleles[[i]][[j]]=="S"){
+          private$mAllele[[i]][[j]] <- "S"
+          private$mProbs[[i]][[j]] <- reference$mendelian[[i]]$S
         }
 
       }#end of inner for loop
-    } else if(mscore[i]==TRUE && mscore[i+1]==FALSE){
+    } else if(private$mScore[i]==TRUE && private$mScore[i+1]==FALSE){
       #TF case
 
       for(j in 1:2){
 
         #Fill allele with letter and probs
-        if(dadAlleles[[i]][[j]]=="W"){
-          mAllele[[i]][[j]] <- c("W","R","S")
-          mProbs[[i]][[j]] <- reference$cutting[[i]]$W
-        } else if(dadAlleles[[i]][[j]]=="H"){
-          mAllele[[i]][[j]] <- c("H", "S")
-          mProbs[[i]][[j]] <- reference$cutting[[i]]$H
-        } else if(dadAlleles[[i]][[j]]=="R"){
-          mAllele[[i]][[j]] <- "R"
-          mProbs[[i]][[j]] <- reference$cutting[[i]]$R
-        } else if(dadAlleles[[i]][[j]]=="S"){
-          mAllele[[i]][[j]] <- "S"
-          mProbs[[i]][[j]] <- reference$cutting[[i]]$S
+        if(private$dadAlleles[[i]][[j]]=="W"){
+          private$mAllele[[i]][[j]] <- c("W","R","S")
+          private$mProbs[[i]][[j]] <- reference$cutting[[i]]$W
+        } else if(private$dadAlleles[[i]][[j]]=="H"){
+          private$mAllele[[i]][[j]] <- c("H", "S")
+          private$mProbs[[i]][[j]] <- reference$cutting[[i]]$H
+        } else if(private$dadAlleles[[i]][[j]]=="R"){
+          private$mAllele[[i]][[j]] <- "R"
+          private$mProbs[[i]][[j]] <- reference$cutting[[i]]$R
+        } else if(private$dadAlleles[[i]][[j]]=="S"){
+          private$mAllele[[i]][[j]] <- "S"
+          private$mProbs[[i]][[j]] <- reference$cutting[[i]]$S
         }
 
       }#end of inner for loop
-    } else if(mscore[i]==TRUE && mscore[i+1]==TRUE){
+    } else if(private$mScore[i]==TRUE && private$mScore[i+1]==TRUE){
       #TT case
 
       for(j in 1:2){
 
         #Fill allele with letter and probs
-        if(dadAlleles[[i]][[j]]=="W"){
-          mAllele[[i]][[j]] <- c("W","H","R","S")
-          mProbs[[i]][[j]] <- reference$homing[[i]]$W
-        } else if(dadAlleles[[i]][[j]]=="H"){
-          mAllele[[i]][[j]] <- c("H", "S")
-          mProbs[[i]][[j]] <- reference$homing[[i]]$H
-        } else if(dadAlleles[[i]][[j]]=="R"){
-          mAllele[[i]][[j]] <- "R"
-          mProbs[[i]][[j]] <- reference$homing[[i]]$R
-        } else if(dadAlleles[[i]][[j]]=="S"){
-          mAllele[[i]][[j]] <- "S"
-          mProbs[[i]][[j]] <- reference$homing[[i]]$S
+        if(private$dadAlleles[[i]][[j]]=="W"){
+          private$mAllele[[i]][[j]] <- c("W","H","R","S")
+          private$mProbs[[i]][[j]] <- reference$homing[[i]]$W
+        } else if(private$dadAlleles[[i]][[j]]=="H"){
+          private$mAllele[[i]][[j]] <- c("H", "S")
+          private$mProbs[[i]][[j]] <- reference$homing[[i]]$H
+        } else if(private$dadAlleles[[i]][[j]]=="R"){
+          private$mAllele[[i]][[j]] <- "R"
+          private$mProbs[[i]][[j]] <- reference$homing[[i]]$R
+        } else if(private$dadAlleles[[i]][[j]]=="S"){
+          private$mAllele[[i]][[j]] <- "S"
+          private$mProbs[[i]][[j]] <- reference$homing[[i]]$S
         }
 
       }#end of inner for loop
@@ -330,54 +330,54 @@ DaisyOffspring <- function(fGen, mGen, reference){
   # other loci.
   # ie, unlist the sublists in each allele/probs list. This will give single-
   # depth lists the same length as the number of Daisy components.
-  fAllLoci <- lapply(X = fAllele, FUN = unlist, recursive=TRUE)
-  fProbsLoci <- lapply(X = fProbs, FUN = unlist, recursive=TRUE)
-  mAllLoci <- lapply(X = mAllele, FUN = unlist, recursive=TRUE)
-  mProbsLoci <- lapply(X = mProbs, FUN = unlist, recursive=TRUE)
+  private$fAllLoci <- lapply(X = private$fAllele, FUN = unlist, recursive=TRUE)
+  private$fProbsLoci <- lapply(X = private$fProbs, FUN = unlist, recursive=TRUE)
+  private$mAllLoci <- lapply(X = private$mAllele, FUN = unlist, recursive=TRUE)
+  private$mProbsLoci <- lapply(X = private$mProbs, FUN = unlist, recursive=TRUE)
 
   #combine male and female alleles at each locus.
   # This requires looping through each locus, getting all combinations of
-  lociAList <- vector(mode = "list", length = numAlleles)
-  lociPList <- vector(mode = "list", length = numAlleles)
+  private$lociAList <- vector(mode = "list", length = private$numAlleles)
+  private$lociPList <- vector(mode = "list", length = private$numAlleles)
 
-  for( i in 1:numAlleles){
+  for( i in 1:private$numAlleles){
 
     #get all combinationes of male/female for each allele
-    holdAllOne <- expand.grid(fAllLoci[[i]], mAllLoci[[i]], KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
-    holdProbOne <- expand.grid(fProbsLoci[[i]], mProbsLoci[[i]], KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
+    private$holdAllOne <- expand.grid(private$fAllLoci[[i]], private$mAllLoci[[i]], KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
+    private$holdProbOne <- expand.grid(private$fProbsLoci[[i]], private$mProbsLoci[[i]], KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
 
     #sort each combination so they are the same.
-    holdAllOne <- apply(X = holdAllOne, MARGIN = 1, FUN = sort)
+    private$holdAllOne <- apply(X = private$holdAllOne, MARGIN = 1, FUN = sort)
 
     #paste alleles togheter
-    holdAllTwo <- do.call(what = "paste0", list(holdAllOne[1, ], holdAllOne[2, ]))
-    holdProbTwo <- holdProbOne[ ,1]*holdProbOne[ ,2]
+    private$holdAllTwo <- do.call(what = "paste0", list(private$holdAllOne[1, ], private$holdAllOne[2, ]))
+    private$holdProbTwo <- private$holdProbOne[ ,1]*private$holdProbOne[ ,2]
 
     #aggregate and return
-    aggregateHold <- aggregate(holdProbTwo~holdAllTwo, data=data.frame(holdAllTwo, holdProbTwo), FUN=sum)
+    private$aggregateHold <- aggregate(private$holdProbTwo~private$holdAllTwo, data=data.frame(private$holdAllTwo, private$holdProbTwo), FUN=sum)
 
     #fill lists
-    lociAList[[i]] <- as.character(aggregateHold$holdAllTwo)
-    lociPList[[i]] <- aggregateHold$holdProbTwo
+    private$lociAList[[i]] <- as.character(private$aggregateHold$'private$holdAllTwo')
+    private$lociPList[[i]] <- private$aggregateHold$'private$holdProbTwo'
 
   }
 
 
   #get all combinations of each loci. This gives the total genotype
-  outAList <- expand.grid(lociAList, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
-  outPList <- expand.grid(lociPList, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
+  private$outAList <- expand.grid(private$lociAList, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
+  private$outPList <- expand.grid(private$lociPList, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
 
   #combine allele names and probabilities
-  outAList <- apply(X = outAList, MARGIN = 1, FUN = paste0, collapse="")
-  outPList <- apply(X = outPList, MARGIN = 1, FUN = prod)
-  #can use matrixStats::rowProds(x = as.matrix(outPList))
+  private$outAList <- apply(X = private$outAList, MARGIN = 1, FUN = paste0, collapse="")
+  private$outPList <- apply(X = private$outPList, MARGIN = 1, FUN = prod)
+  #can use matrixStats::rowProds(x = as.matrix(private$outPList))
 
 
   #normalize probs and return
-  return(list(
-    Alleles = outAList,
-    Probabilities = outPList/sum(outPList)
-  ))
+  private$offspring <- list(
+    Alleles = private$outAList,
+    Probabilities = private$outPList/sum(private$outPList)
+  )
 
 }
 

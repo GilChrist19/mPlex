@@ -25,7 +25,7 @@ library(mPlexR)
 
 migration = diag(1) #migration matrix
 N = nrow(migration) #number of patches
-patchPops = rep(20,N) #population of eachpatch
+patchPops = rep(50,N) #population of eachpatch
 directory <- "~/Desktop/HOLD"
 
     #setup alleles to initiate patches

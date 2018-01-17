@@ -291,8 +291,8 @@ MultiplexOffspring_mLoci <- function(fGen, mGen, reference){
     private$aggregateHold <- aggregate(private$holdProbTwo~private$holdAllTwo, data=data.frame(private$holdAllTwo, private$holdProbTwo), FUN=sum)
 
     #fill lists
-    private$lociAList[[i]] <- as.character(private$aggregateHold$private$holdAllTwo)
-    private$lociPList[[i]] <- private$aggregateHold$private$holdProbTwo
+    private$lociAList[[i]] <- as.character(private$aggregateHold$'private$holdAllTwo')
+    private$lociPList[[i]] <- private$aggregateHold$'private$holdProbTwo'
 
   }
 
@@ -308,7 +308,7 @@ MultiplexOffspring_mLoci <- function(fGen, mGen, reference){
 
 
   #normalize probs and return
-  offspring <- list(
+  private$offspring <- list(
     Alleles = private$outAList,
     Probabilities = private$outPList/sum(private$outPList)
   )

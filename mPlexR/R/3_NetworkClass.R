@@ -163,7 +163,7 @@ Network <- R6::R6Class(classname = "Network",
 
                   minAgeLarva <- networkParameters$stageTime["E"] + 1L
                   maxAgeLarva <- minAgeLarva + networkParameters$stageTime["L"]
-                  lenAgeLarva <- length(minAgeLarva:maxAgeLarva)
+                  distAgeLarva <- (1-networkParameters$mu["L"])^(minAgeLarva:maxAgeLarva)
 
                   minAgePupa <- maxAgeLarva + 1L
                   maxAgePupa <- minAgePupa + networkParameters$stageTime["P"]
@@ -186,13 +186,16 @@ Network <- R6::R6Class(classname = "Network",
                                                                                                       ageDist =  rep(x = 1, times = lenAgeEgg)/lenAgeEgg,
                                                                                                       aTypes = networkParameters$alleloTypes[[i]]),
 
-                                                     larva_t0 = CreateMosquitoes_Distribution_Genotype(numMos = networkParameters$Leq[i],
+
+                                                     #approximation to number and age distribution of larva.
+                                                     larva_t0 = CreateMosquitoes_Distribution_Genotype(numMos = 1.75*networkParameters$Leq[i],
                                                                                                        minAge = minAgeLarva,
                                                                                                        maxAge = maxAgeLarva,
-                                                                                                       ageDist = rep(x = 1, times = lenAgeLarva)/lenAgeLarva,
+                                                                                                       ageDist = distAgeLarva/sum(distAgeLarva),
                                                                                                        aTypes = networkParameters$alleloTypes[[i]]),
 
-                                                     pupa_t0 = CreateMosquitoes_Distribution_Genotype(numMos = networkParameters$Leq[i],
+                                                     #using AdPopEQ as empirically better
+                                                     pupa_t0 = CreateMosquitoes_Distribution_Genotype(numMos = networkParameters$AdPopEQ[i]/2L,
                                                                                                       minAge = minAgePupa,
                                                                                                       maxAge = maxAgePupa,
                                                                                                       ageDist = rep(x = 1, times = lenAgePupa)/lenAgePupa,

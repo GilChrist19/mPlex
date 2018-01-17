@@ -108,6 +108,31 @@
 #'  * numUnweds: Number of unmated females. Holder for mating function
 #'  * numMates: Number of adult males. Holder for mating function
 #'  * mates: Character vector of male genotypes. Holder for mating function
+#'  * fSplit: Split female genotype. Holder for reproduction
+#'  * mSplit: Split male genotype. Holder for reproduction
+#'  * numAlleles: Number of alleles. Holder for reproduction
+#'  * momAlleles: List of female alleles. Holder for reproduction
+#'  * dadAlleles: List of male alleles. Holder for reproduction
+#'  * fScore: Boolean. Female have drive element? Holder for reproduction
+#'  * mScore: Boolean. Male have drive element? Holder for reproduction
+#'  * fAllele: New female alleles. Holder for reproduction
+#'  * fProbs: Probabilities for female alleles. Holder for reproduction
+#'  * mAllele: New male alleles. Holder for reproduction
+#'  * mProbs: Probabilities for male alleles. Holder for reproduction
+#'  * fAllLoci: All new female loci. Holder for reproduction
+#'  * fProbsLoci: Probabilities for new female loci. Holder for reproduction
+#'  * mAllLoci: All new male loci. Holder for reproduction
+#'  * mProbsLoci: Probabilities for new male loci. Holder for reproduction
+#'  * lociAList: List of alleles. Holder for reproduction
+#'  * lociPList: List of probabilities. Holder for reproduction
+#'  * holdAllOne: Allele holder 1. Holder for reproduction
+#'  * holdProbOne: Probability holder 1. Holder for reproduction
+#'  * holdAllTwo: Allele holder 2. Holder for reproduction
+#'  * holdProbTwo: Probability holder 2. Holder for reproduction
+#'  * aggregateHold: Holder from aggregate function! (LOL.) Holder for reproduction
+#'  * outAList: Allele list out. Holder for reproduction
+#'  * outPList: Probabilities list out. Holder for reproduction
+#'  * offspring: List(Alleles, Probabilities) specifying new offspring genotype and distribution.
 #'  * eggNumber: Integer vector of how many eggs to lay. Holder for reproduction function
 #'  * newEggs: list of new Mosquitoes laid. Holder for reproduction function
 #'

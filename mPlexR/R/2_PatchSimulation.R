@@ -411,7 +411,7 @@ oneDay_Reproduction_Patch <- function(){
     #This generates an egg distribution
     private$eggNumber <- rmultinom(n = 1,
                            size = rpois(n = 1, lambda = private$NetworkPointer$get_beta()),
-                           prob = offspring$Probabilities)
+                           prob = private$offspring$Probabilities)
 
 
     #Generate new mosquitoe population
@@ -419,14 +419,14 @@ oneDay_Reproduction_Patch <- function(){
 
     private$genericCounter = 1L
     #loop over each genotype
-    for(gen in 1:length(offspring$Alleles)){
+    for(gen in 1:length(private$offspring$Alleles)){
       #skip if there are no mosquitoes of this genotype
       if(private$eggNumber[gen]==0){next}
 
       #loop over number of mosquitoes of that genotype
       for(num in 1:private$eggNumber[gen]){
         #create new mosquito
-        private$newEggs[[private$genericCounter]] <- Mosquito$new(genotype = offspring$Alleles[gen], age = 0)
+        private$newEggs[[private$genericCounter]] <- Mosquito$new(genotype = private$offspring$Alleles[gen], age = 0)
 
         private$genericCounter = private$genericCounter + 1L
       }# end egg number loop
