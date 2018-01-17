@@ -32,14 +32,6 @@ oneDay_PopDynamics_Patch <- function(){
   self$oneDay_Age(Population = private$adult_male)
   self$oneDay_Age(Population = private$adult_female)
 
-  cat("\nDay:",private$NetworkPointer$get_tNow(), "\n" )
-  cat("Eggs:", length(private$eggs), "\n")
-  cat("Larva:", length(private$larva), "\n")
-  cat("Pupa:", length(private$pupa), "\n")
-  cat("Male:", length(private$adult_male), "\n")
-  cat("Singles:", length(private$unmated_female), "\n")
-  cat("Female:", length(private$adult_female), "\n")
-
   ################
   # DEATH
   ################
@@ -133,8 +125,6 @@ oneDay_LarvalDeath_Patch <- function(){
   alpha = private$NetworkPointer$get_alpha(private$patchID)
 
   private$DenDep <- (alpha/(alpha+length(private$larva)) )^(1/stageDur)
-
-  cat("Larval density dependence is:", private$DenDep, "\n")
 
   #calculate death
   # This is done as 1-probLife
@@ -404,7 +394,7 @@ oneDay_Reproduction_Patch <- function(){
 
     #This fills offpsring list, a list of 2 lists: Alleles, Probabilities
     # This function is set during initialization
-    self$offspringDistribution(fGen = critter$get_genotype(),
+    private$offspring <- self$offspringDistribution(fGen = critter$get_genotype(),
                                mGen = critter$get_mate(),
                                reference = private$NetworkPointer$get_reference())
 

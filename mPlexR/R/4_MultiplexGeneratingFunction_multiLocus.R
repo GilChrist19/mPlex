@@ -143,49 +143,49 @@ MultiplexOffspring_mLoci <- function(fGen, mGen, reference){
 
   #split mother genotype
   #This splits all characters.
-  private$fSplit <- strsplit(x = fGen, split = "")[[1]]
-  private$mSplit <- strsplit(x = mGen, split = "")[[1]]
+  fSplit <- strsplit(x = fGen, split = "")[[1]]
+  mSplit <- strsplit(x = mGen, split = "")[[1]]
 
   #get number of alleles. Divide by two because diploid
-  private$numAlleles <- length(private$fSplit)/2
+  numAlleles <- length(fSplit)/2
 
-  #make a list of each allele at every locus. This list is length private$numAlleles, and each
+  #make a list of each allele at every locus. This list is length numAlleles, and each
   # sublist has length 2
-  private$momAlleles <- lapply(X = seq.int(from = 1, to = 2*private$numAlleles, by = 2), FUN = function(X){private$fSplit[X:(X+1)]})
-  private$dadAlleles <- lapply(X = seq.int(from = 1, to = 2*private$numAlleles, by = 2), FUN = function(X){private$mSplit[X:(X+1)]})
+  momAlleles <- lapply(X = seq.int(from = 1, to = 2*numAlleles, by = 2), FUN = function(X){fSplit[X:(X+1)]})
+  dadAlleles <- lapply(X = seq.int(from = 1, to = 2*numAlleles, by = 2), FUN = function(X){mSplit[X:(X+1)]})
 
   #score them
-  private$fScore <- grepl(pattern = "H", x = private$momAlleles, ignore.case = FALSE, perl = FALSE, fixed = TRUE)
-  private$mScore <- grepl(pattern = "H", x = private$dadAlleles, ignore.case = FALSE, perl = FALSE, fixed = TRUE)
+  fscore <- grepl(pattern = "H", x = momAlleles, ignore.case = FALSE, perl = FALSE, fixed = TRUE)
+  mscore <- grepl(pattern = "H", x = dadAlleles, ignore.case = FALSE, perl = FALSE, fixed = TRUE)
 
   #setup offspring allele lists
-  private$fAllele <- rep(x = list(vector(mode = "list", 2)), private$numAlleles)
-  private$fProbs <- rep(x = list(vector(mode = "list", 2)), private$numAlleles)
-  private$mAllele <- rep(x = list(vector(mode = "list", 2)), private$numAlleles)
-  private$mProbs <- rep(x = list(vector(mode = "list", 2)), private$numAlleles)
+  fAllele <- rep(x = list(vector(mode = "list", 2)), numAlleles)
+  fProbs <- rep(x = list(vector(mode = "list", 2)), numAlleles)
+  mAllele <- rep(x = list(vector(mode = "list", 2)), numAlleles)
+  mProbs <- rep(x = list(vector(mode = "list", 2)), numAlleles)
 
   #loop over all loci
-  for(i in 1:private$numAlleles){
+  for(i in 1:numAlleles){
 
     #Females!
-    if(private$fScore[i]){
+    if(fscore[i]){
       #If there is homing
       #loop over alleles at the locus. Everything is diploid here.
       for(j in 1:2){
 
         #Fill allele with letter and probs
-        if(private$momAlleles[[i]][[j]]=="W"){
-          private$fAllele[[i]][[j]] <- c("W","H","R","S")
-          private$fProbs[[i]][[j]] <- reference$homing[[i]]$W
-        } else if(private$momAlleles[[i]][[j]]=="H"){
-          private$fAllele[[i]][[j]] <- c("H", "S")
-          private$fProbs[[i]][[j]] <- reference$homing[[i]]$H
-        } else if(private$momAlleles[[i]][[j]]=="R"){
-          private$fAllele[[i]][[j]] <- "R"
-          private$fProbs[[i]][[j]] <- reference$homing[[i]]$R
-        } else if(private$momAlleles[[i]][[j]]=="S"){
-          private$fAllele[[i]][[j]] <- "S"
-          private$fProbs[[i]][[j]] <- reference$homing[[i]]$S
+        if(momAlleles[[i]][[j]]=="W"){
+          fAllele[[i]][[j]] <- c("W","H","R","S")
+          fProbs[[i]][[j]] <- reference$homing[[i]]$W
+        } else if(momAlleles[[i]][[j]]=="H"){
+          fAllele[[i]][[j]] <- c("H", "S")
+          fProbs[[i]][[j]] <- reference$homing[[i]]$H
+        } else if(momAlleles[[i]][[j]]=="R"){
+          fAllele[[i]][[j]] <- "R"
+          fProbs[[i]][[j]] <- reference$homing[[i]]$R
+        } else if(momAlleles[[i]][[j]]=="S"){
+          fAllele[[i]][[j]] <- "S"
+          fProbs[[i]][[j]] <- reference$homing[[i]]$S
         }
 
       }#end allele loop
@@ -195,42 +195,42 @@ MultiplexOffspring_mLoci <- function(fGen, mGen, reference){
       for(j in 1:2){
 
         #Fill allele with letter and probs
-        if(private$momAlleles[[i]][[j]]=="W"){
-          private$fAllele[[i]][[j]] <- c("W","S")
-          private$fProbs[[i]][[j]] <- reference$mendelian[[i]]$W
-        } else if(private$momAlleles[[i]][[j]]=="H"){
-          private$fAllele[[i]][[j]] <- c("H", "S")
-          private$fProbs[[i]][[j]] <- reference$mendelian[[i]]$H
-        } else if(private$momAlleles[[i]][[j]]=="R"){
-          private$fAllele[[i]][[j]] <- "R"
-          private$fProbs[[i]][[j]] <- reference$mendelian[[i]]$R
-        } else if(private$momAlleles[[i]][[j]]=="S"){
-          private$fAllele[[i]][[j]] <- "S"
-          private$fProbs[[i]][[j]] <- reference$mendelian[[i]]$S
+        if(momAlleles[[i]][[j]]=="W"){
+          fAllele[[i]][[j]] <- c("W","S")
+          fProbs[[i]][[j]] <- reference$mendelian[[i]]$W
+        } else if(momAlleles[[i]][[j]]=="H"){
+          fAllele[[i]][[j]] <- c("H", "S")
+          fProbs[[i]][[j]] <- reference$mendelian[[i]]$H
+        } else if(momAlleles[[i]][[j]]=="R"){
+          fAllele[[i]][[j]] <- "R"
+          fProbs[[i]][[j]] <- reference$mendelian[[i]]$R
+        } else if(momAlleles[[i]][[j]]=="S"){
+          fAllele[[i]][[j]] <- "S"
+          fProbs[[i]][[j]] <- reference$mendelian[[i]]$S
         }
 
       }#end allele loop
     }#end female if statement
 
     #Males!
-    if(private$mScore[i]){
+    if(mscore[i]){
       #If there is homing
       #loop over alleles at the locus. Everything is diploid here.
       for(j in 1:2){
 
         #Fill allele with letter and probs
-        if(private$dadAlleles[[i]][[j]]=="W"){
-          private$mAllele[[i]][[j]] <- c("W","H","R","S")
-          private$mProbs[[i]][[j]] <- reference$homing[[i]]$W
-        } else if(private$dadAlleles[[i]][[j]]=="H"){
-          private$mAllele[[i]][[j]] <- c("H", "S")
-          private$mProbs[[i]][[j]] <- reference$homing[[i]]$H
-        } else if(private$dadAlleles[[i]][[j]]=="R"){
-          private$mAllele[[i]][[j]] <- "R"
-          private$mProbs[[i]][[j]] <- reference$homing[[i]]$R
-        } else if(private$dadAlleles[[i]][[j]]=="S"){
-          private$mAllele[[i]][[j]] <- "S"
-          private$mProbs[[i]][[j]] <- reference$homing[[i]]$S
+        if(dadAlleles[[i]][[j]]=="W"){
+          mAllele[[i]][[j]] <- c("W","H","R","S")
+          mProbs[[i]][[j]] <- reference$homing[[i]]$W
+        } else if(dadAlleles[[i]][[j]]=="H"){
+          mAllele[[i]][[j]] <- c("H", "S")
+          mProbs[[i]][[j]] <- reference$homing[[i]]$H
+        } else if(dadAlleles[[i]][[j]]=="R"){
+          mAllele[[i]][[j]] <- "R"
+          mProbs[[i]][[j]] <- reference$homing[[i]]$R
+        } else if(dadAlleles[[i]][[j]]=="S"){
+          mAllele[[i]][[j]] <- "S"
+          mProbs[[i]][[j]] <- reference$homing[[i]]$S
         }
 
       }#end allele loop
@@ -240,18 +240,18 @@ MultiplexOffspring_mLoci <- function(fGen, mGen, reference){
       for(j in 1:2){
 
         #Fill allele with letter and probs
-        if(private$dadAlleles[[i]][[j]]=="W"){
-          private$mAllele[[i]][[j]] <- c("W","S")
-          private$mProbs[[i]][[j]] <- reference$mendelian[[i]]$W
-        } else if(private$dadAlleles[[i]][[j]]=="H"){
-          private$mAllele[[i]][[j]] <- c("H", "S")
-          private$mProbs[[i]][[j]] <- reference$mendelian[[i]]$H
-        } else if(private$dadAlleles[[i]][[j]]=="R"){
-          private$mAllele[[i]][[j]] <- "R"
-          private$mProbs[[i]][[j]] <- reference$mendelian[[i]]$R
-        } else if(private$dadAlleles[[i]][[j]]=="S"){
-          private$mAllele[[i]][[j]] <- "S"
-          private$mProbs[[i]][[j]] <- reference$mendelian[[i]]$S
+        if(dadAlleles[[i]][[j]]=="W"){
+          mAllele[[i]][[j]] <- c("W","S")
+          mProbs[[i]][[j]] <- reference$mendelian[[i]]$W
+        } else if(dadAlleles[[i]][[j]]=="H"){
+          mAllele[[i]][[j]] <- c("H", "S")
+          mProbs[[i]][[j]] <- reference$mendelian[[i]]$H
+        } else if(dadAlleles[[i]][[j]]=="R"){
+          mAllele[[i]][[j]] <- "R"
+          mProbs[[i]][[j]] <- reference$mendelian[[i]]$R
+        } else if(dadAlleles[[i]][[j]]=="S"){
+          mAllele[[i]][[j]] <- "S"
+          mProbs[[i]][[j]] <- reference$mendelian[[i]]$S
         }
 
       }#end allele loop
@@ -264,53 +264,53 @@ MultiplexOffspring_mLoci <- function(fGen, mGen, reference){
   # other loci.
   # ie, unlist the sublists in each allele/probs list. This will give single-
   # depth lists the same length as the number of multiplex loci.
-  private$fAllLoci <- lapply(X = private$fAllele, FUN = unlist, recursive=TRUE)
-  private$fProbsLoci <- lapply(X = private$fProbs, FUN = unlist, recursive=TRUE)
-  private$mAllLoci <- lapply(X = private$mAllele, FUN = unlist, recursive=TRUE)
-  private$mProbsLoci <- lapply(X = private$mProbs, FUN = unlist, recursive=TRUE)
+  fAllLoci <- lapply(X = fAllele, FUN = unlist, recursive=TRUE)
+  fProbsLoci <- lapply(X = fProbs, FUN = unlist, recursive=TRUE)
+  mAllLoci <- lapply(X = mAllele, FUN = unlist, recursive=TRUE)
+  mProbsLoci <- lapply(X = mProbs, FUN = unlist, recursive=TRUE)
 
   #combine male and female alleles at each locus.
   # This requires looping through each locus, getting all combinations of
-  private$lociAList <- vector(mode = "list", length = private$numAlleles)
-  private$lociPList <- vector(mode = "list", length = private$numAlleles)
+  lociAList <- vector(mode = "list", length = numAlleles)
+  lociPList <- vector(mode = "list", length = numAlleles)
 
-  for( i in 1:private$numAlleles){
+  for( i in 1:numAlleles){
 
     #get all combinationes of male/female for each allele
-    private$holdAllOne <- expand.grid(private$fAllLoci[[i]], private$mAllLoci[[i]], KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
-    private$holdProbOne <- expand.grid(private$fProbsLoci[[i]], private$mProbsLoci[[i]], KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
+    holdAllOne <- expand.grid(fAllLoci[[i]], mAllLoci[[i]], KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
+    holdProbOne <- expand.grid(fProbsLoci[[i]], mProbsLoci[[i]], KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
 
     #sort each combination so they are the same.
-    private$holdAllOne <- apply(X = private$holdAllOne, MARGIN = 1, FUN = sort)
+    holdAllOne <- apply(X = holdAllOne, MARGIN = 1, FUN = sort)
 
     #paste alleles togheter
-    private$holdAllTwo <- do.call(what = "paste0", list(private$holdAllOne[1, ], private$holdAllOne[2, ]))
-    private$holdProbTwo <- private$holdProbOne[ ,1]*private$holdProbOne[ ,2]
+    holdAllTwo <- do.call(what = "paste0", list(holdAllOne[1, ], holdAllOne[2, ]))
+    holdProbTwo <- holdProbOne[ ,1]*holdProbOne[ ,2]
 
     #aggregate and return
-    private$aggregateHold <- aggregate(private$holdProbTwo~private$holdAllTwo, data=data.frame(private$holdAllTwo, private$holdProbTwo), FUN=sum)
+    aggregateHold <- aggregate(holdProbTwo~holdAllTwo, data=data.frame(holdAllTwo, holdProbTwo), FUN=sum)
 
     #fill lists
-    private$lociAList[[i]] <- as.character(private$aggregateHold$'private$holdAllTwo')
-    private$lociPList[[i]] <- private$aggregateHold$'private$holdProbTwo'
+    lociAList[[i]] <- as.character(aggregateHold$holdAllTwo)
+    lociPList[[i]] <- aggregateHold$holdProbTwo
 
   }
 
 
   #get all combinations of each loci. This gives the total genotype
-  private$outAList <- expand.grid(private$lociAList, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
-  private$outPList <- expand.grid(private$lociPList, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
+  outAList <- expand.grid(lociAList, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
+  outPList <- expand.grid(lociPList, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
 
   #combine allele names and probabilities
-  private$outAList <- apply(X = private$outAList, MARGIN = 1, FUN = paste0, collapse="")
-  private$outPList <- apply(X = private$outPList, MARGIN = 1, FUN = prod)
-  #can use matrixStats::rowProds(x = as.matrix(private$outPList))
+  outAList <- apply(X = outAList, MARGIN = 1, FUN = paste0, collapse="")
+  outPList <- apply(X = outPList, MARGIN = 1, FUN = prod)
+  #can use matrixStats::rowProds(x = as.matrix(outPList))
 
 
   #normalize probs and return
-  private$offspring <- list(
-    Alleles = private$outAList,
-    Probabilities = private$outPList/sum(private$outPList)
-  )
+  return(list(
+    Alleles = outAList,
+    Probabilities = outPList/sum(outPList)
+  ))
 
 }

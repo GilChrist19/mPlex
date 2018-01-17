@@ -99,30 +99,6 @@ A Patch represents a single, well-mixed population of \code{\link{Mosquito}}
 \item numUnweds: Number of unmated females. Holder for mating function
 \item numMates: Number of adult males. Holder for mating function
 \item mates: Character vector of male genotypes. Holder for mating function
-\item fSplit: Split female genotype. Holder for reproduction
-\item mSplit: Split male genotype. Holder for reproduction
-\item numAlleles: Number of alleles. Holder for reproduction
-\item momAlleles: List of female alleles. Holder for reproduction
-\item dadAlleles: List of male alleles. Holder for reproduction
-\item fScore: Boolean. Female have drive element? Holder for reproduction
-\item mScore: Boolean. Male have drive element? Holder for reproduction
-\item fAllele: New female alleles. Holder for reproduction
-\item fProbs: Probabilities for female alleles. Holder for reproduction
-\item mAllele: New male alleles. Holder for reproduction
-\item mProbs: Probabilities for male alleles. Holder for reproduction
-\item fAllLoci: All new female loci. Holder for reproduction
-\item fProbsLoci: Probabilities for new female loci. Holder for reproduction
-\item mAllLoci: All new male loci. Holder for reproduction
-\item mProbsLoci: Probabilities for new male loci. Holder for reproduction
-\item lociAList: List of alleles. Holder for reproduction
-\item lociPList: List of probabilities. Holder for reproduction
-\item holdAllOne: Allele holder 1. Holder for reproduction
-\item holdProbOne: Probability holder 1. Holder for reproduction
-\item holdAllTwo: Allele holder 2. Holder for reproduction
-\item holdProbTwo: Probability holder 2. Holder for reproduction
-\item aggregateHold: Holder from aggregate function! (LOL.) Holder for reproduction
-\item outAList: Allele list out. Holder for reproduction
-\item outPList: Probabilities list out. Holder for reproduction
 \item offspring: List(Alleles, Probabilities) specifying new offspring genotype and distribution.
 \item eggNumber: Integer vector of how many eggs to lay. Holder for reproduction function
 \item newEggs: list of new Mosquitoes laid. Holder for reproduction function

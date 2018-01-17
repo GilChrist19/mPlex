@@ -269,7 +269,7 @@ splitOutput <- function(directory){
 #' @param readDirectory directory where output was written to; should not end in path seperator
 #' @param saveDirectory directory to save analyzed data. Default is readDirectory
 #' @param genotypes A list of each locus containing the genotypes of interest at that locus. Default is all genotypes
-#' @param collapse A list of each locus containing TRUE/FALSE. If TRUE, the genotypes of interest at that locus are collapsed and the output is the sum of all of them.
+#' @param collapse A vector of each locus containing TRUE/FALSE. If TRUE, the genotypes of interest at that locus are collapsed and the output is the sum of all of them.
 #'
 #' @return A *.rds object containing list(metaData=character, maleData=array, femaleData=array)
 #' @export
@@ -279,6 +279,7 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, genotyp
   dirFiles = list.files(path = readDirectory, pattern = ".*\\.csv$")
   runID = unique(x = regmatches(x = dirFiles, m = regexpr(pattern = "Run[0-9]+", text = dirFiles)))
   patches = unique(x = regmatches(x = dirFiles, m = regexpr(pattern = "Patch[0-9]+", text = dirFiles)))
+  patches = patches[order(as.integer(substring(text = patches, first = 6)))]
 
   #import one file:get simTime, check genotypes for safety checks
   testFile <- read.csv(file = file.path(readDirectory, dirFiles[1]),
@@ -303,9 +304,8 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, genotyp
     #if null, look at all possible genotypes at that locus
     if( is.null(genotypes[[i]]) ){
       genotypes[[i]] <- "(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)"
-    }
-    #if collapse is true, collapse the genotypes so all are searched for as one
-    if(collapse[i]){
+    } else if(collapse[i]){
+      #if collapse is true, collapse the genotypes so all are searched for as one
       genotypes[[i]] <- paste0("(",paste0(genotypes[[i]], collapse = "|") , ")", collapse = "")
     }
   }
@@ -328,11 +328,11 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, genotyp
     for(patch in patches){
       #read in male/female files for this run and patch
       mName = grep(pattern = paste("ADM", run, patch, sep = ".*"),
-                   x = dirFiles, ignore.case = FALSE, value = TRUE)
+                   x = dirFiles, ignore.case = FALSE, value = TRUE)[1]
       mFile = read.csv(file = file.path(readDirectory, mName),
                        header = TRUE, stringsAsFactors = FALSE)
       fName = grep(pattern = paste("ADF", run, patch, sep = ".*"),
-                   x = dirFiles, ignore.case = FALSE, value = TRUE)
+                   x = dirFiles, ignore.case = FALSE, value = TRUE)[1]
       fFile = read.csv(file = file.path(readDirectory, fName),
                        header = TRUE, stringsAsFactors = FALSE)
 
@@ -391,6 +391,7 @@ AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, alleles, col
   dirFiles = list.files(path = readDirectory, pattern = ".*\\.csv$")
   runID = unique(x = regmatches(x = dirFiles, m = regexpr(pattern = "Run[0-9]+", text = dirFiles)))
   patches = unique(x = regmatches(x = dirFiles, m = regexpr(pattern = "Patch[0-9]+", text = dirFiles)))
+  patches = patches[order(as.integer(substring(text = patches, first = 6)))]
 
   #import one file:get simTime, check genotypes for safety checks
   testFile <- read.csv(file = file.path(readDirectory, dirFiles[1]),
@@ -421,9 +422,8 @@ AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, alleles, col
       #if null, look at all possible genotypes at that locus
       if( is.null(alleles[[outer]][[inner]]) ){
         alleles[[outer]][[inner]] <- "(H|R|S|W)"
-      }
-      #if collapse is true, collapse the genotypes so all are searched for as one
-      if(collapse[[outer]][inner]){
+      } else if(collapse[[outer]][inner]){
+        #if collapse is true, collapse the genotypes so all are searched for as one
         alleles[[outer]][[inner]] <- paste0("(",paste0(alleles[[outer]][[inner]], collapse = "|") , ")", collapse = "")
       }
     }#end loop over each loci
@@ -452,11 +452,11 @@ AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, alleles, col
     for(patch in patches){
       #read in male/female files for this run and patch
       mName = grep(pattern = paste("ADM", run, patch, sep = ".*"),
-                   x = dirFiles, ignore.case = FALSE, value = TRUE)
+                   x = dirFiles, ignore.case = FALSE, value = TRUE)[1]
       mFile = read.csv(file = file.path(readDirectory, mName),
                        header = TRUE, stringsAsFactors = FALSE)
       fName = grep(pattern = paste("ADF", run, patch, sep = ".*"),
-                   x = dirFiles, ignore.case = FALSE, value = TRUE)
+                   x = dirFiles, ignore.case = FALSE, value = TRUE)[1]
       fFile = read.csv(file = file.path(readDirectory, fName),
                        header = TRUE, stringsAsFactors = FALSE)
 

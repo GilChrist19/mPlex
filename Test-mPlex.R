@@ -23,9 +23,9 @@ library(mPlexR)
 # Setup Parameters for Network
 ###############################################################################
 
-migration = diag(1) #migration matrix
+migration = diag(20) #migration matrix
 N = nrow(migration) #number of patches
-patchPops = rep(50,N) #population of eachpatch
+patchPops = rep(5,N) #population of eachpatch
 directory <- "~/Desktop/HOLD"
 
     #setup alleles to initiate patches
@@ -85,10 +85,11 @@ patchReleases[[1]]$larvaeReleases <- Release_basicRepeatedReleases(releaseStart 
 ###############################################################################
 
     # calculate network parameters, auxiliary function
-netPar = Network.Parameters(nPatch = N,simTime = 250,
+netPar = Network.Parameters(nPatch = N,simTime = 150,
                             alleloTypes = AllAlleles,
                             AdPopEQ = patchPops,
-                            parallel = FALSE)
+                            parallel = FALSE,
+                            runID = 1)
 
     # initialize network!
 network = Network$new(networkParameters = netPar,
