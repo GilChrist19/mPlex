@@ -1,3 +1,14 @@
+/*                  ____  __
+ *       ____ ___  / __ \/ /__  _  __
+ *      / __ `__ \/ /_/ / / _ \| |/_/
+ *     / / / / / / ____/ /  __/>  <
+ *    /_/ /_/ /_/_/   /_/\___/_/|_|
+ *
+ *    Marshall Lab
+ *    PRNG threadsafe singleton
+ *    January 2018
+*/
+
 #ifndef MPLEX_PRNG_
 #define MPLEX_PRNG_
 
