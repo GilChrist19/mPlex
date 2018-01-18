@@ -118,6 +118,7 @@ Patch <- R6::R6Class(classname = "Patch",
             cloneable = FALSE,
             lock_class = FALSE,
             lock_objects = FALSE,
+            class = FALSE,
 
             # public memebers
             public = list(
@@ -303,7 +304,7 @@ Patch$set(which = "public",name = "oneDay_initOutput",
 oneDay_writeOutput_Patch <- function(){
 
   # Write Males
-  if(length(private$adult_male==0)){
+  if(length(private$adult_male)==0){
     writeLines(text = file.path(private$NetworkPointer$get_tNow(), private$patchID,
                                 "NULL", "NULL", fsep = ","),
                con = private$NetworkPointer$get_conADM(),
@@ -320,7 +321,7 @@ oneDay_writeOutput_Patch <- function(){
   }
 
   # Write Females
-  if(length(private$adult_female==0)){
+  if(length(private$adult_female)==0){
     writeLines(text = file.path(private$NetworkPointer$get_tNow(), private$patchID,
                                 "NULL", "NULL", "NULL", fsep = ","),
                con = private$NetworkPointer$get_conADF(),

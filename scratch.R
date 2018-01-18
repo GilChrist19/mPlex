@@ -581,6 +581,14 @@ hold <- lapply(X = test2, FUN = '[[', "age")
 
 ages <- rlnorm(n = length(test2), meanlog = log(15), sdlog = log(1.2))
 
+oldMos <- Mosquito$new(genotype = "AA", age = 10)
+newMos <- NewMosquito(genotype = "AA", age = 10)
+smallMos <- NewMosquitoSMALLEST(genotype = "AA", age = 10)
+
+microbenchmark::microbenchmark(oldMos$age_one_day(),
+                               newMos$age_one_day(),
+                               smallMos$age_one_day(),
+                               times = 1000)
 
 
 

@@ -94,6 +94,7 @@ Network <- R6::R6Class(classname = "Network",
             cloneable = FALSE,
             lock_class = FALSE,
             lock_objects = FALSE,
+            class = FALSE,
 
             # public memebers
             public = list(
