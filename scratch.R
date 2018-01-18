@@ -445,3 +445,152 @@ Multiplex_FULL <- function(H=c(0.9, .6), R=0.0001, S=R/3, d=0.0001){
   return(tMatrix)
 
 }
+
+###############################################################################
+# better mosquito
+###############################################################################
+
+#original
+Mosquito <- R6::R6Class(classname = "mosquito",
+                        portable = TRUE,
+                        cloneable = FALSE,
+                        lock_class = FALSE,
+                        lock_objects = FALSE,
+
+                        # public memebers
+                        public = list(
+
+                          # constructor
+                          initialize = function(genotype=NULL, age=NULL){
+                            private$age = age
+                            private$mate = NULL
+                            private$genotype = genotype
+
+                          }, # end constructor
+
+                          # setters
+                          set_age = function(age=NULL){private$age = age},
+                          set_mate = function(mate=NULL){private$mate = mate},
+                          set_genotype = function(genotype=NULL){private$genotype = genotype},
+
+                          age_one_day = function() {private$age = private$age + 1},
+                          print_female = function(){file.path(private$age, private$genotype, private$mate, fsep = ",")},
+                          print_male = function(){file.path(private$age, private$genotype, fsep = ",")},
+                          #file.path can't handle nulls
+
+                          #getters
+                          get_age = function(){private$age},
+                          get_mate = function(){private$mate},
+                          get_genotype = function(){private$genotype}
+
+                        ), # end public
+
+                        private = list(
+
+                          # fields
+                          age = NULL,
+                          mate = NULL,
+                          genotype = NULL
+
+                        ) # end private
+
+) # end class definition
+
+#new
+# exact replica of Mosquito class
+# drop in, ready to go
+NewMosquito <- function(genotype=NULL, age=NULL){
+  #last attribute
+  mate = NULL
+
+  #getters/setters
+  set_age <- function(newAge=NULL){age <<- newAge}
+  set_mate <- function(matGen=NULL){mate <<- matGen}
+  set_genotype <- function(newGen=NULL){genotype <<- newGen}
+
+  get_age <- function(){age}
+  get_mate <- function(){mate}
+  get_genotype <- function(){genotype}
+
+  #functions
+  age_one_day <- function(){age <<- age + 1}
+  print_female = function(){file.path(age, genotype, mate, fsep = ",")}
+  print_male = function(){file.path(age, genotype, fsep = ",")}
+
+  #this is an R environment
+  environment()
+}
+
+# Smallest, fastest
+NewMosquitoSMALLEST <- function(genotype=NULL, age=NULL){
+  #last attribute
+  mate = NULL
+
+  # no getters/setters required
+
+  #functions
+  age_one_day = function(){age <<- age + 1}
+  print_female = function(){file.path(age, genotype, mate, fsep = ",")}
+  print_male = function(){file.path(age, genotype, fsep = ",")}
+
+  #this is an R environment
+  environment()
+}
+
+
+R6Private_Portable_NOCLASSCLONE <- R6::R6Class("R6Private_Portable_NOCLASSCLONE",
+                         portable = TRUE,
+                         class = FALSE,
+                         cloneable = FALSE,
+
+                         public = list(
+                           initialize = function(x = 1) private$x <- x,
+                           getx = function() x,
+                           inc = function(n = 1) x <<- x + n
+                         ),
+
+                         private = list(
+                           x = NULL
+                           )
+
+)
+
+R6Private_NOCLASSCLONE <- R6::R6Class("R6Private_NOCLASSCLONE",
+                                               portable = FALSE,
+                                               class = FALSE,
+                                               cloneable = FALSE,
+
+                                               public = list(
+                                                 initialize = function(x = 1) private$x <- x,
+                                                 getx = function() x,
+                                                 inc = function(n = 1) x <<- x + n
+                                               ),
+
+                                               private = list(
+                                                 x = NULL
+                                               )
+
+)
+
+
+
+test <- lapply(X = 1:100, FUN = function(X){Mosquito$new(genotype = "AA", age = X)})
+test2 <- lapply(X = 1:100, FUN = function(x){NewMosquitoSMALLEST(genotype = "AA", age = x)})
+
+hold <- lapply(X = test2, FUN = '[[', "age")
+
+ages <- rlnorm(n = length(test2), meanlog = log(15), sdlog = log(1.2))
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -303,21 +303,36 @@ Patch$set(which = "public",name = "oneDay_initOutput",
 oneDay_writeOutput_Patch <- function(){
 
   # Write Males
-  for(mosquito in private$adult_male){
-
+  if(length(private$adult_male==0)){
     writeLines(text = file.path(private$NetworkPointer$get_tNow(), private$patchID,
-                                mosquito$print_male(), fsep = ","),
+                                "NULL", "NULL", fsep = ","),
                con = private$NetworkPointer$get_conADM(),
                sep = "\n")
+
+  } else{
+    for(mosquito in private$adult_male){
+
+      writeLines(text = file.path(private$NetworkPointer$get_tNow(), private$patchID,
+                                  mosquito$print_male(), fsep = ","),
+                 con = private$NetworkPointer$get_conADM(),
+                 sep = "\n")
+    }
   }
 
   # Write Females
-  for(mosquito in private$adult_female){
-
+  if(length(private$adult_female==0)){
     writeLines(text = file.path(private$NetworkPointer$get_tNow(), private$patchID,
-                                mosquito$print_female(), fsep = ","),
+                                "NULL", "NULL", "NULL", fsep = ","),
                con = private$NetworkPointer$get_conADF(),
                sep = "\n")
+  } else{
+    for(mosquito in private$adult_female){
+
+      writeLines(text = file.path(private$NetworkPointer$get_tNow(), private$patchID,
+                                  mosquito$print_female(), fsep = ","),
+                 con = private$NetworkPointer$get_conADF(),
+                 sep = "\n")
+    }
   }
 
 }

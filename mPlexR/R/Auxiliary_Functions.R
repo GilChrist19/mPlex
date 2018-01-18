@@ -321,7 +321,6 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, genotyp
   mArray[,1,] = fArray[,1,] = simTime
   note <- "THIS IS A NOTE ABOUTE THE DATA. Make it reproducible."
 
-
   #loop over each run
   for(run in runID){
     #loop over each patch

@@ -25,7 +25,7 @@ library(mPlexR)
 
 migration = diag(20) #migration matrix
 N = nrow(migration) #number of patches
-patchPops = rep(5,N) #population of eachpatch
+patchPops = rep(50,N) #population of eachpatch
 directory <- "~/Desktop/HOLD"
 
     #setup alleles to initiate patches
@@ -85,11 +85,11 @@ patchReleases[[1]]$larvaeReleases <- Release_basicRepeatedReleases(releaseStart 
 ###############################################################################
 
     # calculate network parameters, auxiliary function
-netPar = Network.Parameters(nPatch = N,simTime = 150,
+netPar = Network.Parameters(nPatch = N,simTime = 500,
                             alleloTypes = AllAlleles,
                             AdPopEQ = patchPops,
                             parallel = FALSE,
-                            runID = 1)
+                            runID = 4)
 
     # initialize network!
 network = Network$new(networkParameters = netPar,
@@ -111,24 +111,47 @@ network$reset()
 # Post-Run Stuff
 ###############################################################################
 splitOutput(directory = directory)
+AnalyzeOutput_mLoci_Daisy(readDirectory = directory,
+                          saveDirectory = "~/Desktop/HOLD",
+                          genotypes = list(NULL,NULL,NULL),
+                          collapse = c(TRUE,TRUE,TRUE))
 
+Run1 <- readRDS(file = "~/Desktop/HOLD1/20180117_Run1_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
+Run2 <- readRDS(file = "~/Desktop/HOLD/20180117_Run2_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
+Run3 <- readRDS(file = "~/Desktop/HOLD/20180117_Run3_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
+Run4 <- readRDS(file = "~/Desktop/HOLD/20180117_Run4_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
 
+par(mfrow=c(3,1))
+R1M <- apply(X = Run1$maleData, MARGIN = c(1,2), FUN = mean)[,3]
+R1Sd <- apply(X = Run1$maleData, MARGIN = c(1,2), FUN = sd)[,3]
 
+plot(Run1$maleData[,1,1], R1M,pch=18,main = "20 patches with AdEq=5",
+     xlab="Time",ylab="Population",xlim=c(0, max(Run1$maleData[,1,1])),
+     ylim=c(min(R1M-R1Sd),max(R1M+R1Sd)))
+lines(rbind(Run1$maleData[,1,1],Run1$maleData[,1,1],NA),rbind(R1M-R1Sd,R1M+R1Sd,NA))
 
+R1M <- apply(X = Run2$maleData, MARGIN = c(1,2), FUN = mean)[,3]
+R1Sd <- apply(X = Run2$maleData, MARGIN = c(1,2), FUN = sd)[,3]
 
+plot(Run2$maleData[,1,1], R1M,pch=18,main = "20 patches with AdEq=10",
+     xlab="Time",ylab="Population",xlim=c(0, max(Run2$maleData[,1,1])),
+     ylim=c(min(R1M-R1Sd),max(R1M+R1Sd)))
+lines(rbind(Run2$maleData[,1,1],Run2$maleData[,1,1],NA),rbind(R1M-R1Sd,R1M+R1Sd,NA))
 
+R1M <- apply(X = Run3$maleData, MARGIN = c(1,2), FUN = mean)[,3]
+R1Sd <- apply(X = Run3$maleData, MARGIN = c(1,2), FUN = sd)[,3]
 
+plot(Run2$maleData[,1,1], R1M,pch=18,main = "20 patches with AdEq=20",
+     xlab="Time",ylab="Population",xlim=c(0, max(Run2$maleData[,1,1])),
+     ylim=c(min(R1M-R1Sd),max(R1M+R1Sd)))
+lines(rbind(Run2$maleData[,1,1],Run2$maleData[,1,1],NA),rbind(R1M-R1Sd,R1M+R1Sd,NA))
 
+R1M <- apply(X = Run4$maleData, MARGIN = c(1,2), FUN = mean)[,3]
+R1Sd <- apply(X = Run4$maleData, MARGIN = c(1,2), FUN = sd)[,3]
 
-
-
-
-
-
-
-
-
-
-
+plot(Run2$maleData[,1,1], R1M,pch=18,main = "20 patches with AdEq=50",
+     xlab="Time",ylab="Population",xlim=c(0, max(Run2$maleData[,1,1])),
+     ylim=c(min(R1M-R1Sd),max(R1M+R1Sd)))
+lines(rbind(Run2$maleData[,1,1],Run2$maleData[,1,1],NA),rbind(R1M-R1Sd,R1M+R1Sd,NA))
 
 
