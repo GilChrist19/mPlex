@@ -12,7 +12,6 @@
 #include <Rcpp.h>
 
 /* library source */
-#include <thread>
 #include <iostream>
 
 /* mPlex source */
@@ -24,8 +23,8 @@ void unit_test_PRNG(const uint_least32_t& seed){
   std::cout << "test threaded generation of random variates" << std::endl;
   prng::instance()->set_seed(seed); /* set seed of prng */
 
-  const size_t nthread = std::thread::hardware_concurrency();
-  std::cout<<"parallel ("<<nthread<<" threads):"<<std::endl;
+  // const size_t nthread = std::thread::hardware_concurrency();
+  // std::cout<<"parallel ("<<nthread<<" threads):"<<std::endl;
 
   prng::instance()->suicide();
 };
