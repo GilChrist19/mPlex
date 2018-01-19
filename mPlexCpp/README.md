@@ -9,3 +9,8 @@ mPlexCpp is a C++11/14-based R package to run simulations of multiplex (includin
 
 ## Authors
 Jared Bennett, [Sean Wu](https://slwu89.github.io), [Héctor Manuel Sánchez Castellanos](https://chipdelmal.github.io), and [John M. Marshall](http://sph.berkeley.edu/john-marshall)
+
+## To-do
+  1. Write out pseudocode of `offspringDistribution` function.
+    * goal is to de-couple the tightly coupled `reference` and `offspringDistribution` elements; we want a generic `offspringDistribution` so the only variant type is `reference`.
+  2. Check move semantics between stl containers working properly for `Mosquito` for low overhead migration functions.
