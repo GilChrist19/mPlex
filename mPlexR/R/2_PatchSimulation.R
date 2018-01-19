@@ -61,6 +61,17 @@ oneDay_PopDynamics_Patch <- function(){
   # Releases
   ################
   self$oneDay_Releases()
+
+  cat("\nDay:", private$NetworkPointer$get_tNow(), "\n")
+  cat("Eggs:", length(private$eggs), "\n")
+  cat("Larvae:", length(private$larva), "\n")
+  cat("Pupae:", length(private$pupa), "\n")
+  cat("Male:", length(private$adult_male), "\n")
+  cat("Female:", length(private$adult_female), "\n")
+  cat("Spinsters:", length(private$unmated_female), "\n")
+
+
+
 }
 Patch$set(which = "public",name = "oneDay_PopDynamics",
           value = oneDay_PopDynamics_Patch, overwrite = TRUE

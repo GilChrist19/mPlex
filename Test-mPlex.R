@@ -23,9 +23,9 @@ library(mPlexR)
 # Setup Parameters for Network
 ###############################################################################
 
-migration = diag(1) #migration matrix
+migration = diag(20) #migration matrix
 N = nrow(migration) #number of patches
-patchPops = rep(15,N) #population of eachpatch
+patchPops = rep(15L,N) #population of eachpatch
 directory <- "~/Desktop/HOLD"
 
     #setup alleles to initiate patches
@@ -68,7 +68,7 @@ patchReleases = replicate(n = N,
 
 
   # Create release object to pass to patches
-patchReleases[[1]]$femaleReleases <- Release_basicRepeatedReleases(releaseStart = 5,
+patchReleases[[1]]$larvaeReleases <- Release_basicRepeatedReleases(releaseStart = 5,
                                                                  releaseEnd = 10,
                                                                  releaseInterval = 5,
                                                                  genMos = c("HHHHHH", "WHWWWW", "HHWWWW"),
@@ -82,11 +82,11 @@ patchReleases[[1]]$femaleReleases <- Release_basicRepeatedReleases(releaseStart 
 ###############################################################################
 
     # calculate network parameters, auxiliary function
-netPar = Network.Parameters(nPatch = N,simTime = 50,
+netPar = Network.Parameters(nPatch = N,simTime = 150L,
                             alleloTypes = AllAlleles,
                             AdPopEQ = patchPops,
                             parallel = FALSE,
-                            runID = 1)
+                            runID = 1L)
 
     # initialize network!
 network = Network$new(networkParameters = netPar,
@@ -115,7 +115,7 @@ AnalyzeOutput_mLoci_Daisy(readDirectory = directory,
                           genotypes = list(NULL,NULL,NULL),
                           collapse = c(TRUE,TRUE,TRUE))
 
-Run1 <- readRDS(file = "~/Desktop/HOLD1/20180117_Run1_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
+Run1 <- readRDS(file = "~/Desktop/HOLD/20180118_Run1_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
 Run2 <- readRDS(file = "~/Desktop/HOLD/20180117_Run2_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
 Run3 <- readRDS(file = "~/Desktop/HOLD/20180117_Run3_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
 Run4 <- readRDS(file = "~/Desktop/HOLD/20180117_Run4_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
