@@ -75,10 +75,10 @@ std::vector<int> prng::get_rmultinom(const int &size, const std::vector<double> 
   return sample;
 };
 
-/* resample template type x 'size' times */
+/* resample template type T x 'size' times */
 template<typename T>
 T prng::get_resample(const T &x, const int &size){
-  std::uniform_int_distribution<int>runif_int(0,x.size()-1); // guaranteed unbiased
+  std::uniform_int_distribution<int>runif_int(0,x.size()-1); /* guaranteed unbiased; no modulo arithmetic bias */
   T out;
   for(size_t i=0; i<size; i++){
     size_t j = runif_int(rng);

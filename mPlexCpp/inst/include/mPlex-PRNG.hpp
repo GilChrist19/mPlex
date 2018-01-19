@@ -34,7 +34,7 @@ public:
     int                                    get_rbinom(const int& n, const double& p);
     std::vector<int>                       get_rmultinom(const int& size, const std::vector<double> prob);
 
-    /* resample template type x 'size' times */
+    /* resample template type T x 'size' times */
     template<typename T>
     T                                      get_resample(const T& x, const int& size);
 
