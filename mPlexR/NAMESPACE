@@ -2,7 +2,6 @@
 
 export(AnalyzeOutput_mLoci_Daisy)
 export(AnalyzeOutput_oLocus)
-export(CreateMosquitoes_Defined_Genotype)
 export(CreateMosquitoes_Distribution_Genotype)
 export(DaisyOffspring)
 export(JaredDirichlet)

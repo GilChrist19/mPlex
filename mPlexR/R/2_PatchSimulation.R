@@ -60,9 +60,7 @@ oneDay_PopDynamics_Patch <- function(){
   ################
   # Releases
   ################
-  self$oneDay_larvaeReleases()
-  self$oneDay_maleReleases()
-  self$oneDay_femaleReleases()
+  self$oneDay_Releases()
 }
 Patch$set(which = "public",name = "oneDay_PopDynamics",
           value = oneDay_PopDynamics_Patch, overwrite = TRUE

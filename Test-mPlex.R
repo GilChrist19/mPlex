@@ -66,26 +66,23 @@ patchReleases = replicate(n = N,
                                       larvaeReleases = NULL),
                           simplify = FALSE)
 
-  # Create list of mosquitoes for a release
-releaseList <- CreateMosquitoes_Defined_Genotype(genMos = c("HHHHHH", "WHWWWW", "HHWWWW"),
-                                                 numMos = c(100,100,100),
-                                                 minAge = 16,
-                                                 maxAge = 36,
-                                                 ageDist = rep(x = 1, times = 36-16+1)/21)
 
   # Create release object to pass to patches
-patchReleases[[1]]$larvaeReleases <- Release_basicRepeatedReleases(releaseStart = 5,
+patchReleases[[1]]$femaleReleases <- Release_basicRepeatedReleases(releaseStart = 5,
                                                                  releaseEnd = 10,
                                                                  releaseInterval = 5,
-                                                                 releaseVector = releaseList,
-                                                                 sex = "L")
+                                                                 genMos = c("HHHHHH", "WHWWWW", "HHWWWW"),
+                                                                 numMos = c(100,100,100),
+                                                                 minAge = 16,
+                                                                 maxAge = 36,
+                                                                 ageDist = rep(x = 1, times = 36-16+1)/21)
 
 ###############################################################################
 # Calculate parameters and initialize network
 ###############################################################################
 
     # calculate network parameters, auxiliary function
-netPar = Network.Parameters(nPatch = N,simTime = 500,
+netPar = Network.Parameters(nPatch = N,simTime = 50,
                             alleloTypes = AllAlleles,
                             AdPopEQ = patchPops,
                             parallel = FALSE,

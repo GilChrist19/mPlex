@@ -589,16 +589,3 @@ microbenchmark::microbenchmark(oldMos$age_one_day(),
                                newMos$age_one_day(),
                                smallMos$age_one_day(),
                                times = 1000)
-
-
-
-
-
-
-
-
-
-
-
-
-

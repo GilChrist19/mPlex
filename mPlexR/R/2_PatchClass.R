@@ -345,56 +345,68 @@ Patch$set(which = "public",name = "oneDay_writeOutput",
 # These are from patch-releases.R
 #######################################
 
-#' Release Male Mosquitoes in a Patch
+#' Release Mosquitoes in a Patch
 #'
 #' Based on this patch's release schedule, handle daily releases.
 #'
-oneDay_maleReleases_Patch <- function(){
-  # male releases
+oneDay_Releases_Patch <- function(){
 
+  ################
+  # MALE RELEASES
+  ################
   if( (length(private$maleReleases) > 0) && (private$maleReleases[[1]]$tRelease <= private$NetworkPointer$get_tNow()) ){
-    private$adult_male = c(private$adult_male, private$maleReleases[[1]]$nuM)
+
+    # initialize holder list, then fill it with new mosquitoes
+    private$newEggs <- vector(mode = "list", length = length(private$maleReleases[[1]]$genVec))
+    for(i in 1:length(private$maleReleases[[1]]$genVec)){
+      private$newEggs[[i]] <- Mosquito$new(genotype = private$maleReleases[[1]]$genVec[i],
+                                           age = private$maleReleases[[1]]$ageVec[i])
+    }
+
+    #combine new mosquitoes with the general population, then remove this release from the plan
+    private$adult_male = c(private$adult_male, private$newEggs)
     private$maleReleases[[1]] = NULL
   }
 
-}
-Patch$set(which = "public",name = "oneDay_maleReleases",
-          value = oneDay_maleReleases_Patch, overwrite = TRUE
-)
-
-#' Release Female Mosquitoes in a Patch
-#'
-#' Based on this patch's release schedule, handle daily releases.
-#'
-oneDay_femaleReleases_Patch <- function(){
-  # female releases
-
+  ################
+  # FEMALE RELEASES
+  ################
   if( (length(private$femaleReleases) > 0) && (private$femaleReleases[[1]]$tRelease <= private$NetworkPointer$get_tNow()) ){
-    private$unmated_female = c(private$unmated_female, private$femaleReleases[[1]]$nuF)
+
+    # initialize holder list, then fill it with new mosquitoes
+    private$newEggs <- vector(mode = "list", length = length(private$femaleReleases[[1]]$genVec))
+    for(i in 1:length(private$femaleReleases[[1]]$genVec)){
+      private$newEggs[[i]] <- Mosquito$new(genotype = private$femaleReleases[[1]]$genVec[i],
+                                           age = private$femaleReleases[[1]]$ageVec[i])
+    }
+
+    #combine new mosquitoes with the general population, then remove this release from the plan
+    private$unmated_female = c(private$unmated_female, private$newEggs)
     private$femaleReleases[[1]] = NULL
   }
 
-}
-Patch$set(which = "public",name = "oneDay_femaleReleases",
-          value = oneDay_femaleReleases_Patch, overwrite = TRUE
-)
-
-#' Release larvae in a Patch
-#'
-#' Based on this patch's release schedule, handle daily releases.
-#'
-oneDay_larvaeReleases_Patch <- function(){
-  # female releases
-
+  ################
+  # LARVAE RELEASES
+  ################
   if( (length(private$larvaeReleases) > 0) && (private$larvaeReleases[[1]]$tRelease <= private$NetworkPointer$get_tNow()) ){
-    private$larva = c(private$larva, private$larvaeReleases[[1]]$larvae)
+
+    # initialize holder list, then fill it with new mosquitoes
+    private$newEggs <- vector(mode = "list", length = length(private$larvaeReleases[[1]]$genVec))
+    for(i in 1:length(private$larvaeReleases[[1]]$genVec)){
+      private$newEggs[[i]] <- Mosquito$new(genotype = private$larvaeReleases[[1]]$genVec[i],
+                                           age = private$larvaeReleases[[1]]$ageVec[i])
+    }
+
+    #combine new mosquitoes with the general population, then remove this release from the plan
+    private$larva = c(private$larva, private$newEggs)
     private$larvaeReleases[[1]] = NULL
   }
 
 }
-Patch$set(which = "public",name = "oneDay_larvaeReleases",
-          value = oneDay_larvaeReleases_Patch, overwrite = TRUE
+Patch$set(which = "public",name = "oneDay_Releases",
+          value = oneDay_Releases_Patch, overwrite = TRUE
 )
+
 #######################################
 # These are from patch-migration.R
 #######################################
