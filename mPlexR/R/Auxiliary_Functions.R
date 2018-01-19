@@ -10,92 +10,26 @@
 # Release Functions
 ###############################################################################
 
-#' Create new Mosquito objects
+#' Make List of Mosquito Releases
 #'
-#' Creates new Mosquito objects specifically for releases
+#' Sets up a release schedule for a single patch, returns a list to be used in
+#' \code{\link{oneDay_Releases_Patch}}
 #'
-#' @usage CreateMosquitoes_Defined_Genotype(genMos, numMos, minAge, maxAge, ageDist)
-#'
+#' @param releaseStart Day releases start
+#' @param releaseEnd Day releases end
+#' @param releaseInterval Interval between releases
 #' @param genMos List of genotypes for new Mosquitoes
 #' @param numMos Integer number of Mosquitoes to create
 #' @param minAge Integer specifying the minimum age of Mosquitoes
 #' @param maxAge Integer specifying the maximum age of Mosquiotes
 #' @param ageDist Distribution for ages of Mosquitoes. Must be length(maxAge-minAge+1)
 #'
-#' @details This function creates new mosquitoes. It is similar to
-#' \code{\link{CreateMosquitoes_Distribution_Genotype}}, but intended for releases setup.
-#' The assumption is that scientists can control the genotype of lab populations,
-#' so this function takes a list of genotypes, then a vector of how many of each
-#' genotype to release. There is some age variation, though that can be specified
-#' precisely.
-#'
-#' @return List of Mosquito objects length(sum(numMos))
-#'
-#' @examples
-#' set.seed(42)
-#' genMos <- c("A","B","C")
-#' numMos <- c(10,20,30)
-#' minAge <- 1
-#' maxAge <- 10
-#' ageDist <- rep(x = 1, times = 10-1+1)/(10-1+1) #uniform distribution
-#' CreateMosquitoes_Defined_Genotype(genMos, numMos, minAge, maxAge, ageDist)
-#'
-#' set.seed(42)
-#' genMos <- c("A","B","C")
-#' numMos <- c(10,20,30)
-#' minAge <- 5
-#' maxAge <- 10
-#' ageDist <- c(0,0,0,0,0,1) #all ages will be 10
-#' CreateMosquitoes_Defined_Genotype(genMos, numMos, minAge, maxAge, ageDist)
-#'
-#' @export
-CreateMosquitoes_Defined_Genotype <- function(genMos, numMos, minAge, maxAge, ageDist){
-  #genMos is a list of genotypes to relaese
-  #numMos is a vector of the number of mosquitoes you want to make, corresponding
-  #  to the genotypes of genMos
-
-  #minAge, maxAge are the min/max age range. To get a single age, must be length
-  # 2 with a c(1,0) vector in ageDist
-  #ageDist - probabilities to sample from for age range. must be length
-  #  minAge:maxAge
-
-  #return list
-  population <- vector(mode = "list", length = sum(numMos))
-
-  #external counter
-  count = 1L
-
-  #loop over each genotype
-  for(gen in 1:length(genMos)){
-    #loop over number of mosquitoes of that genotype
-    for(num in 1:numMos[gen]){
-      #generate age
-      holdAge <- sample(x = minAge:maxAge, size = 1, replace = FALSE, prob = ageDist)
-
-      #create new mosquito
-      population[[count]] <- Mosquito$new(genotype = genMos[gen], age = holdAge)
-
-      count = count + 1L
-    }
-  }
-
-  return(population)
-}
-
-#' Make List of Mosquito Releases
-#'
-#' Sets up a release schedule for a single patch, returns a list to be used in
-#' \code{\link{oneDay_maleReleases_Patch}}, \code{\link{oneDay_femaleReleases_Patch}},
-#' or \code{\link{oneDay_larvaeReleases_Patch}}.
-#'
-#' @param releaseStart Day releases start
-#' @param releaseEnd Day releases end
-#' @param releaseInterval Interval between releases
-#' @param releaseVector List of Mosquitoe objects to be releases
-#' @param sex Character in c('M', 'F', 'L')
-#'
-#' @details See \code{\link{CreateMosquitoes_Defined_Genotype}} for how to setup
-#' the release vector.
+#' @details This function creates a release schedule and the genotypes and ages
+#' of mosquitoes to be released at that time. The release schedule is determined
+#' by releaseStart, releaseEnd, and releaseInterval. The mosquitoes to be released
+#' are determined by genMos (a list of genotypes), numMos (a vector of how many of
+#' each genotype to release), and minAge/maxAge/ageDist. The last three determine
+#' the age distribution of the mosquitoes to be released.
 #'
 #' @return List of release dates and the population to be released on that day.
 #'
@@ -106,57 +40,67 @@ CreateMosquitoes_Defined_Genotype <- function(genMos, numMos, minAge, maxAge, ag
 #'                           expr = list(maleReleases = NULL,femaleReleases = NULL,larvaeReleases=NULL),
 #'                           simplify = FALSE)
 #'
-#' releaseMosquitoes <- CreateMosquitoes_Defined_Genotype(genMos, numMos, minAge, maxAge, ageDist)
-#'
+#' set.seed(42)
 #' patchReleases[[1]]$femaleReleases = Release_basicRepeatedReleases(releaseStart = 5,
 #' releaseEnd = 30,
 #' releaseInterval = 5,
-#' releaseVector = releaseMosquitoes,
-#' sex = "F")
+#' genMos = c("A", "B", "C"),
+#' numMos = c(10, 20, 30),
+#' minAge = 1,
+#' maxAge = 10,
+#' ageDist = rep(x = 1, times = 10-1+1)/(10-1+1)) #uniform distribution of ages
 #'
+#' set.seed(42)
 #' patchReleases[[1]]$maleReleases = Release_basicRepeatedReleases(releaseStart = 50,
 #' releaseEnd = 60,
 #' releaseInterval = 1,
-#' releaseVector = releaseMosquitoes,
-#' sex = "M")
+#' genMos = c("A", "B", "C"),
+#' numMos = c(10, 20, 30),
+#' minAge = 5,
+#' maxAge = 10,
+#' ageDist = c(0,0,0,0,0,1)) #all mosqutioes will be 10
 #'
+#' set.seed(42)
 #' patchReleases[[1]]$larvaeReleases = Release_basicRepeatedReleases(releaseStart = 1,
 #' releaseEnd = 5,
 #' releaseInterval = 1,
-#' releaseVector = releaseMosquitoes,
-#' sex = "L")
+#' genMos = c("A", "B", "C"),
+#' numMos = c(10, 20, 30),
+#' minAge = 5,
+#' maxAge = 10,
+#' ageDist = c(0,1,0,1,0,0)) #half of mosquitoes are 6, half are 8
 #'
 #' @export
-Release_basicRepeatedReleases <- function(releaseStart, releaseEnd, releaseInterval, releaseVector, sex="M"){
+Release_basicRepeatedReleases <- function(releaseStart, releaseEnd, releaseInterval, genMos, numMos, minAge, maxAge, ageDist){
+  #genMos is a list of genotypes to relaese
+  #numMos is a vector of the number of mosquitoes you want to make, corresponding
+  #  to the genotypes of genMos
+
+  #minAge, maxAge are the min/max age range. To get a single age, must be length
+  # 2 with a c(1,0) vector in ageDist
+  #ageDist - probabilities to sample from for age range. must be length
+  #  minAge:maxAge
 
   # check timing of releases
   if(releaseInterval > (releaseEnd - releaseStart)){
     stop("interval between releases cannot be greater than time between start and end of releases")
   }
 
-  # name and check releaseVector. Initialize release times. Initialize return list
+  # Initialize release times. Initialize return list
   releaseTimes = seq(from=releaseStart,to = releaseEnd,by = floor(releaseInterval))
   releaseList = vector(mode="list",length=length(releaseTimes))
 
+  # Initialize genotypes and ages
+  genotypeVector = rep.int(x = genMos, times = numMos)
+  ageVector <- sample(x = minAge:maxAge, size = sum(numMos), replace = TRUE, prob = ageDist)
+
   # check for male/female/larvae. Fill appropriate list.
-  if(sex=="M"){
-    for(tx in 1:length(releaseTimes)){
-      releaseList[[tx]]$nuM = releaseVector
-      releaseList[[tx]]$tRelease = releaseTimes[[tx]]
-    }
-  } else if(sex=="F"){
-    for(tx in 1:length(releaseTimes)){
-      releaseList[[tx]]$nuF = releaseVector
-      releaseList[[tx]]$tRelease = releaseTimes[[tx]]
-    }
-  } else if(sex=="L"){
-    for(tx in 1:length(releaseTimes)){
-      releaseList[[tx]]$larvae = releaseVector
-      releaseList[[tx]]$tRelease = releaseTimes[[tx]]
-    }
-  } else {
-    stop(paste0("expected character in 'M','F','L' in argument 'sex', got: ",sex))
+  for(tx in 1:length(releaseTimes)){
+    releaseList[[tx]]$genVec = genotypeVector
+    releaseList[[tx]]$ageVec = ageVector
+    releaseList[[tx]]$tRelease = releaseTimes[[tx]]
   }
+
   return(releaseList)
 }
 

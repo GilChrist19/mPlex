@@ -4,8 +4,8 @@
 \alias{Release_basicRepeatedReleases}
 \title{Make List of Mosquito Releases}
 \usage{
-Release_basicRepeatedReleases(releaseStart, releaseEnd, releaseInterval,
-  releaseVector, sex = "M")
+Release_basicRepeatedReleases(releaseStart, releaseEnd, releaseInterval, genMos,
+  numMos, minAge, maxAge, ageDist)
 }
 \arguments{
 \item{releaseStart}{Day releases start}
@@ -14,21 +14,30 @@ Release_basicRepeatedReleases(releaseStart, releaseEnd, releaseInterval,
 
 \item{releaseInterval}{Interval between releases}
 
-\item{releaseVector}{List of Mosquitoe objects to be releases}
+\item{genMos}{List of genotypes for new Mosquitoes}
 
-\item{sex}{Character in c('M', 'F', 'L')}
+\item{numMos}{Integer number of Mosquitoes to create}
+
+\item{minAge}{Integer specifying the minimum age of Mosquitoes}
+
+\item{maxAge}{Integer specifying the maximum age of Mosquiotes}
+
+\item{ageDist}{Distribution for ages of Mosquitoes. Must be length(maxAge-minAge+1)}
 }
 \value{
 List of release dates and the population to be released on that day.
 }
 \description{
 Sets up a release schedule for a single patch, returns a list to be used in
-\code{\link{oneDay_maleReleases_Patch}}, \code{\link{oneDay_femaleReleases_Patch}},
-or \code{\link{oneDay_larvaeReleases_Patch}}.
+\code{\link{oneDay_Releases_Patch}}
 }
 \details{
-See \code{\link{CreateMosquitoes_Defined_Genotype}} for how to setup
-the release vector.
+This function creates a release schedule and the genotypes and ages
+of mosquitoes to be released at that time. The release schedule is determined
+by releaseStart, releaseEnd, and releaseInterval. The mosquitoes to be released
+are determined by genMos (a list of genotypes), numMos (a vector of how many of
+each genotype to release), and minAge/maxAge/ageDist. The last three determine
+the age distribution of the mosquitoes to be released.
 }
 \examples{
 # to setup for 3 patches but only release in the first with a defined release schedule:
@@ -37,24 +46,34 @@ patchReleases = replicate(n = 3,
                           expr = list(maleReleases = NULL,femaleReleases = NULL,larvaeReleases=NULL),
                           simplify = FALSE)
 
-releaseMosquitoes <- CreateMosquitoes_Defined_Genotype(genMos, numMos, minAge, maxAge, ageDist)
-
+set.seed(42)
 patchReleases[[1]]$femaleReleases = Release_basicRepeatedReleases(releaseStart = 5,
 releaseEnd = 30,
 releaseInterval = 5,
-releaseVector = releaseMosquitoes,
-sex = "F")
+genMos = c("A", "B", "C"),
+numMos = c(10, 20, 30),
+minAge = 1,
+maxAge = 10,
+ageDist = rep(x = 1, times = 10-1+1)/(10-1+1)) #uniform distribution of ages
 
+set.seed(42)
 patchReleases[[1]]$maleReleases = Release_basicRepeatedReleases(releaseStart = 50,
 releaseEnd = 60,
 releaseInterval = 1,
-releaseVector = releaseMosquitoes,
-sex = "M")
+genMos = c("A", "B", "C"),
+numMos = c(10, 20, 30),
+minAge = 5,
+maxAge = 10,
+ageDist = c(0,0,0,0,0,1)) #all mosqutioes will be 10
 
+set.seed(42)
 patchReleases[[1]]$larvaeReleases = Release_basicRepeatedReleases(releaseStart = 1,
 releaseEnd = 5,
 releaseInterval = 1,
-releaseVector = releaseMosquitoes,
-sex = "L")
+genMos = c("A", "B", "C"),
+numMos = c(10, 20, 30),
+minAge = 5,
+maxAge = 10,
+ageDist = c(0,1,0,1,0,0)) #half of mosquitoes are 6, half are 8
 
 }

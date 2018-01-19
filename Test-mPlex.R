@@ -25,7 +25,7 @@ library(mPlexR)
 
 migration = diag(20) #migration matrix
 N = nrow(migration) #number of patches
-patchPops = rep(50,N) #population of eachpatch
+patchPops = rep(15L,N) #population of eachpatch
 directory <- "~/Desktop/HOLD"
 
     #setup alleles to initiate patches
@@ -66,30 +66,27 @@ patchReleases = replicate(n = N,
                                       larvaeReleases = NULL),
                           simplify = FALSE)
 
-  # Create list of mosquitoes for a release
-releaseList <- CreateMosquitoes_Defined_Genotype(genMos = c("HHHHHH", "WHWWWW", "HHWWWW"),
-                                                 numMos = c(100,100,100),
-                                                 minAge = 16,
-                                                 maxAge = 36,
-                                                 ageDist = rep(x = 1, times = 36-16+1)/21)
 
   # Create release object to pass to patches
 patchReleases[[1]]$larvaeReleases <- Release_basicRepeatedReleases(releaseStart = 5,
                                                                  releaseEnd = 10,
                                                                  releaseInterval = 5,
-                                                                 releaseVector = releaseList,
-                                                                 sex = "L")
+                                                                 genMos = c("HHHHHH", "WHWWWW", "HHWWWW"),
+                                                                 numMos = c(100,100,100),
+                                                                 minAge = 16,
+                                                                 maxAge = 36,
+                                                                 ageDist = rep(x = 1, times = 36-16+1)/21)
 
 ###############################################################################
 # Calculate parameters and initialize network
 ###############################################################################
 
     # calculate network parameters, auxiliary function
-netPar = Network.Parameters(nPatch = N,simTime = 500,
+netPar = Network.Parameters(nPatch = N,simTime = 150L,
                             alleloTypes = AllAlleles,
                             AdPopEQ = patchPops,
                             parallel = FALSE,
-                            runID = 4)
+                            runID = 1L)
 
     # initialize network!
 network = Network$new(networkParameters = netPar,
@@ -103,7 +100,9 @@ network = Network$new(networkParameters = netPar,
 
 
     #reset network
+Rprof(interval = 0.01, line.profiling = TRUE)
 network$oneRun()
+summaryRprof(lines = "both")
 network$reset()
 
 
@@ -116,7 +115,7 @@ AnalyzeOutput_mLoci_Daisy(readDirectory = directory,
                           genotypes = list(NULL,NULL,NULL),
                           collapse = c(TRUE,TRUE,TRUE))
 
-Run1 <- readRDS(file = "~/Desktop/HOLD1/20180117_Run1_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
+Run1 <- readRDS(file = "~/Desktop/HOLD/20180118_Run1_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
 Run2 <- readRDS(file = "~/Desktop/HOLD/20180117_Run2_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
 Run3 <- readRDS(file = "~/Desktop/HOLD/20180117_Run3_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
 Run4 <- readRDS(file = "~/Desktop/HOLD/20180117_Run4_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")

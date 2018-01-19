@@ -60,9 +60,18 @@ oneDay_PopDynamics_Patch <- function(){
   ################
   # Releases
   ################
-  self$oneDay_larvaeReleases()
-  self$oneDay_maleReleases()
-  self$oneDay_femaleReleases()
+  self$oneDay_Releases()
+
+  cat("\nDay:", private$NetworkPointer$get_tNow(), "\n")
+  cat("Eggs:", length(private$eggs), "\n")
+  cat("Larvae:", length(private$larva), "\n")
+  cat("Pupae:", length(private$pupa), "\n")
+  cat("Male:", length(private$adult_male), "\n")
+  cat("Female:", length(private$adult_female), "\n")
+  cat("Spinsters:", length(private$unmated_female), "\n")
+
+
+
 }
 Patch$set(which = "public",name = "oneDay_PopDynamics",
           value = oneDay_PopDynamics_Patch, overwrite = TRUE
@@ -212,21 +221,23 @@ oneDay_EggMature_Patch <- function(){
     # if not, do it one at a time in the loop.
     # This could maybe become a patch variable, so we don't reallocate space.??
     private$ages <- rlnorm(n = private$genericCounter, meanlog = private$meanAge, sdlog = private$sdAge)
-    private$matured <- logical(length = private$genericCounter)
 
     #loop over all eggs
-    #This maybe could be  vectorized in R, getting all private$ages is the only problem.
+    #This maybe could be  vectorized in R, getting all ages is the only problem.
+    private$matured <- integer(length = private$genericCounter)
     for(i in 1:private$genericCounter){
-
-      #check if they mature, move it up, then delete egg
-      if(private$ages[i] <= private$eggs[[i]]$get_age()){
-        private$larva <- c(private$larva, private$eggs[[i]])
-        private$matured[i] <- TRUE
-      }
-
+      private$matured[i] <- private$eggs[[i]]$get_age()
     }
 
+    #see who does mature
+    private$matured <- private$matured > private$ages
+
+    #put matured eggs into larva
+    private$larva <- c(private$larva, private$eggs[private$matured])
+
+    #remove matured eggs from eggs
     private$eggs[private$matured] <- NULL
+
   }
 
 }
@@ -254,22 +265,23 @@ oneDay_LarvaMature_Patch <- function(){
     # if not, do it one at a time in the loop.
     # This could maybe become a patch variable, so we don't reallocate space.??
     private$ages <- rlnorm(n = private$genericCounter, meanlog = private$meanAge, sdlog = private$sdAge)
-    private$matured <- logical(length = private$genericCounter)
 
     #loop over all eggs
-    #This maybe could be  vectorized in R, getting all private$ages is the only problem.
+    #This maybe could be  vectorized in R, getting all ages is the only problem.
+    private$matured <- integer(length = private$genericCounter)
     for(i in 1:private$genericCounter){
-
-      #check if they mature, move it up, then delete egg
-      if(private$ages[i] <= private$larva[[i]]$get_age()){
-        private$pupa <- c(private$pupa, private$larva[[i]])
-        private$matured[i] <- TRUE
-      }
-
+      private$matured[i] <- private$larva[[i]]$get_age()
     }
 
-    #remove matured larva
+    #see who does mature
+    private$matured <- private$matured > private$ages
+
+    #put matured eggs into larva
+    private$pupa <- c(private$pupa, private$larva[private$matured])
+
+    #remove matured eggs from eggs
     private$larva[private$matured] <- NULL
+
   }
 
 }
@@ -300,34 +312,28 @@ oneDay_PupaMature_Patch <- function(){
     # if not, do it one at a time in the loop.
     # This could maybe become a patch variable, so we don't reallocate space.??
     private$ages <- rlnorm(n = private$genericCounter, meanlog = private$meanAge, sdlog = private$sdAge)
-    private$matured <- logical(length = private$genericCounter)
 
     #loop over all eggs
     #This maybe could be  vectorized in R, getting all private$ages is the only problem.
+    private$matured <- integer(length = private$genericCounter)
     for(i in 1:private$genericCounter){
-
-      #check if they mature, move it up, then delete egg
-      if(private$ages[i] <= private$pupa[[i]]$get_age()){
-
-        #binomial over sex. Need to add genotype deviance
-        sex <- as.logical(x = rbinom(n = 1, size = 1, prob = 0.5))
-
-        if(sex){
-          #if true, make an unmated female
-          private$unmated_female <- c(private$unmated_female, private$pupa[[i]])
-        } else {
-          #make adult male
-          private$adult_male <- c(private$adult_male, private$pupa[[i]])
-        }
-
-        private$matured[i] <- TRUE
-      }
-
+      private$matured[i] <- private$pupa[[i]]$get_age()
     }
 
-    #remove matured pupa
+    #see who does mature
+    private$matured <- private$matured > private$ages
+
+    #binomial over sex. Need to add genotype deviance
+    sex <- as.logical(rbinom(n = sum(private$matured), size = 1, prob = 0.5))
+
+    #if true, make an unmated female, otherwise, make male
+    private$unmated_female <- c(private$unmated_female, private$pupa[private$matured][sex])
+    private$adult_male <- c(private$adult_male, private$pupa[private$matured][!sex])
+
+    #remove matured eggs from eggs
     private$pupa[private$matured] <- NULL
-  }
+
+  }#end if
 
 }
 Patch$set(which = "public",name = "oneDay_PupaMaturation",

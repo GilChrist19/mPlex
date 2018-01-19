@@ -14,7 +14,7 @@ AnalyzeOutput_mLoci_Daisy(readDirectory, saveDirectory = NULL, genotypes,
 
 \item{genotypes}{A list of each locus containing the genotypes of interest at that locus. Default is all genotypes}
 
-\item{collapse}{A list of each locus containing TRUE/FALSE. If TRUE, the genotypes of interest at that locus are collapsed and the output is the sum of all of them.}
+\item{collapse}{A vector of each locus containing TRUE/FALSE. If TRUE, the genotypes of interest at that locus are collapsed and the output is the sum of all of them.}
 }
 \value{
 A *.rds object containing list(metaData=character, maleData=array, femaleData=array)
