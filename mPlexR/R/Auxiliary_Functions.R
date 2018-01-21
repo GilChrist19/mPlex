@@ -185,7 +185,7 @@ CreateMosquitoes_Distribution_Genotype <- function(numMos, minAge, maxAge, ageDi
 #' @return *.csv files for each patch and each run
 #' @export
 splitOutput <- function(directory){
-  dirFiles = list.files(path = directory)
+  dirFiles = list.files(path = directory, pattern = ".*\\.csv$")
 
   # for each file read it in
   for(file in dirFiles){
@@ -247,9 +247,10 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, genotyp
   for(i in 1:length(genotypes)){
     #if null, look at all possible genotypes at that locus
     if( is.null(genotypes[[i]]) ){
-      genotypes[[i]] <- "(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)"
-    } else if(collapse[i]){
-      #if collapse is true, collapse the genotypes so all are searched for as one
+      genotypes[[i]] <- c("HH","HR","HS","HW","RR","RS","RW","SS","SW","WW")
+    }
+    #if collapse is true, collapse the genotypes so all are searched for as one
+    if(collapse[i]){
       genotypes[[i]] <- paste0("(",paste0(genotypes[[i]], collapse = "|") , ")", collapse = "")
     }
   }
@@ -364,9 +365,10 @@ AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, alleles, col
     for(inner in 1:length(alleles[[1]])){
       #if null, look at all possible genotypes at that locus
       if( is.null(alleles[[outer]][[inner]]) ){
-        alleles[[outer]][[inner]] <- "(H|R|S|W)"
-      } else if(collapse[[outer]][inner]){
-        #if collapse is true, collapse the genotypes so all are searched for as one
+        alleles[[outer]][[inner]] <- c("H", "R", "S", "W")
+      }
+      #if collapse is true, collapse the genotypes so all are searched for as one
+      if(collapse[[outer]][inner]){
         alleles[[outer]][[inner]] <- paste0("(",paste0(alleles[[outer]][[inner]], collapse = "|") , ")", collapse = "")
       }
     }#end loop over each loci
