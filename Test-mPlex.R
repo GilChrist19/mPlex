@@ -82,11 +82,11 @@ patchReleases[[1]]$maleReleases <- Release_basicRepeatedReleases(releaseStart = 
 ###############################################################################
 
     # calculate network parameters, auxiliary function
-netPar = Network.Parameters(nPatch = N,simTime = 500L,
+netPar = Network.Parameters(nPatch = N,simTime = 1000L,
                             alleloTypes = AllAlleles,
                             AdPopEQ = patchPops,
                             parallel = FALSE,
-                            runID = 4L)
+                            runID = 1L)
 
     # initialize network!
 network = Network$new(networkParameters = netPar,
