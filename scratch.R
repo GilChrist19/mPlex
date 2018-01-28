@@ -589,3 +589,50 @@ microbenchmark::microbenchmark(oldMos$age_one_day(),
                                newMos$age_one_day(),
                                smallMos$age_one_day(),
                                times = 1000)
+
+###############################################################################
+# Rcpp Mating Function
+###############################################################################
+
+library(Rcpp)
+source("./R/4_MultiplexGeneratingFunction_multiLocus.R")
+
+
+fGen <- "HWHHHWWWWW"
+mGen <- "WWWWWWWWWW"
+reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.98, 0.98, 0.7, 0.98, 0.7),
+                                                       R = c(0.0001,0.0001,0.0001,0.0001,0.0001),
+                                                       S = c(0.00003,0.00003,0.00003,0.00003,0.00003),
+                                                       d = c(0,0,0,0,0))
+
+
+fGen <- "WH"
+mGen <- "WW"
+reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.98),
+                                                        R = c(0.0001),
+                                                        S = c(0.00003),
+                                                        d = c(0))
+
+
+
+
+sourceCpp("../scratch.cpp")
+HoldTEST <- TEST(fGen = fGen, mGen = mGen, reference = reproductionReference)
+HoldREF <- MultiplexOffspring_mLoci(fGen = fGen, mGen = mGen, reference = reproductionReference)
+
+
+
+
+testList = list(c("A","B","C"), c("D","E"), c("F","G","H","I"))
+ListTest(myList = testList)
+
+expand.grid(testList)
+
+
+microbenchmark::microbenchmark(TEST(fGen = fGen, mGen = mGen, reference = reproductionReference),
+                               MultiplexOffspring_mLoci(fGen = fGen, mGen = mGen, reference = reproductionReference),
+                               times = 100)
+
+
+
+
