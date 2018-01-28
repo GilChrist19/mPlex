@@ -585,9 +585,12 @@ oldMos <- Mosquito$new(genotype = "AA", age = 10)
 newMos <- NewMosquito(genotype = "AA", age = 10)
 smallMos <- NewMosquitoSMALLEST(genotype = "AA", age = 10)
 
-microbenchmark::microbenchmark(oldMos$age_one_day(),
-                               newMos$age_one_day(),
-                               smallMos$age_one_day(),
+matured <- integer(length = 100)
+
+microbenchmark::microbenchmark(for(i in 1:100){
+                                matured[i] <- test2[i]["age"]
+                               },
+                               vapply(X = test2, FUN = '[[', "age", FUN.VALUE = integer(length = 1L)),
                                times = 1000)
 
 ###############################################################################
@@ -595,12 +598,12 @@ microbenchmark::microbenchmark(oldMos$age_one_day(),
 ###############################################################################
 
 library(Rcpp)
-source("./R/4_MultiplexGeneratingFunction_multiLocus.R")
+source("./R/4_DaisyGeneratingFunction.R")
 
 
 fGen <- "HWHHHWWWWW"
 mGen <- "WWWWWWWWWW"
-reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.98, 0.98, 0.7, 0.98, 0.7),
+reproductionReference <- MakeReference_DaisyDrive(H = c(0.98, 0.98, 0.7, 0.98, 0.7),
                                                        R = c(0.0001,0.0001,0.0001,0.0001,0.0001),
                                                        S = c(0.00003,0.00003,0.00003,0.00003,0.00003),
                                                        d = c(0,0,0,0,0))
@@ -608,7 +611,7 @@ reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.98, 0.98, 0.7, 0.
 
 fGen <- "WH"
 mGen <- "WW"
-reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.98),
+reproductionReference <- MakeReference_DaisyDrive(H = c(0.98),
                                                         R = c(0.0001),
                                                         S = c(0.00003),
                                                         d = c(0))
@@ -616,9 +619,9 @@ reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.98),
 
 
 
-sourceCpp("../scratch.cpp")
-HoldTEST <- TEST(fGen = fGen, mGen = mGen, reference = reproductionReference)
-HoldREF <- MultiplexOffspring_mLoci(fGen = fGen, mGen = mGen, reference = reproductionReference)
+sourceCpp("./src/4_DaisyGeneratingFunction.cpp")
+HoldTEST <- DaisyOffspring_C(fGen = fGen, mGen = mGen, reference = reproductionReference)
+HoldREF <- DaisyOffspring(fGen = fGen, mGen = mGen, reference = reproductionReference)
 
 
 
@@ -629,8 +632,8 @@ ListTest(myList = testList)
 expand.grid(testList)
 
 
-microbenchmark::microbenchmark(TEST(fGen = fGen, mGen = mGen, reference = reproductionReference),
-                               MultiplexOffspring_mLoci(fGen = fGen, mGen = mGen, reference = reproductionReference),
+microbenchmark::microbenchmark(DaisyOffspring_C(fGen = fGen, mGen = mGen, reference = reproductionReference),
+                               DaisyOffspring(fGen = fGen, mGen = mGen, reference = reproductionReference),
                                times = 100)
 
 

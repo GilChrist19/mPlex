@@ -18,12 +18,13 @@
 ###############################################################################
 rm(list=ls());gc()
 library(mPlexR)
+library(mPlexRCpp)
 
 ###############################################################################
 # Setup Parameters for Network
 ###############################################################################
 
-migration = diag(5) #migration matrix
+migration = matrix(data = c(0,1,0,0,1,0, 0,1,0), nrow = 3, ncol = 3, byrow = TRUE)#diag(1) #migration matrix
 N = nrow(migration) #number of patches
 patchPops = rep(10L,N) #population of eachpatch
 directory <- "~/Desktop/HOLD"
@@ -69,7 +70,7 @@ patchReleases = replicate(n = N,
 
   # Create release object to pass to patches
 patchReleases[[1]]$maleReleases <- Release_basicRepeatedReleases(releaseStart = 50,
-                                                                 releaseEnd = 70,
+                                                                 releaseEnd = 60,
                                                                  releaseInterval = 2,
                                                                  genMos = c("HH"),
                                                                  numMos = c(10),
@@ -119,7 +120,7 @@ Run1 <- readRDS(file = "~/Desktop/HOLD/20180119_Run1_(HH|HR|HS|HW|RR|RS|RW|SS|SW
 Run2 <- readRDS(file = "~/Desktop/HOLD/20180119_Run2_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
 Run3 <- readRDS(file = "~/Desktop/HOLD/20180119_Run3_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
 Run4 <- readRDS(file = "~/Desktop/HOLD/20180119_Run4_HH_HR_HS_HW_RR_RS_RW_SS_SW_WW.rds")
-test <- readRDS(file = "~/Desktop/HOLD/20180120_Run4_HH_HR_HS_HW_RR_RS_RW_SS_SW_WW.rds")
+test <- readRDS(file = "~/Desktop/HOLD/20180128_Run1_HH_HR_HS_HW_RR_RS_RW_SS_SW_WW.rds")
 
 
 

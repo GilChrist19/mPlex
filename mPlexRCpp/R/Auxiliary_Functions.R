@@ -92,11 +92,12 @@ Release_basicRepeatedReleases <- function(releaseStart, releaseEnd, releaseInter
 
   # Initialize genotypes and ages
   genotypeVector = rep.int(x = genMos, times = numMos)
+  ageVector <- sample(x = minAge:maxAge, size = sum(numMos), replace = TRUE, prob = ageDist)
 
   # check for male/female/larvae. Fill appropriate list.
   for(tx in 1:length(releaseTimes)){
     releaseList[[tx]]$genVec = genotypeVector
-    releaseList[[tx]]$ageVec = sample(x = minAge:maxAge, size = sum(numMos), replace = TRUE, prob = ageDist)
+    releaseList[[tx]]$ageVec = ageVector
     releaseList[[tx]]$tRelease = releaseTimes[[tx]]
   }
 
