@@ -386,42 +386,52 @@ Patch$set(which = "public",name = "oneDay_Mate",
 #'
 oneDay_Reproduction_Patch <- function(){
 
-  for(critter in private$adult_female){
+  if(length(private$adult_female)!=0){
+    #get number of new mosquitoes in each batch
+    # reusing mates from above. It was a variable length character vector.
+    private$mates <- rpois(n = length(private$adult_female), lambda = private$NetworkPointer$get_beta())
 
-    #This fills offpsring list, a list of 2 lists: Alleles, Probabilities
-    # This function is set during initialization
-    private$offspring <- self$offspringDistribution(fGen = critter$get_genotype(),
-                               mGen = critter$get_mate(),
-                               reference = private$NetworkPointer$get_reference())
-
-    #This generates an egg distribution
-    private$eggNumber <- rmultinom(n = 1,
-                           size = rpois(n = 1, lambda = private$NetworkPointer$get_beta()),
-                           prob = private$offspring$Probabilities)
-
-
-    #Generate new mosquitoe population
-    private$newEggs <- vector(mode = "list", length = sum(private$eggNumber))
-
+    #Generate new mosquitoe population and set counter
+    private$newEggs <- vector(mode = "list", length = sum(private$mates))
     private$genericCounter = 1L
-    #loop over each genotype
-    for(gen in 1:length(private$offspring$Alleles)){
-      #skip if there are no mosquitoes of this genotype
-      if(private$eggNumber[gen]==0){next}
 
-      #loop over number of mosquitoes of that genotype
-      for(num in 1:private$eggNumber[gen]){
-        #create new mosquito
-        private$newEggs[[private$genericCounter]] <- Mosquito$new(genotype = private$offspring$Alleles[gen], age = 0)
+    for(critter in 1:length(private$adult_female)){
 
-        private$genericCounter = private$genericCounter + 1L
-      }# end egg number loop
-    }# end allele loop
+      #This fills offpsring list, a list of 2 lists: Alleles, Probabilities
+      # This function is set during initialization
+      private$offspring <- self$offspringDistribution(fGen = private$adult_female[[critter]]$get_genotype(),
+                                 mGen = private$adult_female[[critter]]$get_mate(),
+                                 reference = private$NetworkPointer$get_reference())
+
+      #This generates an egg distribution
+      private$eggNumber <- rmultinom(n = 1,
+                             size = private$mates[critter],
+                             prob = private$offspring$Probabilities)
+
+      #Generate new mosquitoe population
+      private$newEggs <- vector(mode = "list", length = sum(private$eggNumber))
+
+      private$genericCounter = 1L
+      #loop over each genotype
+      for(gen in 1:length(private$offspring$Alleles)){
+        #skip if there are no mosquitoes of this genotype
+        if(private$eggNumber[gen]==0){next}
+
+        #loop over number of mosquitoes of that genotype
+        for(num in 1:private$eggNumber[gen]){
+          #create new mosquito
+          private$newEggs[[private$genericCounter]] <- Mosquito$new(genotype = private$offspring$Alleles[gen], age = 0)
+          #increment counter
+          private$genericCounter = private$genericCounter + 1L
+
+        }# end egg number loop
+      }# end allele loop
+    }#end critter loop
 
     # add new eggs to the pile
     private$eggs <- c(private$eggs, private$newEggs)
+  }#end if
 
-  }#end critter loop
 }#end function
 Patch$set(which = "public",name = "oneDay_Reproduction",
           value = oneDay_Reproduction_Patch, overwrite = TRUE

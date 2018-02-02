@@ -487,6 +487,19 @@ JaredDirichlet <- function(n=1,alpha){
   Gam/rowSums(Gam)
 }
 
+#' Utility to Imitate ggplot2 Colors
+#'
+#' Sample at equally spaced intervals along the color wheel
+#'
+#' @param n number of colors
+#' @param alpha transparency
+#'
+#' @export
+ggCol_utility <- function(n, alpha = 1) {
+  hues = seq(15, 375, length = n + 1)
+  hcl(h = hues, l = 65, c = 100, alpha = alpha)[1:n]
+}
+
 #' Plot mPlex
 #'
 #' Plots the analyzed output of mPlex.
@@ -516,6 +529,7 @@ Plot_mPlex <- function(file = NULL, totalPop = TRUE){
 
   if(!totalPop){numGen <- numGen-1}
 
+  col <- ggCol_utility(n = numGen)
 
   #setup plot layout
   lmatrix <- matrix(data = 1:(numPatches*3), nrow = numPatches, ncol = 3, byrow = TRUE)
@@ -536,7 +550,7 @@ Plot_mPlex <- function(file = NULL, totalPop = TRUE){
           main = "Female Mosquitoes", ylab = "", lwd=2,
           ylim = c(0, max(Data$femaleData[,1+(1:numGen), patches[1]])),
           xlim = c(0, dim(Data$maleData)[1]), yaxs = "i", xaxs = "i",
-          col = 1:numGen)
+          col = col)
   title(ylab = "Population", line = 2)
   box(lwd = 2)
   grid()
@@ -547,7 +561,7 @@ Plot_mPlex <- function(file = NULL, totalPop = TRUE){
           main = "Male Mosquitoes", ylab = "", lwd=2,
           ylim = c(0, max(Data$maleData[,1+(1:numGen), patches[1]])),
           xlim = c(0, dim(Data$maleData)[1]), yaxs = "i", xaxs = "i",
-          col = 1:numGen)
+          col = col)
   mtext(patches[1], side = 4, line = 0.5, las = 0, cex = 0.9, font = 2)
   box(lwd = 2)
   grid()
@@ -555,7 +569,7 @@ Plot_mPlex <- function(file = NULL, totalPop = TRUE){
   #legend
   par(mar = c(0,0,0,0), font=2)
   plot.new()
-  legend(x = "left", legend = genotypes[1:numGen] , col = 1:numGen,
+  legend(x = "left", legend = genotypes[1:numGen] , col = col,
          bty = "n", bg = "transparent",lty = 1, lwd=3,cex = 1)
 
 
@@ -567,7 +581,7 @@ Plot_mPlex <- function(file = NULL, totalPop = TRUE){
               ylab = "", lwd=2,
               ylim = c(0, max(Data$femaleData[,1+(1:numGen), patch])),
               xlim = c(0, dim(Data$maleData)[1]), yaxs = "i", xaxs = "i",
-              col = 1:numGen)
+              col = col)
       title(ylab = "Population", line = 2)
       box(lwd = 2)
       grid()
@@ -577,7 +591,7 @@ Plot_mPlex <- function(file = NULL, totalPop = TRUE){
               ylab = "", lwd=2,
               ylim = c(0, max(Data$maleData[,1+(1:numGen), patch])),
               xlim = c(0, dim(Data$maleData)[1]), yaxs = "i", xaxs = "i",
-              col = 1:numGen)
+              col = col)
       mtext(patch, side = 4, line = 0.5, las = 0, cex = 0.9, font = 2)
       box(lwd = 2)
       grid()

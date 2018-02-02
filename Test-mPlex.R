@@ -24,15 +24,15 @@ library(mPlexRCpp)
 # Setup Parameters for Network
 ###############################################################################
 
-migration = matrix(data = c(0.99, 0, 0.05, 0.05, 0, 0.99, 0.05, 0.5, 0.03,0.03,0.99,0.04, 0.02,0.04,0.04,0.99), nrow = 4, ncol = 4, byrow = TRUE) #migration matrix
+migration = diag(3L) #matrix(data = c(0.99, 0, 0.05, 0.05, 0, 0.99, 0.05, 0.5, 0.03,0.03,0.99,0.04, 0.02,0.04,0.04,0.99), nrow = 4, ncol = 4, byrow = TRUE) #migration matrix
 N = nrow(migration) #number of patches
-patchPops = rep(200L,N) #population of eachpatch
+patchPops = rep(20L,N) #population of eachpatch
 directory <- "~/Desktop/HOLD"
 
     #setup alleles to initiate patches
-alleloTypes <- vector(mode = "list", length = 1) #3 loci
+alleloTypes <- vector(mode = "list", length = 1L) #3 loci
 alleloTypes[[1]]$alleles <- c("W")
-alleloTypes[[1]]$probs <- c(1)
+alleloTypes[[1]]$probs <- c(1L)
 # alleloTypes[[2]]$alleles <- c("W","H")
 # alleloTypes[[2]]$probs <- c(1,0)
 # alleloTypes[[3]]$alleles <- c("W","H")
@@ -69,13 +69,13 @@ patchReleases = replicate(n = N,
 
 
   # Create release object to pass to patches
-patchReleases[[1]]$maleReleases <- Release_basicRepeatedReleases(releaseStart = 50,
-                                                                 releaseEnd = 60,
-                                                                 releaseInterval = 2,
+patchReleases[[1]]$maleReleases <- Release_basicRepeatedReleases(releaseStart = 1000L,
+                                                                 releaseEnd = 1010L,
+                                                                 releaseInterval = 2L,
                                                                  genMos = c("HH"),
-                                                                 numMos = c(10),
-                                                                 minAge = 16,
-                                                                 maxAge = 24,
+                                                                 numMos = c(10L),
+                                                                 minAge = 16L,
+                                                                 maxAge = 24L,
                                                                  ageDist = rep(x = 1, times = 24-16+1)/9)
 
 ###############################################################################
@@ -83,7 +83,7 @@ patchReleases[[1]]$maleReleases <- Release_basicRepeatedReleases(releaseStart = 
 ###############################################################################
 
     # calculate network parameters, auxiliary function
-netPar = Network.Parameters(nPatch = N,simTime = 1000L,
+netPar = Network.Parameters(nPatch = N,simTime = 2000L,
                             alleloTypes = AllAlleles,
                             AdPopEQ = patchPops,
                             parallel = FALSE,
@@ -116,7 +116,7 @@ AnalyzeOutput_mLoci_Daisy(readDirectory = directory,
                           genotypes = list(NULL),
                           collapse = c(F))
 
-Plot_mPlex(file = "~/Desktop/HOLD/20180201_Run1_HH_HR_HS_HW_RR_RS_RW_SS_SW_WW.rds", totalPop = F)
+Plot_mPlex(file = "~/Desktop/HOLD/20180202_Run1_HH_HR_HS_HW_RR_RS_RW_SS_SW_WW.rds", totalPop = F)
 
 Run1 <- readRDS(file = "~/Desktop/HOLD/20180119_Run1_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
 Run2 <- readRDS(file = "~/Desktop/HOLD/20180119_Run2_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
