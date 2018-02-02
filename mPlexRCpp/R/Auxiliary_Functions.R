@@ -163,7 +163,7 @@ CreateMosquitoes_Distribution_Genotype <- function(numMos, minAge, maxAge, ageDi
     holdAge <- sample(x = minAge:maxAge, size = 1, replace = FALSE, prob = ageDist)
 
     #create new mosquito
-    population[[i]] <- Mosquito$new(genotype = paste0(unlist(genotypes), collapse = ""),
+    population[[i]] <- Mosquito(genotype = paste0(unlist(genotypes), collapse = ""),
                                     age = holdAge)
   }
 
@@ -293,8 +293,13 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, genotyp
         }#end gOI loop
 
         #set total population
-        mArray[loopTime, "Total Pop.", patch] <- length(mFile$Genotype[mFile$Time == loopTime])
-        fArray[loopTime, "Total Pop.", patch] <- length(fFile$Genotype[fFile$Time == loopTime])
+        if(!all(grepl(pattern = "NULL", x = mTimeObj, fixed = TRUE))){
+          mArray[loopTime, "Total Pop.", patch] <- length(mTimeObj)
+        }
+        if(!all(grepl(pattern = "NULL", x = fTimeObj, fixed = TRUE))){
+          fArray[loopTime, "Total Pop.", patch] <- length(fFile$Genotype[fFile$Time == loopTime])
+        }
+
       }#end time loop
     }#end patch loop
 
@@ -418,8 +423,13 @@ AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, alleles, col
         }#end gOI loop
 
         #set total population
-        mArray[loopTime, "Total Pop.", patch] <- length(mFile$Genotype[mFile$Time == loopTime])
-        fArray[loopTime, "Total Pop.", patch] <- length(fFile$Genotype[fFile$Time == loopTime])
+        if(!all(grepl(pattern = "NULL", x = mTimeObj, fixed = TRUE))){
+          mArray[loopTime, "Total Pop.", patch] <- length(mTimeObj)
+        }
+        if(!all(grepl(pattern = "NULL", x = fTimeObj, fixed = TRUE))){
+          fArray[loopTime, "Total Pop.", patch] <- length(fFile$Genotype[fFile$Time == loopTime])
+        }
+
       }#end time loop
     }#end patch loop
 

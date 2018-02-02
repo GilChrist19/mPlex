@@ -440,7 +440,7 @@ oneDay_migrationOut_Patch <- function(){
     #place how many migrate where
     private$numMigrateWhere <- cumsum(x = c(1, rmultinom(n = 1, size = private$numMigrate, prob = private$migrationDist)))
 
-    private$genericCounter <- 1
+    private$genericCounter <- 1L
     #loop over other patches, not your own
     for(patch in private$NetworkPointer$get_listPatch()[-private$patchID]){
       #if no mosquitoes go there, skip it
@@ -448,6 +448,9 @@ oneDay_migrationOut_Patch <- function(){
 
       #get all males who migrate
       private$maleMigration[[patch]] <- private$adult_male[private$whoMigrate[private$numMigrateWhere[private$genericCounter]:(private$numMigrateWhere[private$genericCounter+1]-1)]]
+
+      #increment counter
+      private$genericCounter <- private$genericCounter + 1L
     }
 
     #remove all the mosquitoes who  migrated
@@ -470,7 +473,7 @@ oneDay_migrationOut_Patch <- function(){
     #place how many migrate where
     private$numMigrateWhere <- cumsum(x = c(1, rmultinom(n = 1, size = private$numMigrate, prob = private$migrationDist)))
 
-    private$genericCounter <- 1
+    private$genericCounter <- 1L
     #loop over other patches, not your own
     for(patch in private$NetworkPointer$get_listPatch()[-private$patchID]){
       #if no mosquitoes go there, skip it
@@ -479,6 +482,8 @@ oneDay_migrationOut_Patch <- function(){
       #get all males who migrate, then remove those males and that number from lists
       private$femaleMigration[[patch]] <- private$adult_female[private$whoMigrate[private$numMigrateWhere[private$genericCounter]:(private$numMigrateWhere[private$genericCounter+1]-1)]]
 
+      #increment counter
+      private$genericCounter <- private$genericCounter + 1L
     }
 
     #remove all the mosquitoes who  migrated

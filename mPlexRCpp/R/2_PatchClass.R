@@ -359,7 +359,7 @@ oneDay_Releases_Patch <- function(){
     # initialize holder list, then fill it with new mosquitoes
     private$newEggs <- vector(mode = "list", length = length(private$maleReleases[[1]]$genVec))
     for(i in 1:length(private$maleReleases[[1]]$genVec)){
-      private$newEggs[[i]] <- Mosquito$new(genotype = private$maleReleases[[1]]$genVec[i],
+      private$newEggs[[i]] <- Mosquito(genotype = private$maleReleases[[1]]$genVec[i],
                                            age = private$maleReleases[[1]]$ageVec[i])
     }
 
@@ -376,7 +376,7 @@ oneDay_Releases_Patch <- function(){
     # initialize holder list, then fill it with new mosquitoes
     private$newEggs <- vector(mode = "list", length = length(private$femaleReleases[[1]]$genVec))
     for(i in 1:length(private$femaleReleases[[1]]$genVec)){
-      private$newEggs[[i]] <- Mosquito$new(genotype = private$femaleReleases[[1]]$genVec[i],
+      private$newEggs[[i]] <- Mosquito(genotype = private$femaleReleases[[1]]$genVec[i],
                                            age = private$femaleReleases[[1]]$ageVec[i])
     }
 
@@ -393,7 +393,7 @@ oneDay_Releases_Patch <- function(){
     # initialize holder list, then fill it with new mosquitoes
     private$newEggs <- vector(mode = "list", length = length(private$larvaeReleases[[1]]$genVec))
     for(i in 1:length(private$larvaeReleases[[1]]$genVec)){
-      private$newEggs[[i]] <- Mosquito$new(genotype = private$larvaeReleases[[1]]$genVec[i],
+      private$newEggs[[i]] <- Mosquito(genotype = private$larvaeReleases[[1]]$genVec[i],
                                            age = private$larvaeReleases[[1]]$ageVec[i])
     }
 
@@ -424,7 +424,8 @@ Patch$set(which = "public",name = "oneDay_Releases",
 oneDay_migrationOut_Patch <- function(){
 
   #set empty return lists
-  private$maleMigration <- private$femaleMigration <- vector(mode = "list", length = private$NetworkPointer$get_nPatch())
+  private$maleMigration <-  vector(mode = "list", length = private$NetworkPointer$get_nPatch())
+  private$femaleMigration <- vector(mode = "list", length = private$NetworkPointer$get_nPatch())
 
   #MALE
   if(length(private$adult_male)>0 && any(private$NetworkPointer$get_migrationMale(private$patchID)[-private$patchID]!=0)){
@@ -440,7 +441,7 @@ oneDay_migrationOut_Patch <- function(){
     #place how many migrate where
     private$numMigrateWhere <- cumsum(x = c(1, rmultinom(n = 1, size = private$numMigrate, prob = private$migrationDist)))
 
-    private$genericCounter <- 1
+    private$genericCounter <- 1L
     #loop over other patches, not your own
     for(patch in private$NetworkPointer$get_listPatch()[-private$patchID]){
       #if no mosquitoes go there, skip it
@@ -448,6 +449,9 @@ oneDay_migrationOut_Patch <- function(){
 
       #get all males who migrate
       private$maleMigration[[patch]] <- private$adult_male[private$whoMigrate[private$numMigrateWhere[private$genericCounter]:(private$numMigrateWhere[private$genericCounter+1]-1)]]
+
+      #step counter
+      private$genericCounter <- private$genericCounter + 1L
     }
 
     #remove all the mosquitoes who  migrated
@@ -470,7 +474,7 @@ oneDay_migrationOut_Patch <- function(){
     #place how many migrate where
     private$numMigrateWhere <- cumsum(x = c(1, rmultinom(n = 1, size = private$numMigrate, prob = private$migrationDist)))
 
-    private$genericCounter <- 1
+    private$genericCounter <- 1L
     #loop over other patches, not your own
     for(patch in private$NetworkPointer$get_listPatch()[-private$patchID]){
       #if no mosquitoes go there, skip it
@@ -479,6 +483,8 @@ oneDay_migrationOut_Patch <- function(){
       #get all males who migrate, then remove those males and that number from lists
       private$femaleMigration[[patch]] <- private$adult_female[private$whoMigrate[private$numMigrateWhere[private$genericCounter]:(private$numMigrateWhere[private$genericCounter+1]-1)]]
 
+      #step counter
+      private$genericCounter <- private$genericCounter + 1L
     }
 
     #remove all the mosquitoes who  migrated

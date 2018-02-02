@@ -12,6 +12,283 @@ using namespace Rcpp;
 //
 
 // [[Rcpp::export]]
+List oLocus(StringVector fGen, StringVector mGen, List& reference){
+
+  //Safety check. Maybe don't need.
+  if(fGen[0].size() != mGen[0].size()){
+    stop("Genotypes not the same length.");
+  }
+
+  //get number of alleles. Divide by two because diploid
+  int numAlleles = fGen[0].size()/2;
+
+  Rcpp::Rcout<<numAlleles<<std::endl;
+
+
+  //setup matrix for individual parent alleles
+  StringMatrix momAlleles(numAlleles, 2);
+  StringMatrix dadAlleles(numAlleles, 2);
+
+  Rcpp::Rcout<<momAlleles<<std::endl;
+  Rcpp::Rcout<<dadAlleles<<std::endl;
+
+  //Scoring if they have homing allele
+  bool fScore = false;
+  bool mScore = false;
+
+  Rcpp::Rcout<<fScore<<std::endl;
+  Rcpp::Rcout<<mScore<<std::endl;
+
+
+
+
+  //loop over alleles. Everything diploid
+  for(int j=0; j<2; j++){
+    //loop over loci, variable number
+    for(int i=0; i<numAlleles; i++){
+      momAlleles(i,j) = fGen[0][numAlleles*j+i];
+      dadAlleles(i,j) = mGen[0][numAlleles*j+i];
+
+      Rcpp::Rcout<<momAlleles<<std::endl;
+      Rcpp::Rcout<<dadAlleles<<std::endl;
+
+      //Score male/female at each locus. Just need one H anywhere.
+      if(momAlleles(i,j) == 'H'){
+        fScore = true;
+      }
+      if(dadAlleles(i,j) == 'H'){
+        mScore = true;
+      }
+      Rcpp::Rcout<<fScore<<std::endl;
+      Rcpp::Rcout<<mScore<<std::endl;
+    }
+  }
+
+
+
+
+
+  //setup male/female allele/probs lists
+  List fAllele(2);
+  List fProbs(2);
+  List mAllele(2);
+  List mProbs(2);
+
+  //holder because Rcpp can't do lists of lists.
+  List AlleleHold(numAlleles);
+  List ProbsHold(numAlleles);
+
+  //Females
+  if(fScore){
+    //TRUE - homing allele present
+    //loop over alleles. All diploid
+    for(int j=0; j<2; j++){
+      //loop over loci.
+      for(int i=0; i<numAlleles; i++){
+        //Fill target with letter and probs
+        if(momAlleles(i,j) == 'W'){
+          AlleleHold(i) = StringVector::create("W", "H", "R", "S");
+          ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["homing"])[i])["W"];
+        } else if(momAlleles(i,j) == 'H'){
+          AlleleHold(i) = StringVector::create("H", "S");
+          ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["homing"])[i])["H"];
+        } else if(momAlleles(i,j) == 'R'){
+          AlleleHold(i) = "R";
+          ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["homing"])[i])["R"];
+        } else if(momAlleles(i,j) == 'S'){
+          AlleleHold(i) = "S";
+          ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["homing"])[i])["S"];
+        }
+
+      }//end loci loop
+
+      //Set things in list
+      fAllele(j) = AlleleHold;
+      fProbs(j) = ProbsHold;
+
+      //Reset holder
+      AlleleHold = List(numAlleles);
+      ProbsHold = List(numAlleles);
+
+    }//end allele loop
+
+  } else{
+    //FALSE - no homing present
+    //loop over alleles. All diploid
+    for(int j=0; j<2; j++){
+      //loop over loci.
+      for(int i=0; i<numAlleles; i++){
+        //Fill target with letter and probs
+        if(momAlleles(i,j) == 'W'){
+          AlleleHold(i) = StringVector::create("W", "S");
+          ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["mendelian"])[i])["W"];
+        } else if(momAlleles(i,j) == 'H'){
+          AlleleHold(i) = StringVector::create("H", "S");
+          ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["mendelian"])[i])["H"];
+        } else if(momAlleles(i,j) == 'R'){
+          AlleleHold(i) = "R";
+          ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["mendelian"])[i])["R"];
+        } else if(momAlleles(i,j) == 'S'){
+          AlleleHold(i) = "S";
+          ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["mendelian"])[i])["S"];
+        }
+
+      }//end loci loop
+
+      //Set things in list
+      fAllele(j) = AlleleHold;
+      fProbs(j) = ProbsHold;
+
+      //Reset holder
+      AlleleHold = List(numAlleles);
+      ProbsHold = List(numAlleles);
+
+    }//end allele loop
+  }//end female if statement
+
+
+
+  //Males
+  if(mScore){
+    //TRUE - homing allele present
+    //loop over alleles. All diploid
+    for(int j=0; j<2; j++){
+      //loop over loci.
+      for(int i=0; i<numAlleles; i++){
+        //Fill target with letter and probs
+        if(dadAlleles(i,j) == 'W'){
+          AlleleHold(i) = StringVector::create("W", "H", "R", "S");
+          ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["homing"])[i])["W"];
+        } else if(dadAlleles(i,j) == 'H'){
+          AlleleHold(i) = StringVector::create("H", "S");
+          ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["homing"])[i])["H"];
+        } else if(dadAlleles(i,j) == 'R'){
+          AlleleHold(i) = "R";
+          ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["homing"])[i])["R"];
+        } else if(dadAlleles(i,j) == 'S'){
+          AlleleHold(i) = "S";
+          ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["homing"])[i])["S"];
+        }
+
+      }//end loci loop
+
+      //Set things in list
+      mAllele(j) = AlleleHold;
+      mProbs(j) = ProbsHold;
+
+      //Reset holder
+      AlleleHold = List(numAlleles);
+      ProbsHold = List(numAlleles);
+
+    }//end allele loop
+
+  } else{
+    //FALSE - no homing present
+    //loop over alleles. All diploid
+    for(int j=0; j<2; j++){
+      //loop over loci.
+      for(int i=0; i<numAlleles; i++){
+        //Fill target with letter and probs
+        if(dadAlleles(i,j) == 'W'){
+          AlleleHold(i) = StringVector::create("W", "S");
+          ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["mendelian"])[i])["W"];
+        } else if(dadAlleles(i,j) == 'H'){
+          AlleleHold(i) = StringVector::create("H", "S");
+          ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["mendelian"])[i])["H"];
+        } else if(dadAlleles(i,j) == 'R'){
+          AlleleHold(i) = "R";
+          ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["mendelian"])[i])["R"];
+        } else if(dadAlleles(i,j) == 'S'){
+          AlleleHold(i) = "S";
+          ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["mendelian"])[i])["S"];
+        }
+
+      }//end loci loop
+
+      //Set things in list
+      mAllele(j) = AlleleHold;
+      mProbs(j) = ProbsHold;
+
+      //Reset holder
+      AlleleHold = List(numAlleles);
+      ProbsHold = List(numAlleles);
+
+    }//end allele loop
+  }//end female if statement
+
+
+
+
+  List fAllLoci(2);
+  List fProbsLoci(2);
+  List mAllLoci(2);
+  List mProbsLoci(2);
+
+
+  StringVector charHold(2);
+  int lenF = 0;
+  int lenM = 0;
+
+
+
+  for(int i=0; i<2; i++){
+    lenF = 1;
+    lenM = 1;
+
+    //get total length of each vector
+    for(int y = 0; y<numAlleles; y++){
+      lenF *= Rcpp::as<StringVector>(Rcpp::as<StringVector>(fAllele[i])[y]).length();
+      lenM *= Rcpp::as<StringVector>(Rcpp::as<StringVector>(mAllele[i])[y]).length();
+    }
+
+    StringVector holdAll( lenF );
+    NumericVector holdProb( lenF );
+
+    //This is expand.grid(), then combining(pasting or multiplication), then sorting
+    for(int y=0; y<lenF; y++){
+      for(int z=0; z<lenM; z++){
+
+        //combine and sort each possible allele at loci i
+        charHold[0] = Rcpp::as<CharacterVector>(fAllele[i])[y];
+        charHold[1] = Rcpp::as<CharacterVector>(mAllele[i])[z];
+        holdAll[lenM*y+z] = collapse(charHold.sort());
+
+        //combine probs via multiplication
+        holdProb[lenM*y+z] = Rcpp::as<NumericVector>(fProbs[i])[y] * Rcpp::as<NumericVector>(mProbs[i])[z];
+
+      }//end male choices loop
+    }//end female choices loop
+  }//end allele loop
+
+
+
+
+
+
+
+
+
+
+
+
+
+    return List::create(
+      _["mom"] = momAlleles,
+      _["dad"] = dadAlleles,
+      _["fScore"] = fScore,
+      _["mScore"] = mScore,
+      _["momAlleles"] = fAllele,
+      _["dadAlleles"] = mAllele
+    ) ;
+
+
+
+}
+
+
+
+
+// [[Rcpp::export]]
 List TEST(StringVector fGen, StringVector mGen, List& reference) {
 
   //Safety check. Maybe don't need.

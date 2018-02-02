@@ -129,7 +129,7 @@ Network <- R6::R6Class(classname = "Network",
                   switch(EXPR = reproductionType,
                          DaisyDrive = {Patch$set(which = "public",
                                                  name = "offspringDistribution",
-                                                 value = DaisyOffspring,
+                                                 value = DaisyOffspring_C,
                                                  overwrite = TRUE)
                            cat("Using DaisyOffspring() for reproduction.\n\n")},
                          mPlex_oLocus = {Patch$set(which = "public",
@@ -323,8 +323,6 @@ Network <- R6::R6Class(classname = "Network",
                 femaleMoveOut = NULL, # for memory management
                 maleMoveIn = NULL, # for memory management
                 femaleMoveIn = NULL, # for memory management
-                holdMale = NULL, # for memory management
-                holdFemale = NULL, # for memory management
 
                 # release schedule
                 patchReleases = NULL
@@ -492,22 +490,10 @@ oneDay_Migration_Network <- function(){
   }
 
   # sum over patches
-  private$maleMoveIn = vector(mode="list",length=private$nPatch)
-  private$femaleMoveIn = vector(mode="list",length=private$nPatch)
-
-  for(first in private$listPatch){
-    #dummy variables that won't disappear when NULL is appended to them
-    private$holdMale <- NULL
-    private$holdFemale <- NULL
-    for(second in private$listPatch){
-      private$holdMale <- c(private$holdMale, private$maleMoveOut[[second]][[first]])
-      private$holdFemale <- c(private$holdFemale, private$femaleMoveOut[[second]][[first]])
-    }
-
-    #only if they aren't null, add them to the list. Otherwise, it destroys elements
-    if(!is.null(x = private$holdMale)){private$maleMoveIn[[first]] = private$holdMale}
-    if(!is.null(x = private$holdFemale)){private$femaleMoveIn[[first]] = private$holdFemale}
-  }
+  private$maleMoveIn <- lapply(X = private$listPatch,
+                               FUN = function(x){unlist(lapply(X = private$maleMoveOut, FUN = '[[', x))})
+  private$femaleMoveIn <- lapply(X = private$listPatch,
+                                 FUN = function(x){unlist(lapply(X = private$femaleMoveOut, FUN = '[[', x))})
 
   ######################################
   # migration in

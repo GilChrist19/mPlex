@@ -24,9 +24,9 @@ library(mPlexRCpp)
 # Setup Parameters for Network
 ###############################################################################
 
-migration = matrix(data = c(0,1,0,0,1,0, 0,1,0), nrow = 3, ncol = 3, byrow = TRUE)#diag(1) #migration matrix
+migration = matrix(data = c(0.99, 0, 0.05, 0.05, 0, 0.99, 0.05, 0.5, 0.03,0.03,0.99,0.04, 0.02,0.04,0.04,0.99), nrow = 4, ncol = 4, byrow = TRUE) #migration matrix
 N = nrow(migration) #number of patches
-patchPops = rep(10L,N) #population of eachpatch
+patchPops = rep(200L,N) #population of eachpatch
 directory <- "~/Desktop/HOLD"
 
     #setup alleles to initiate patches
@@ -115,6 +115,8 @@ AnalyzeOutput_mLoci_Daisy(readDirectory = directory,
                           saveDirectory = "~/Desktop/HOLD",
                           genotypes = list(NULL),
                           collapse = c(F))
+
+Plot_mPlex(file = "~/Desktop/HOLD/20180201_Run1_HH_HR_HS_HW_RR_RS_RW_SS_SW_WW.rds", totalPop = F)
 
 Run1 <- readRDS(file = "~/Desktop/HOLD/20180119_Run1_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
 Run2 <- readRDS(file = "~/Desktop/HOLD/20180119_Run2_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")

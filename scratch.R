@@ -601,25 +601,34 @@ library(Rcpp)
 source("./R/4_DaisyGeneratingFunction.R")
 
 
-fGen <- "HWHHHWWWWW"
+fGen <- "WHWWWWWWWW"
 mGen <- "WWWWWWWWWW"
-reproductionReference <- MakeReference_DaisyDrive(H = c(0.98, 0.98, 0.7, 0.98, 0.7),
+reproductionReference <- MakeReference_Multiplex_oLocus(H = c(0.98, 0.98, 0.7, 0.98, 0.7),
                                                        R = c(0.0001,0.0001,0.0001,0.0001,0.0001),
                                                        S = c(0.00003,0.00003,0.00003,0.00003,0.00003),
                                                        d = c(0,0,0,0,0))
 
 
-fGen <- "WH"
-mGen <- "WW"
-reproductionReference <- MakeReference_DaisyDrive(H = c(0.98),
-                                                        R = c(0.0001),
-                                                        S = c(0.00003),
-                                                        d = c(0))
+fGen <- "WHWW"
+mGen <- "WWWW"
+reproductionReference <- MakeReference_Multiplex_oLocus(H = c(0.98,0.98),
+                                                        R = c(0.0001,0.0001),
+                                                        S = c(0.00003,0.00003),
+                                                        d = c(0,0))
 
 
 
 
-sourceCpp("./src/4_DaisyGeneratingFunction.cpp")
+sourceCpp("../scratch.cpp")
+
+oLocus(fGen = fGen, mGen = mGen, reference = reproductionReference)
+MultiplexOffspring_oLocus(fGen = fGen, mGen = mGen, reference = reproductionReference)
+
+
+
+
+
+
 HoldTEST <- DaisyOffspring_C(fGen = fGen, mGen = mGen, reference = reproductionReference)
 HoldREF <- DaisyOffspring(fGen = fGen, mGen = mGen, reference = reproductionReference)
 

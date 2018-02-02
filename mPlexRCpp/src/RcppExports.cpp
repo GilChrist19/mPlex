@@ -5,6 +5,19 @@
 
 using namespace Rcpp;
 
+// DaisyOffspring_C
+List DaisyOffspring_C(StringVector fGen, StringVector mGen, List& reference);
+RcppExport SEXP _mPlexRCpp_DaisyOffspring_C(SEXP fGenSEXP, SEXP mGenSEXP, SEXP referenceSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< StringVector >::type fGen(fGenSEXP);
+    Rcpp::traits::input_parameter< StringVector >::type mGen(mGenSEXP);
+    Rcpp::traits::input_parameter< List& >::type reference(referenceSEXP);
+    rcpp_result_gen = Rcpp::wrap(DaisyOffspring_C(fGen, mGen, reference));
+    return rcpp_result_gen;
+END_RCPP
+}
 // MultiplexOffspring_mLoci_C
 List MultiplexOffspring_mLoci_C(StringVector fGen, StringVector mGen, List& reference);
 RcppExport SEXP _mPlexRCpp_MultiplexOffspring_mLoci_C(SEXP fGenSEXP, SEXP mGenSEXP, SEXP referenceSEXP) {
@@ -20,6 +33,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_mPlexRCpp_DaisyOffspring_C", (DL_FUNC) &_mPlexRCpp_DaisyOffspring_C, 3},
     {"_mPlexRCpp_MultiplexOffspring_mLoci_C", (DL_FUNC) &_mPlexRCpp_MultiplexOffspring_mLoci_C, 3},
     {NULL, NULL, 0}
 };

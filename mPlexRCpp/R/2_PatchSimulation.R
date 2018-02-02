@@ -212,12 +212,8 @@ oneDay_EggMature_Patch <- function(){
     # This could maybe become a patch variable, so we don't reallocate space.??
     private$ages <- rlnorm(n = private$genericCounter, meanlog = private$meanAge, sdlog = private$sdAge)
 
-    #loop over all eggs
-    #This maybe could be  vectorized in R, getting all ages is the only problem.
-    private$matured <- integer(length = private$genericCounter)
-    for(i in 1:private$genericCounter){
-      private$matured[i] <- private$eggs[[i]]$get_age()
-    }
+    #Get ages
+    private$matured <- vapply(X = private$eggs, FUN = '[[', "age", FUN.VALUE = integer(length = 1L))
 
     #see who does mature
     private$matured <- private$matured > private$ages
@@ -256,12 +252,8 @@ oneDay_LarvaMature_Patch <- function(){
     # This could maybe become a patch variable, so we don't reallocate space.??
     private$ages <- rlnorm(n = private$genericCounter, meanlog = private$meanAge, sdlog = private$sdAge)
 
-    #loop over all eggs
-    #This maybe could be  vectorized in R, getting all ages is the only problem.
-    private$matured <- integer(length = private$genericCounter)
-    for(i in 1:private$genericCounter){
-      private$matured[i] <- private$larva[[i]]$get_age()
-    }
+    #get ages
+    private$matured <- vapply(X = private$larva, FUN = '[[', "age", FUN.VALUE = integer(length = 1L))
 
     #see who does mature
     private$matured <- private$matured > private$ages
@@ -303,12 +295,8 @@ oneDay_PupaMature_Patch <- function(){
     # This could maybe become a patch variable, so we don't reallocate space.??
     private$ages <- rlnorm(n = private$genericCounter, meanlog = private$meanAge, sdlog = private$sdAge)
 
-    #loop over all eggs
-    #This maybe could be  vectorized in R, getting all private$ages is the only problem.
-    private$matured <- integer(length = private$genericCounter)
-    for(i in 1:private$genericCounter){
-      private$matured[i] <- private$pupa[[i]]$get_age()
-    }
+    #get ages
+    private$matured <- vapply(X = private$pupa, FUN = '[[', "age", FUN.VALUE = integer(length = 1L))
 
     #see who does mature
     private$matured <- private$matured > private$ages
@@ -349,18 +337,14 @@ oneDay_Mate_Patch <- function(){
 
   if(private$numUnweds != 0 && private$numMates != 0){
 
-    private$mates <- character(length = private$numMates)
-
     #get males for mates, randomly sampled from population
-    for(i in 1:private$numMates){
-      private$mates[[i]] <- private$adult_male[[i]]$get_genotype()
-    }
+    private$mates <- vapply(X = private$adult_male, FUN = '[[', "genotype", FUN.VALUE = character(length = 1L))
 
     private$mates <- sample(x = private$mates, size = private$numUnweds, replace = TRUE)
 
     #set mates
     for(i in 1:private$numUnweds){
-      private$unmated_female[[i]]$set_mate(mate=private$mates[[i]])
+      private$unmated_female[[i]]$set_mate(matGen=private$mates[[i]])
     }
 
     #add to adult females, clear unmated females
@@ -390,8 +374,8 @@ oneDay_Reproduction_Patch <- function(){
 
     #This fills offpsring list, a list of 2 lists: Alleles, Probabilities
     # This function is set during initialization
-    private$offspring <- self$offspringDistribution(fGen = critter$get_genotype(),
-                               mGen = critter$get_mate(),
+    private$offspring <- self$offspringDistribution(fGen = critter[["genotype"]],
+                               mGen = critter[["mate"]],
                                reference = private$NetworkPointer$get_reference())
 
     #This generates an egg distribution
@@ -407,12 +391,12 @@ oneDay_Reproduction_Patch <- function(){
     #loop over each genotype
     for(gen in 1:length(private$offspring$Alleles)){
       #skip if there are no mosquitoes of this genotype
-      if(private$eggNumber[gen]==0){next}
+      if(private$eggNumber[gen]==0L){next}
 
       #loop over number of mosquitoes of that genotype
       for(num in 1:private$eggNumber[gen]){
         #create new mosquito
-        private$newEggs[[private$genericCounter]] <- Mosquito$new(genotype = private$offspring$Alleles[gen], age = 0)
+        private$newEggs[[private$genericCounter]] <- Mosquito(genotype = private$offspring$Alleles[gen], age = 0L)
 
         private$genericCounter = private$genericCounter + 1L
       }# end egg number loop
