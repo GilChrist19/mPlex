@@ -92,11 +92,12 @@ Release_basicRepeatedReleases <- function(releaseStart, releaseEnd, releaseInter
 
   # Initialize genotypes and ages
   genotypeVector = rep.int(x = genMos, times = numMos)
+  ageVector <- sample(x = minAge:maxAge, size = sum(numMos), replace = TRUE, prob = ageDist)
 
   # check for male/female/larvae. Fill appropriate list.
   for(tx in 1:length(releaseTimes)){
     releaseList[[tx]]$genVec = genotypeVector
-    releaseList[[tx]]$ageVec = sample(x = minAge:maxAge, size = sum(numMos), replace = TRUE, prob = ageDist)
+    releaseList[[tx]]$ageVec = ageVector
     releaseList[[tx]]$tRelease = releaseTimes[[tx]]
   }
 
@@ -162,7 +163,7 @@ CreateMosquitoes_Distribution_Genotype <- function(numMos, minAge, maxAge, ageDi
     holdAge <- sample(x = minAge:maxAge, size = 1, replace = FALSE, prob = ageDist)
 
     #create new mosquito
-    population[[i]] <- Mosquito$new(genotype = paste0(unlist(genotypes), collapse = ""),
+    population[[i]] <- Mosquito(genotype = paste0(unlist(genotypes), collapse = ""),
                                     age = holdAge)
   }
 
@@ -241,6 +242,7 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, genotyp
     stop("collapse must be specified for each loci.
          length(collapse) == length(genotypes)")
   }
+  if(pcre_config()["JIT"]){options(PCRE_use_JIT = TRUE)}
 
   #do collapse if there is some
   for(i in 1:length(genotypes)){
@@ -271,11 +273,13 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, genotyp
     for(patch in patches){
       #read in male/female files for this run and patch
       mName = grep(pattern = paste("ADM", run, patch, sep = ".*"),
-                   x = dirFiles, ignore.case = FALSE, value = TRUE)[1]
+                   x = dirFiles,ignore.case = FALSE, perl = TRUE,
+                   value = TRUE, useBytes = TRUE)[1]
       mFile = read.csv(file = file.path(readDirectory, mName),
                        header = TRUE, stringsAsFactors = FALSE)
       fName = grep(pattern = paste("ADF", run, patch, sep = ".*"),
-                   x = dirFiles, ignore.case = FALSE, value = TRUE)[1]
+                   x = dirFiles, ignore.case = FALSE, perl = TRUE,
+                   value = TRUE, useBytes = TRUE)[1]
       fFile = read.csv(file = file.path(readDirectory, fName),
                        header = TRUE, stringsAsFactors = FALSE)
 
@@ -287,8 +291,12 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, genotyp
         #loop over genotypes of interest
         for(gen in gOI){
           #match genotype pattens, store how many were found
-          mArray[loopTime, gen, patch] <- length(grep(pattern = gen, x = mTimeObj, ignore.case = FALSE))
-          fArray[loopTime, gen, patch] <- length(grep(pattern = gen, x = fTimeObj, ignore.case = FALSE))
+          mArray[loopTime, gen, patch] <- length(grep(pattern = gen, x = mTimeObj,
+                                                      ignore.case = FALSE, perl = TRUE,
+                                                      value = TRUE, useBytes = TRUE))
+          fArray[loopTime, gen, patch] <- length(grep(pattern = gen, x = fTimeObj,
+                                                      ignore.case = FALSE, perl = TRUE,
+                                                      value = TRUE, useBytes = TRUE))
         }#end gOI loop
 
         #set total population
@@ -401,11 +409,13 @@ AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, alleles, col
     for(patch in patches){
       #read in male/female files for this run and patch
       mName = grep(pattern = paste("ADM", run, patch, sep = ".*"),
-                   x = dirFiles, ignore.case = FALSE, value = TRUE)[1]
+                   x = dirFiles,ignore.case = FALSE, perl = TRUE,
+                   value = TRUE, useBytes = TRUE)[1]
       mFile = read.csv(file = file.path(readDirectory, mName),
                        header = TRUE, stringsAsFactors = FALSE)
       fName = grep(pattern = paste("ADF", run, patch, sep = ".*"),
-                   x = dirFiles, ignore.case = FALSE, value = TRUE)[1]
+                   x = dirFiles, ignore.case = FALSE, perl = TRUE,
+                   value = TRUE, useBytes = TRUE)[1]
       fFile = read.csv(file = file.path(readDirectory, fName),
                        header = TRUE, stringsAsFactors = FALSE)
 
@@ -417,8 +427,12 @@ AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, alleles, col
         #loop over genotypes of interest
         for(gen in gOI){
           #match genotype pattens, store how many were found
-          mArray[loopTime, gen, patch] <- length(grep(pattern = gen, x = mTimeObj, ignore.case = FALSE))
-          fArray[loopTime, gen, patch] <- length(grep(pattern = gen, x = fTimeObj, ignore.case = FALSE))
+          mArray[loopTime, gen, patch] <- length(grep(pattern = gen, x = mTimeObj,
+                                                      ignore.case = FALSE, perl = TRUE,
+                                                      value = TRUE, useBytes = TRUE))
+          fArray[loopTime, gen, patch] <- length(grep(pattern = gen, x = fTimeObj,
+                                                      ignore.case = FALSE, perl = TRUE,
+                                                      value = TRUE, useBytes = TRUE))
         }#end gOI loop
 
         #set total population

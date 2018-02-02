@@ -242,6 +242,7 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, genotyp
     stop("collapse must be specified for each loci.
          length(collapse) == length(genotypes)")
   }
+  if(pcre_config()["JIT"]){options(PCRE_use_JIT = TRUE)}
 
   #do collapse if there is some
   for(i in 1:length(genotypes)){
@@ -272,11 +273,13 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, genotyp
     for(patch in patches){
       #read in male/female files for this run and patch
       mName = grep(pattern = paste("ADM", run, patch, sep = ".*"),
-                   x = dirFiles, ignore.case = FALSE, value = TRUE)[1]
+                   x = dirFiles,ignore.case = FALSE, perl = TRUE,
+                   value = TRUE, useBytes = TRUE)[1]
       mFile = read.csv(file = file.path(readDirectory, mName),
                        header = TRUE, stringsAsFactors = FALSE)
       fName = grep(pattern = paste("ADF", run, patch, sep = ".*"),
-                   x = dirFiles, ignore.case = FALSE, value = TRUE)[1]
+                   x = dirFiles, ignore.case = FALSE, perl = TRUE,
+                   value = TRUE, useBytes = TRUE)[1]
       fFile = read.csv(file = file.path(readDirectory, fName),
                        header = TRUE, stringsAsFactors = FALSE)
 
@@ -288,8 +291,12 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, genotyp
         #loop over genotypes of interest
         for(gen in gOI){
           #match genotype pattens, store how many were found
-          mArray[loopTime, gen, patch] <- length(grep(pattern = gen, x = mTimeObj, ignore.case = FALSE))
-          fArray[loopTime, gen, patch] <- length(grep(pattern = gen, x = fTimeObj, ignore.case = FALSE))
+          mArray[loopTime, gen, patch] <- length(grep(pattern = gen, x = mTimeObj,
+                                                      ignore.case = FALSE, perl = TRUE,
+                                                      value = TRUE, useBytes = TRUE))
+          fArray[loopTime, gen, patch] <- length(grep(pattern = gen, x = fTimeObj,
+                                                      ignore.case = FALSE, perl = TRUE,
+                                                      value = TRUE, useBytes = TRUE))
         }#end gOI loop
 
         #set total population
@@ -402,11 +409,13 @@ AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, alleles, col
     for(patch in patches){
       #read in male/female files for this run and patch
       mName = grep(pattern = paste("ADM", run, patch, sep = ".*"),
-                   x = dirFiles, ignore.case = FALSE, value = TRUE)[1]
+                   x = dirFiles,ignore.case = FALSE, perl = TRUE,
+                   value = TRUE, useBytes = TRUE)[1]
       mFile = read.csv(file = file.path(readDirectory, mName),
                        header = TRUE, stringsAsFactors = FALSE)
       fName = grep(pattern = paste("ADF", run, patch, sep = ".*"),
-                   x = dirFiles, ignore.case = FALSE, value = TRUE)[1]
+                   x = dirFiles, ignore.case = FALSE, perl = TRUE,
+                   value = TRUE, useBytes = TRUE)[1]
       fFile = read.csv(file = file.path(readDirectory, fName),
                        header = TRUE, stringsAsFactors = FALSE)
 
@@ -418,8 +427,12 @@ AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, alleles, col
         #loop over genotypes of interest
         for(gen in gOI){
           #match genotype pattens, store how many were found
-          mArray[loopTime, gen, patch] <- length(grep(pattern = gen, x = mTimeObj, ignore.case = FALSE))
-          fArray[loopTime, gen, patch] <- length(grep(pattern = gen, x = fTimeObj, ignore.case = FALSE))
+          mArray[loopTime, gen, patch] <- length(grep(pattern = gen, x = mTimeObj,
+                                                      ignore.case = FALSE, perl = TRUE,
+                                                      value = TRUE, useBytes = TRUE))
+          fArray[loopTime, gen, patch] <- length(grep(pattern = gen, x = fTimeObj,
+                                                      ignore.case = FALSE, perl = TRUE,
+                                                      value = TRUE, useBytes = TRUE))
         }#end gOI loop
 
         #set total population
