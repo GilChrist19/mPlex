@@ -218,50 +218,192 @@ List oLocus(StringVector fGen, StringVector mGen, List& reference){
 
 
 
-
+///////////////////////////////////////////////////////////////////////////////
   List fAllLoci(2);
   List fProbsLoci(2);
   List mAllLoci(2);
   List mProbsLoci(2);
 
+  //Things used in loop
+  //total length of output
+  //vectors of cumulative and sublist lengths
+  int depth = 0;
+  IntegerVector cumLen(numAlleles);
+  IntegerVector subLen(numAlleles);
 
-  StringVector charHold(2);
-  int lenF = 0;
-  int lenM = 0;
+  for(int numA=0; numA<2; numA++){
 
+    /*************************************************************************/
+    //Females
+    /*************************************************************************/
+    //total length of output
+    depth = Rcpp::as<CharacterVector>(Rcpp::as<List>(fAllele[numA])[0]).length();
 
+    //first sublist is length depth
+    subLen[0] = depth;
 
-  for(int i=0; i<2; i++){
-    lenF = 1;
-    lenM = 1;
-
-    //get total length of each vector
-    for(int y = 0; y<numAlleles; y++){
-      lenF *= Rcpp::as<StringVector>(Rcpp::as<StringVector>(fAllele[i])[y]).length();
-      lenM *= Rcpp::as<StringVector>(Rcpp::as<StringVector>(mAllele[i])[y]).length();
+    //get values from rest of list.
+    for(int i=1; i<numAlleles; i++){
+      cumLen[i] = depth;
+      subLen[i] = Rcpp::as<CharacterVector>(Rcpp::as<List>(fAllele[numA])[i]).length();
+      depth *= subLen[i];
     }
 
-    StringVector holdAll( lenF );
-    NumericVector holdProb( lenF );
+    //setup output and holders for them.
+    CharacterVector outAList(depth);
+    CharacterVector oALHolder(depth);
 
-    //This is expand.grid(), then combining(pasting or multiplication), then sorting
-    for(int y=0; y<lenF; y++){
-      for(int z=0; z<lenM; z++){
+    NumericVector outPList(depth);
+    NumericVector oPLHolder(depth);
 
-        //combine and sort each possible allele at loci i
-        charHold[0] = Rcpp::as<CharacterVector>(fAllele[i])[y];
-        charHold[1] = Rcpp::as<CharacterVector>(mAllele[i])[z];
-        holdAll[lenM*y+z] = collapse(charHold.sort());
+    //fill lists initially
+    for(int i=0; i<subLen[0]; i++){
+      //Alleles
+      outAList[i] = Rcpp::as<CharacterVector>(Rcpp::as<List>(fAllele[numA])[0])[i];
+      oALHolder[i] = outAList[i];
+      //Probs
+      outPList[i] = Rcpp::as<NumericVector>(Rcpp::as<List>(fProbs[numA])[0])[i];
+      oPLHolder[i] = outPList[i];
+    }
 
-        //combine probs via multiplication
-        holdProb[lenM*y+z] = Rcpp::as<NumericVector>(fProbs[i])[y] * Rcpp::as<NumericVector>(mProbs[i])[z];
+    for(int i=0; i<numAlleles; i++){
+      for(int j=0; j<cumLen[i]; j++){
+        for(int k=0; k<subLen[i]; k++){
+          outAList[j*subLen[i]+k] = collapse(CharacterVector::create(oALHolder[j],
+                                                Rcpp::as<CharacterVector>(Rcpp::as<List>(fAllele[numA])[i])[k]));
+          outPList[j*subLen[i]+k] = oPLHolder[j]*Rcpp::as<NumericVector>(Rcpp::as<List>(fProbs[numA])[i])[k];
+        }
+      }
 
-      }//end male choices loop
-    }//end female choices loop
+      //copy for next iteration
+      std::copy(outAList.begin(), outAList.end(), oALHolder.begin());
+      std::copy(outPList.begin(), outPList.end(), oPLHolder.begin());
+    }//end loop loci
+
+    fAllLoci[numA] = outAList;
+    fProbsLoci[numA] = outPList;
+
+    Rcpp::Rcout<<outAList<<std::endl;
+    Rcpp::Rcout<<outPList<<std::endl;
+
+
+    /*************************************************************************/
+    //Males
+    /*************************************************************************/
+    //total length of output
+    depth = Rcpp::as<CharacterVector>(Rcpp::as<List>(mAllele[numA])[0]).length();
+
+    //first sublist is length depth
+    subLen[0] = depth;
+
+    //get values from rest of list.
+    for(int i=1; i<numAlleles; i++){
+      cumLen[i] = depth;
+      subLen[i] = Rcpp::as<CharacterVector>(Rcpp::as<List>(mAllele[numA])[i]).length();
+      depth *= subLen[i];
+    }
+
+    //setup output and holders for them.
+    outAList = CharacterVector(depth);
+    oALHolder = CharacterVector(depth);
+
+    outPList = NumericVector(depth);
+    oPLHolder = NumericVector(depth);
+
+    //fill lists initially
+    for(int i=0; i<subLen[0]; i++){
+      //Alleles
+      outAList[i] = Rcpp::as<CharacterVector>(Rcpp::as<List>(mAllele[numA])[0])[i];
+      oALHolder[i] = outAList[i];
+      //Probs
+      outPList[i] = Rcpp::as<NumericVector>(Rcpp::as<List>(mProbs[numA])[0])[i];
+      oPLHolder[i] = outPList[i];
+    }
+
+    for(int i=0; i<numAlleles; i++){
+      for(int j=0; j<cumLen[i]; j++){
+        for(int k=0; k<subLen[i]; k++){
+          outAList[j*subLen[i]+k] = collapse(CharacterVector::create(oALHolder[j],
+                                                                     Rcpp::as<CharacterVector>(Rcpp::as<List>(mAllele[numA])[i])[k]));
+          outPList[j*subLen[i]+k] = oPLHolder[j]*Rcpp::as<NumericVector>(Rcpp::as<List>(mProbs[numA])[i])[k];
+        }
+      }
+
+      //copy for next iteration
+      std::copy(outAList.begin(), outAList.end(), oALHolder.begin());
+      std::copy(outPList.begin(), outPList.end(), oPLHolder.begin());
+    }//end loop loci
+
+    mAllLoci[numA] = outAList;
+    mProbsLoci[numA] = outPList;
+
+    Rcpp::Rcout<<outAList<<std::endl;
+    Rcpp::Rcout<<outPList<<std::endl;
+
+
+
+  }//end loop over 2 alleles
+
+///////////////////////////////////////////////////////////////////////////////
+
+/*****************************************************************************/
+//unlist loci.
+/*****************************************************************************/
+
+  CharacterVector lociAList
+
+for(int i=0; i<2; i++){
+
+  int lenF = Rcpp::as<CharacterVector>(Rcpp::as<List>(fAllLoci[i])[j]).length();
+  int lenM = 0;
+
+  //loop over depth to get total length of vector
+  for(int j = 0; j<2; j++){
+    lenF += Rcpp::as<StringVector>(Rcpp::as<List>(fAllele[i])[j]).length();
+    lenM += Rcpp::as<StringVector>(Rcpp::as<List>(mAllele[i])[j]).length();
+  }
+
+  //set index to hold position and output vectors
+  int fIndex = 0;
+  StringVector fAHold(lenF);
+  NumericVector fPHold(lenF);
+
+  int mIndex = 0;
+  StringVector mAHold(lenM);
+  NumericVector mPHold(lenM);
+
+  //FEMALES
+  //loop over depth, concatenate alleles
+  for(int j = 0; j<2; j++){
+
+    //Holder for things
+    StringVector holdAf = Rcpp::as<List>(fAllele[i])[j];
+    NumericVector holdPf = Rcpp::as<List>(fProbs[i])[j];
+
+    StringVector holdAm = Rcpp::as<List>(mAllele[i])[j];
+    NumericVector holdPm = Rcpp::as<List>(mProbs[i])[j];
+
+    //copy things into new outputs
+    std::copy(holdAf.begin(), holdAf.end(), fAHold.begin()+fIndex);
+    std::copy(holdPf.begin(), holdPf.end(), fPHold.begin()+fIndex);
+
+    std::copy(holdAm.begin(), holdAm.end(), mAHold.begin()+mIndex);
+    std::copy(holdPm.begin(), holdPm.end(), mPHold.begin()+mIndex);
+
+    //increment index
+    fIndex += holdAf.size();
+    mIndex += holdAm.size();
+
   }//end allele loop
 
+  //Set things in the list
+  fAllele[i] = fAHold;
+  fProbs[i] = fPHold;
 
+  mAllele[i] = mAHold;
+  mProbs[i] = mPHold;
 
+}//end loci loop
 
 
 
@@ -278,7 +420,11 @@ List oLocus(StringVector fGen, StringVector mGen, List& reference){
       _["fScore"] = fScore,
       _["mScore"] = mScore,
       _["momAlleles"] = fAllele,
-      _["dadAlleles"] = mAllele
+      _["dadAlleles"] = mAllele,
+      _["allAlleleList"] = fAllLoci,
+      _["allProbsList"] = fProbsLoci,
+      _["maleAllAllele"] = mAllLoci,
+      _["maleProbsAll"] = mProbsLoci
     ) ;
 
 

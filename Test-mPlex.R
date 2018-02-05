@@ -24,10 +24,10 @@ library(mPlexRCpp)
 # Setup Parameters for Network
 ###############################################################################
 
-migration = diag(3L) #matrix(data = c(0.99, 0, 0.05, 0.05, 0, 0.99, 0.05, 0.5, 0.03,0.03,0.99,0.04, 0.02,0.04,0.04,0.99), nrow = 4, ncol = 4, byrow = TRUE) #migration matrix
+migration = diag(4L) #matrix(data = c(0.99, 0, 0.05, 0.05, 0, 0.99, 0.05, 0.5, 0.03,0.03,0.99,0.04, 0.02,0.04,0.04,0.99), nrow = 4, ncol = 4, byrow = TRUE) #migration matrix
 N = nrow(migration) #number of patches
 patchPops = rep(20L,N) #population of eachpatch
-directory <- "~/Desktop/HOLD"
+directory <- "~/Desktop/HOLD/mPlex/"
 
     #setup alleles to initiate patches
 alleloTypes <- vector(mode = "list", length = 1L) #3 loci
@@ -69,7 +69,7 @@ patchReleases = replicate(n = N,
 
 
   # Create release object to pass to patches
-patchReleases[[1]]$maleReleases <- Release_basicRepeatedReleases(releaseStart = 1000L,
+holdRel <- Release_basicRepeatedReleases(releaseStart = 1000L,
                                                                  releaseEnd = 1010L,
                                                                  releaseInterval = 2L,
                                                                  genMos = c("HH"),
@@ -78,16 +78,31 @@ patchReleases[[1]]$maleReleases <- Release_basicRepeatedReleases(releaseStart = 
                                                                  maxAge = 24L,
                                                                  ageDist = rep(x = 1, times = 24-16+1)/9)
 
+holdRel2 <- Release_basicRepeatedReleases(releaseStart = 1200L,
+                                         releaseEnd = 1210L,
+                                         releaseInterval = 2L,
+                                         genMos = c("SS"),
+                                         numMos = c(10L),
+                                         minAge = 16L,
+                                         maxAge = 24L,
+                                         ageDist = rep(x = 1, times = 24-16+1)/9)
+
+for(i in seq(1,N,1)){
+  patchReleases[[i]]$maleReleases <- c(holdRel, holdRel2)
+}
+
+
 ###############################################################################
 # Calculate parameters and initialize network
 ###############################################################################
 
     # calculate network parameters, auxiliary function
-netPar = Network.Parameters(nPatch = N,simTime = 2000L,
+netPar = Network.Parameters(nPatch = N,simTime = 2500L,
                             alleloTypes = AllAlleles,
                             AdPopEQ = patchPops,
-                            parallel = FALSE,
-                            runID = 1L)
+                            runID = 1L,
+                            dayGrowthRate = 1.1,
+                            beta = 32L)
 
     # initialize network!
 network = Network$new(networkParameters = netPar,
@@ -101,10 +116,23 @@ network = Network$new(networkParameters = netPar,
 
 
     #reset network
-Rprof(interval = 0.01, line.profiling = TRUE)
+library(foreach)
+library(parallel)
+library(iterators)
+library(doParallel)
+
+
+cl = parallel::makeForkCluster(nnodes = parallel::detectCores()-4L)
+parallel::clusterSetRNGStream(cl=cl,iseed=NULL)
+doParallel::registerDoParallel(cl)
+
+#Rprof(interval = 0.01, line.profiling = TRUE)
 network$oneRun()
-summaryRprof(lines = "both")
+#summaryRprof(lines = "both")
 network$reset()
+
+parallel::stopCluster(cl)
+rm(cl);gc()
 
 
 ###############################################################################
@@ -122,7 +150,7 @@ Run1 <- readRDS(file = "~/Desktop/HOLD/20180119_Run1_(HH|HR|HS|HW|RR|RS|RW|SS|SW
 Run2 <- readRDS(file = "~/Desktop/HOLD/20180119_Run2_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
 Run3 <- readRDS(file = "~/Desktop/HOLD/20180119_Run3_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
 Run4 <- readRDS(file = "~/Desktop/HOLD/20180119_Run4_HH_HR_HS_HW_RR_RS_RW_SS_SW_WW.rds")
-test <- readRDS(file = "~/Desktop/HOLD/20180128_Run1_HH_HR_HS_HW_RR_RS_RW_SS_SW_WW.rds")
+test <- readRDS(file = "~/Desktop/HOLD/20180202_Run1_HH_HR_HS_HW_RR_RS_RW_SS_SW_WW.rds")
 
 
 
