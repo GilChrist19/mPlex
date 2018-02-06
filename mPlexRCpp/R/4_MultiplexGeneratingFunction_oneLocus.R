@@ -278,10 +278,10 @@ MultiplexOffspring_oLocus <- function(fGen, mGen, reference){
     holdProbTwo <- expand.grid(mProbs[[i]], KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
 
     #paste things in reverse
-    fAllLoci[[i]] <- do.call(what = paste0, c(holdAllOne[, numAlleles:1,drop=FALSE], collapse = NULL))
+    fAllLoci[[i]] <- do.call(what = paste0, c(holdAllOne, collapse = NULL))
     fProbsLoci[[i]] <- apply(X = holdProbOne, MARGIN = 1, FUN = prod)
 
-    mAllLoci[[i]] <- do.call(what = paste0, c(holdAllTwo[, numAlleles:1,drop=FALSE], collapse = NULL))
+    mAllLoci[[i]] <- do.call(what = paste0, c(holdAllTwo, collapse = NULL))
     mProbsLoci[[i]] <- apply(X = holdProbTwo, MARGIN = 1, FUN = prod)
 
   }
