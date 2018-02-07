@@ -101,6 +101,10 @@ MakeReference_DaisyDrive <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/
   cutProbsList <- vector(mode = "list", length = length(H))
   homProbsList <- vector(mode = "list", length = length(H))
 
+  mendAlleleList <- vector(mode = "list", length = length(H))
+  cutAlleleList <- vector(mode = "list", length = length(H))
+  homAlleleList <- vector(mode = "list", length = length(H))
+
   #fill the lists
   for(i in 1:length(H)){
     mendProbsList[[i]]$W <- setNames(object = c(1-d[i], d[i]), nm = c("W", "S"))
@@ -108,21 +112,45 @@ MakeReference_DaisyDrive <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/
     mendProbsList[[i]]$R <- 1
     mendProbsList[[i]]$S <- 1
 
+    #remove 0 probs things, and set allele names
+    logicalHold <- lapply(X = mendProbsList[[i]], FUN = '!=', 0)
+    for(j in 1:4){
+      mendProbsList[[i]][[j]] <- mendProbsList[[i]][[j]][ logicalHold[[j]] ]
+      mendAlleleList[[i]][[j]] <- names(mendProbsList[[i]][[j]])
+    }
+
     cutProbsList[[i]]$W <- cuttingProbs[ ,i]
     cutProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "S"))
     cutProbsList[[i]]$R <- 1
     cutProbsList[[i]]$S <- 1
 
+    #remove 0 probs things, and set allele names
+    logicalHold <- lapply(X = cutProbsList[[i]], FUN = '!=', 0)
+    for(j in 1:4){
+      cutProbsList[[i]][[j]] <- cutProbsList[[i]][[j]][ logicalHold[[j]] ]
+      cutAlleleList[[i]][[j]] <- names(cutProbsList[[i]][[j]])
+    }
+
     homProbsList[[i]]$W <- homingProbs[ ,i]
     homProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "S"))
     homProbsList[[i]]$R <- 1
     homProbsList[[i]]$S <- 1
+
+    #remove 0 probs things, and set allele names
+    logicalHold <- lapply(X = homProbsList[[i]], FUN = '!=', 0)
+    for(j in 1:4){
+      homProbsList[[i]][[j]] <- homProbsList[[i]][[j]][ logicalHold[[j]] ]
+      homAlleleList[[i]][[j]] <- names(homProbsList[[i]][[j]])
+    }
   }
 
 
   return(list(
     mendelian = mendProbsList,
     cutting = cutProbsList,
-    homing = homProbsList))
+    homing = homProbsList,
+    mendelianAlleles = mendAlleleList,
+    homingAlleles = homAlleleList,
+    cuttingAlleles = cutAlleleList))
 
 }

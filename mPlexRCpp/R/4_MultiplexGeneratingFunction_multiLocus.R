@@ -89,23 +89,42 @@ MakeReference_Multiplex_mLoci <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0),
   mendProbsList <- vector(mode = "list", length = length(H))
   homProbsList <- vector(mode = "list", length = length(H))
 
+  mendAlleleList <- vector(mode = "list", length = length(H))
+  homAlleleList <- vector(mode = "list", length = length(H))
+
   #fill the lists
   for(i in 1:length(H)){
     #Mendelian Probabilities
     mendProbsList[[i]]$W <- setNames(object = c(1-d[i], d[i]), nm = c("W", "S"))
     mendProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "S"))
-    mendProbsList[[i]]$R <- 1
-    mendProbsList[[i]]$S <- 1
+    mendProbsList[[i]]$R <- setNames(object = 1, nm = "R")
+    mendProbsList[[i]]$S <- setNames(object = 1, nm = "S")
+
+    #remove 0 probs things, and set allele names
+    logicalHold <- lapply(X = mendProbsList[[i]], FUN = '!=', 0)
+    for(j in 1:4){
+      mendProbsList[[i]][[j]] <- mendProbsList[[i]][[j]][ logicalHold[[j]] ]
+      mendAlleleList[[i]][[j]] <- names(mendProbsList[[i]][[j]])
+    }
 
     #Homing Probabilities
     homProbsList[[i]]$W <- homingProbs[ ,i]
     homProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "S"))
-    homProbsList[[i]]$R <- 1
-    homProbsList[[i]]$S <- 1
+    homProbsList[[i]]$R <- setNames(object = 1, nm = "R")
+    homProbsList[[i]]$S <- setNames(object = 1, nm = "S")
+
+    #remove 0 probs things, and set allele names
+    logicalHold <- lapply(X = homProbsList[[i]], FUN = '!=', 0)
+    for(j in 1:4){
+      homProbsList[[i]][[j]] <- homProbsList[[i]][[j]][ logicalHold[[j]] ]
+      homAlleleList[[i]][[j]] <- names(homProbsList[[i]][[j]])
+    }
   }
 
   return(list(
     mendelian = mendProbsList,
-    homing = homProbsList))
+    homing = homProbsList,
+    mendelianAlleles = mendAlleleList,
+    homingAlleles = homAlleleList))
 
 }

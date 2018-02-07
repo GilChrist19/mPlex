@@ -24,9 +24,9 @@ library(mPlexRCpp)
 # Setup Parameters for Network
 ###############################################################################
 
-migration = diag(4L) #matrix(data = c(0.99, 0, 0.05, 0.05, 0, 0.99, 0.05, 0.5, 0.03,0.03,0.99,0.04, 0.02,0.04,0.04,0.99), nrow = 4, ncol = 4, byrow = TRUE) #migration matrix
+migration = diag(50L) #matrix(data = c(0.99, 0, 0.05, 0.05, 0, 0.99, 0.05, 0.5, 0.03,0.03,0.99,0.04, 0.02,0.04,0.04,0.99), nrow = 4, ncol = 4, byrow = TRUE) #migration matrix
 N = nrow(migration) #number of patches
-patchPops = rep(20L,N) #population of eachpatch
+patchPops = rep(500L,N) #population of eachpatch
 directory <- "~/Desktop/HOLD/mPlex/"
 
     #setup alleles to initiate patches
@@ -116,15 +116,15 @@ network = Network$new(networkParameters = netPar,
 
 
     #reset network
-library(foreach)
-library(parallel)
-library(iterators)
-library(doParallel)
-
-
-cl = parallel::makeForkCluster(nnodes = parallel::detectCores()-4L)
-parallel::clusterSetRNGStream(cl=cl,iseed=NULL)
-doParallel::registerDoParallel(cl)
+# library(foreach)
+# library(parallel)
+# library(iterators)
+# library(doParallel)
+#
+#
+# cl = parallel::makeForkCluster(nnodes = parallel::detectCores()-4L)
+# parallel::clusterSetRNGStream(cl=cl,iseed=NULL)
+# doParallel::registerDoParallel(cl)
 
 #Rprof(interval = 0.01, line.profiling = TRUE)
 network$oneRun()
@@ -157,88 +157,6 @@ test <- readRDS(file = "~/Desktop/HOLD/20180202_Run1_HH_HR_HS_HW_RR_RS_RW_SS_SW_
 file <- "~/Desktop/HOLD/20180120_Run4_HH_HR_HS_HW_RR_RS_RW_SS_SW_WW.rds"
 library(viridisLite)
 
-Plot_mPlex <- function(file = NULL){
-
-  #keep old plot parameters to reset later
-  oldPar <- par(no.readonly = TRUE)
-
-  #Get the data to plot
-  Data <- readRDS(file = file)
-
-  #Get genotypes and number of patches
-  genotypes <- dimnames(Data$maleData)[[2]][-1]
-  patches <- dimnames(Data$maleData)[[3]]
-
-  #setup plot layout
-  lmatrix <- matrix(data = 1:(length(patches)*3), nrow = length(patches), ncol = 3, byrow = TRUE)
-  if(length(patches)>1){
-    #fill in rest of plot labels
-    lmatrix[2:length(patches), c(1,2)] <- matrix(data = 4:(3+2*(length(patches)-1)),
-                                                 ncol = 2, byrow = TRUE)
-    #legend gets whole right side
-    lmatrix[,3] <- 3
-  }
-
-  layout(lmatrix, widths = c(3,3,1))
-
-  #plot first patch and the legend
-  #male
-  par(mar = c(2,3,3,1), las = 1, font.lab = 2, font.axis = 2, font.main = 2, cex.main = 1.75)
-  matplot(Data$femaleData[,1+(1:length(genotypes)), patches[1]], type = "l", lty = 1,
-          main = "Female Mosquitoes", ylab = "", lwd=2,
-          ylim = c(0, max(Data$femaleData[,1+(1:length(genotypes)), patches[1]])),
-          xlim = c(0, dim(Data$maleData)[1]), yaxs = "i", xaxs = "i",
-          col = 1:length(genotypes))
-  title(ylab = "Population", line = 2)
-  box(lwd = 2)
-  grid()
-
-  #female
-  par(mar = c(2,2,3,1), las = 1)
-  matplot(Data$maleData[,1+(1:length(genotypes)),patches[1]], type = "l", lty = 1,
-          main = "Male Mosquitoes", ylab = "", lwd=2,
-          ylim = c(0, max(Data$maleData[,1+(1:length(genotypes)), patches[1]])),
-          xlim = c(0, dim(Data$maleData)[1]), yaxs = "i", xaxs = "i",
-          col = 1:length(genotypes))
-  mtext(patches[1], side = 4, line = 0.5, las = 0, cex = 0.9, font = 2)
-  box(lwd = 2)
-  grid()
-
-  #legend
-  par(mar = c(0,0,0,0), font=2)
-  plot.new()
-  legend(x = "left", legend = genotypes , col = 1:length(genotypes),
-         bty = "n", bg = "transparent",lty = 1, lwd=3,cex = 1)
-
-
-  ##rest of the patches
-  if(length(patches)>1){
-    for(patch in patches[-1]){
-      par(mar = c(2,3,1,1), las = 1)
-      matplot(Data$femaleData[,1+(1:length(genotypes)), patch], type = "l", lty = 1,
-              ylab = "", lwd=2,
-              ylim = c(0, max(Data$femaleData[,1+(1:length(genotypes)), patch])),
-              xlim = c(0, dim(Data$maleData)[1]), yaxs = "i", xaxs = "i",
-              col = 1:length(genotypes))
-      title(ylab = "Population", line = 2)
-      box(lwd = 2)
-      grid()
-
-      par(mar = c(2,2,1,1))
-      matplot(Data$maleData[,1+(1:length(genotypes)),patch], type = "l", lty = 1,
-              ylab = "", lwd=2,
-              ylim = c(0, max(Data$maleData[,1+(1:length(genotypes)), patch])),
-              xlim = c(0, dim(Data$maleData)[1]), yaxs = "i", xaxs = "i",
-              col = 1:length(genotypes))
-      mtext(patch, side = 4, line = 0.5, las = 0, cex = 0.9, font = 2)
-      box(lwd = 2)
-      grid()
-    }#end patch loop
-  }#end if
-
-  #reset par()
-  par(oldPar)
-}
 
 
 

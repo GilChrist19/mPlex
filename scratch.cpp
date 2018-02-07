@@ -78,16 +78,16 @@ List oLocus(StringVector fGen, StringVector mGen, List& reference){
       for(int i=0; i<numAlleles; i++){
         //Fill target with letter and probs
         if(momAlleles(i,j) == 'W'){
-          AlleleHold(i) = StringVector::create("W", "H", "R", "S");
+          AlleleHold(i) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["homingAlleles"])[i])[0]);
           ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["homing"])[i])["W"];
         } else if(momAlleles(i,j) == 'H'){
-          AlleleHold(i) = StringVector::create("H", "S");
+          AlleleHold(i) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["homingAlleles"])[i])[1]);
           ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["homing"])[i])["H"];
         } else if(momAlleles(i,j) == 'R'){
-          AlleleHold(i) = "R";
+          AlleleHold(i) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["homingAlleles"])[i])[2]);
           ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["homing"])[i])["R"];
         } else if(momAlleles(i,j) == 'S'){
-          AlleleHold(i) = "S";
+          AlleleHold(i) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["homingAlleles"])[i])[3]);
           ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["homing"])[i])["S"];
         }
 
@@ -111,16 +111,16 @@ List oLocus(StringVector fGen, StringVector mGen, List& reference){
       for(int i=0; i<numAlleles; i++){
         //Fill target with letter and probs
         if(momAlleles(i,j) == 'W'){
-          AlleleHold(i) = StringVector::create("W", "S");
+          AlleleHold(i) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["mendelianAlleles"])[i])[0]);
           ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["mendelian"])[i])["W"];
         } else if(momAlleles(i,j) == 'H'){
-          AlleleHold(i) = StringVector::create("H", "S");
+          AlleleHold(i) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["mendelianAlleles"])[i])[1]);
           ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["mendelian"])[i])["H"];
         } else if(momAlleles(i,j) == 'R'){
-          AlleleHold(i) = "R";
+          AlleleHold(i) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["mendelianAlleles"])[i])[2]);
           ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["mendelian"])[i])["R"];
         } else if(momAlleles(i,j) == 'S'){
-          AlleleHold(i) = "S";
+          AlleleHold(i) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["mendelianAlleles"])[i])[3]);
           ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["mendelian"])[i])["S"];
         }
 
@@ -148,16 +148,16 @@ List oLocus(StringVector fGen, StringVector mGen, List& reference){
       for(int i=0; i<numAlleles; i++){
         //Fill target with letter and probs
         if(dadAlleles(i,j) == 'W'){
-          AlleleHold(i) = StringVector::create("W", "H", "R", "S");
+          AlleleHold(i) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["homingAlleles"])[i])[0]);
           ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["homing"])[i])["W"];
         } else if(dadAlleles(i,j) == 'H'){
-          AlleleHold(i) = StringVector::create("H", "S");
+          AlleleHold(i) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["homingAlleles"])[i])[1]);
           ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["homing"])[i])["H"];
         } else if(dadAlleles(i,j) == 'R'){
-          AlleleHold(i) = "R";
+          AlleleHold(i) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["homingAlleles"])[i])[2]);
           ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["homing"])[i])["R"];
         } else if(dadAlleles(i,j) == 'S'){
-          AlleleHold(i) = "S";
+          AlleleHold(i) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["homingAlleles"])[i])[3]);
           ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["homing"])[i])["S"];
         }
 
@@ -181,16 +181,16 @@ List oLocus(StringVector fGen, StringVector mGen, List& reference){
       for(int i=0; i<numAlleles; i++){
         //Fill target with letter and probs
         if(dadAlleles(i,j) == 'W'){
-          AlleleHold(i) = StringVector::create("W", "S");
+          AlleleHold(i) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["mendelianAlleles"])[i])[0]);
           ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["mendelian"])[i])["W"];
         } else if(dadAlleles(i,j) == 'H'){
-          AlleleHold(i) = StringVector::create("H", "S");
+          AlleleHold(i) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["mendelianAlleles"])[i])[1]);
           ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["mendelian"])[i])["H"];
         } else if(dadAlleles(i,j) == 'R'){
-          AlleleHold(i) = "R";
+          AlleleHold(i) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["mendelianAlleles"])[i])[2]);
           ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["mendelian"])[i])["R"];
         } else if(dadAlleles(i,j) == 'S'){
-          AlleleHold(i) = "S";
+          AlleleHold(i) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["mendelianAlleles"])[i])[3]);
           ProbsHold(i) = Rcpp::as<List>(Rcpp::as<List>(reference["mendelian"])[i])["S"];
         }
 
