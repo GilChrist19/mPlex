@@ -45,6 +45,10 @@ List DaisyOffspring_C(StringVector fGen, StringVector mGen, List& reference) {
   LogicalVector fScore(numAlleles+1);
   LogicalVector mScore(numAlleles+1);
 
+  /*****************************************************************************/
+  //Split Loci Within Alleles and Score Each Allele
+  /*****************************************************************************/
+
   //loop over loci, separate alleles and score
   for(int i=0; i<numAlleles; i++){
     //loop over alleles. All diploid
@@ -64,6 +68,13 @@ List DaisyOffspring_C(StringVector fGen, StringVector mGen, List& reference) {
       fScore[i+1]=1;
     }
   }//end sublist and scoring loop over loci
+  /*****************************************************************************/
+  //End Split and Score
+  /*****************************************************************************/
+
+  /*****************************************************************************/
+  //Determine Next-Gen alleles
+  /*****************************************************************************/
 
   //setup male/female allele/probs lists
   List fAllele(numAlleles);
@@ -76,19 +87,10 @@ List DaisyOffspring_C(StringVector fGen, StringVector mGen, List& reference) {
   List ProbsHold(2);
 
 
-
-
-
-
-
-
-
-
-
   //loop over all loci
   for(int i=0; i<numAlleles; i++){
 
-    //FEMALES
+    ////////////FEMALES////////////
     //3 if statements for 3 cases
     if((fScore[i]==FALSE && fScore[i+1]==FALSE) ||(fScore[i]==FALSE && fScore[i+1]==TRUE)){
       //FF  or FT case
@@ -98,16 +100,16 @@ List DaisyOffspring_C(StringVector fGen, StringVector mGen, List& reference) {
 
         //Fill allele with letter and probs
         if(momAlleles(i,j) == 'W'){
-          AlleleHold(j) = StringVector::create("W", "S");
+          AlleleHold(j) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["mendelianAlleles"])[i])[0]);
           ProbsHold(j) = Rcpp::as<List>(Rcpp::as<List>(reference["mendelian"])[i])["W"];
         } else if(momAlleles(i,j) == 'H'){
-          AlleleHold(j) = StringVector::create("H", "S");
+          AlleleHold(j) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["mendelianAlleles"])[i])[1]);
           ProbsHold(j) = Rcpp::as<List>(Rcpp::as<List>(reference["mendelian"])[i])["H"];
         } else if(momAlleles(i,j) == 'R'){
-          AlleleHold(j) = "R";
+          AlleleHold(j) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["mendelianAlleles"])[i])[2]);
           ProbsHold(j) = Rcpp::as<List>(Rcpp::as<List>(reference["mendelian"])[i])["R"];
         } else if(momAlleles(i,j) == 'S'){
-          AlleleHold(j) = "S";
+          AlleleHold(j) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["mendelianAlleles"])[i])[3]);
           ProbsHold(j) = Rcpp::as<List>(Rcpp::as<List>(reference["mendelian"])[i])["S"];
         }
 
@@ -120,16 +122,16 @@ List DaisyOffspring_C(StringVector fGen, StringVector mGen, List& reference) {
 
         //Fill allele with letter and probs
         if(momAlleles(i,j) == 'W'){
-          AlleleHold(j) = StringVector::create("W", "R", "S");
+          AlleleHold(j) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["cuttingAlleles"])[i])[0]);
           ProbsHold(j) = Rcpp::as<List>(Rcpp::as<List>(reference["cutting"])[i])["W"];
         } else if(momAlleles(i,j) == 'H'){
-          AlleleHold(j) = StringVector::create("H", "S");
+          AlleleHold(j) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["cuttingAlleles"])[i])[1]);
           ProbsHold(j) = Rcpp::as<List>(Rcpp::as<List>(reference["cutting"])[i])["H"];
         } else if(momAlleles(i,j) == 'R'){
-          AlleleHold(j) = "R";
+          AlleleHold(j) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["cuttingAlleles"])[i])[2]);
           ProbsHold(j) = Rcpp::as<List>(Rcpp::as<List>(reference["cutting"])[i])["R"];
         } else if(momAlleles(i,j) == 'S'){
-          AlleleHold(j) = "S";
+          AlleleHold(j) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["cuttingAlleles"])[i])[3]);
           ProbsHold(j) = Rcpp::as<List>(Rcpp::as<List>(reference["cutting"])[i])["S"];
         }
 
@@ -142,16 +144,16 @@ List DaisyOffspring_C(StringVector fGen, StringVector mGen, List& reference) {
 
         //Fill allele with letter and probs
         if(momAlleles(i,j) == 'W'){
-          AlleleHold(j) = StringVector::create("W", "H", "R", "S");
+          AlleleHold(j) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["homingAlleles"])[i])[0]);
           ProbsHold(j) = Rcpp::as<List>(Rcpp::as<List>(reference["homing"])[i])["W"];
         } else if(momAlleles(i,j) == 'H'){
-          AlleleHold(j) = StringVector::create("H", "S");
+          AlleleHold(j) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["homingAlleles"])[i])[1]);
           ProbsHold(j) = Rcpp::as<List>(Rcpp::as<List>(reference["homing"])[i])["H"];
         } else if(momAlleles(i,j) == 'R'){
-          AlleleHold(j) = "R";
+          AlleleHold(j) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["homingAlleles"])[i])[2]);
           ProbsHold(j) = Rcpp::as<List>(Rcpp::as<List>(reference["homing"])[i])["R"];
         } else if(momAlleles(i,j) == 'S'){
-          AlleleHold(j) = "S";
+          AlleleHold(j) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["homingAlleles"])[i])[3]);
           ProbsHold(j) = Rcpp::as<List>(Rcpp::as<List>(reference["homing"])[i])["S"];
         }
 
@@ -166,7 +168,7 @@ List DaisyOffspring_C(StringVector fGen, StringVector mGen, List& reference) {
     AlleleHold = List(2);
     ProbsHold = List(2);
 
-    //Males!
+    ////////////MALES////////////
     if((mScore[i]==FALSE && mScore[i+1]==FALSE) ||(mScore[i]==FALSE && mScore[i+1]==TRUE)){
       //FF or FT case
 
@@ -175,16 +177,16 @@ List DaisyOffspring_C(StringVector fGen, StringVector mGen, List& reference) {
 
         //Fill with allele and probs
         if(dadAlleles(i,j) == 'W'){
-          AlleleHold(j) = StringVector::create("W", "S");
+          AlleleHold(j) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["mendelianAlleles"])[i])[0]);
           ProbsHold(j) = Rcpp::as<List>(Rcpp::as<List>(reference["mendelian"])[i])["W"];
         } else if(dadAlleles(i,j) == 'H'){
-          AlleleHold(j) = StringVector::create("H", "S");
+          AlleleHold(j) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["mendelianAlleles"])[i])[1]);
           ProbsHold(j) = Rcpp::as<List>(Rcpp::as<List>(reference["mendelian"])[i])["H"];
         } else if(dadAlleles(i,j) == 'R'){
-          AlleleHold(j) = "R";
+          AlleleHold(j) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["mendelianAlleles"])[i])[2]);
           ProbsHold(j) = Rcpp::as<List>(Rcpp::as<List>(reference["mendelian"])[i])["R"];
         } else if(dadAlleles(i,j) == 'S'){
-          AlleleHold(j) = "S";
+          AlleleHold(j) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["mendelianAlleles"])[i])[3]);
           ProbsHold(j) = Rcpp::as<List>(Rcpp::as<List>(reference["mendelian"])[i])["S"];
         }
 
@@ -197,16 +199,16 @@ List DaisyOffspring_C(StringVector fGen, StringVector mGen, List& reference) {
 
         //Fill with allele and probs
         if(dadAlleles(i,j) == 'W'){
-          AlleleHold(j) = StringVector::create("W", "R", "S");
+          AlleleHold(j) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["cuttingAlleles"])[i])[0]);
           ProbsHold(j) = Rcpp::as<List>(Rcpp::as<List>(reference["cutting"])[i])["W"];
         } else if(dadAlleles(i,j) == 'H'){
-          AlleleHold(j) = StringVector::create("H", "S");
+          AlleleHold(j) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["cuttingAlleles"])[i])[1]);
           ProbsHold(j) = Rcpp::as<List>(Rcpp::as<List>(reference["cutting"])[i])["H"];
         } else if(dadAlleles(i,j) == 'R'){
-          AlleleHold(j) = "R";
+          AlleleHold(j) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["cuttingAlleles"])[i])[2]);
           ProbsHold(j) = Rcpp::as<List>(Rcpp::as<List>(reference["cutting"])[i])["R"];
         } else if(dadAlleles(i,j) == 'S'){
-          AlleleHold(j) = "S";
+          AlleleHold(j) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["cuttingAlleles"])[i])[3]);
           ProbsHold(j) = Rcpp::as<List>(Rcpp::as<List>(reference["cutting"])[i])["S"];
         }
 
@@ -219,16 +221,16 @@ List DaisyOffspring_C(StringVector fGen, StringVector mGen, List& reference) {
 
         //Fill allele with letter and probs
         if(dadAlleles(i,j) == 'W'){
-          AlleleHold(j) = StringVector::create("W", "H", "R", "S");
+          AlleleHold(j) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["homingAlleles"])[i])[0]);
           ProbsHold(j) = Rcpp::as<List>(Rcpp::as<List>(reference["homing"])[i])["W"];
         } else if(dadAlleles(i,j) == 'H'){
-          AlleleHold(j) = StringVector::create("H", "S");
+          AlleleHold(j) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["homingAlleles"])[i])[1]);
           ProbsHold(j) = Rcpp::as<List>(Rcpp::as<List>(reference["homing"])[i])["H"];
         } else if(dadAlleles(i,j) == 'R'){
-          AlleleHold(j) = "R";
+          AlleleHold(j) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["homingAlleles"])[i])[2]);
           ProbsHold(j) = Rcpp::as<List>(Rcpp::as<List>(reference["homing"])[i])["R"];
         } else if(dadAlleles(i,j) == 'S'){
-          AlleleHold(j) = "S";
+          AlleleHold(j) = Rcpp::as<CharacterVector>(Rcpp::as<List>(Rcpp::as<List>(reference["homingAlleles"])[i])[3]);
           ProbsHold(j) = Rcpp::as<List>(Rcpp::as<List>(reference["homing"])[i])["S"];
         }
 
@@ -244,17 +246,13 @@ List DaisyOffspring_C(StringVector fGen, StringVector mGen, List& reference) {
     ProbsHold = List(2);
 
   }//end loci loop
+  /*****************************************************************************/
+  //End Alleles and Probs at Each Locus
+  /*****************************************************************************/
 
-
-
-
-
-
-
-
-
-
-
+  /*****************************************************************************/
+  //Unlist Loci
+  /*****************************************************************************/
 
   //unlist loop!
   for(int i=0; i<numAlleles; i++){
@@ -277,7 +275,6 @@ List DaisyOffspring_C(StringVector fGen, StringVector mGen, List& reference) {
     StringVector mAHold(lenM);
     NumericVector mPHold(lenM);
 
-    //FEMALES
     //loop over depth, concatenate alleles
     for(int j = 0; j<2; j++){
 
@@ -309,6 +306,9 @@ List DaisyOffspring_C(StringVector fGen, StringVector mGen, List& reference) {
     mProbs[i] = mPHold;
 
   }//end loci loop
+  /*****************************************************************************/
+  //All Combinations of Male/Female for each Loci
+  /*****************************************************************************/
 
   List lociAList(numAlleles);
   List lociPList(numAlleles);
@@ -340,7 +340,7 @@ List DaisyOffspring_C(StringVector fGen, StringVector mGen, List& reference) {
       }//end male choices loop
     }//end female choices loop
 
-    //BEGIN AGGREGATE FUNCTION
+    ////////////AGGREGATE FUNCTION////////////
     //keep unique allele types
     lociAList[i] = unique(holdAll);
     LogicalVector matchedAlleles(holdAll.length());
@@ -359,11 +359,16 @@ List DaisyOffspring_C(StringVector fGen, StringVector mGen, List& reference) {
     }//end aggregate loop
 
     lociPList[i] = combinedProbs;
-    //END AGGREGATE FUNCTION
+    ////////////END AGGREGATE FUNCTION////////////
 
   }//end loop over alleles
+  /*****************************************************************************/
+  //End All Combinations of MAle/Female for Each Loci
+  /*****************************************************************************/
 
-
+  /*****************************************************************************/
+  //Final Combinations of Loci for each Allele
+  /*****************************************************************************/
 
   //final things in program
   //total length of output
@@ -399,8 +404,6 @@ List DaisyOffspring_C(StringVector fGen, StringVector mGen, List& reference) {
     outPList[i] = Rcpp::as<NumericVector>(lociPList[0])[i];
     oPLHolder[i] = outPList[i];
   }
-
-
 
 
   for(int i=1; i<numAlleles; i++){
