@@ -48,6 +48,7 @@
 #'  * get_listPatch: Integer list of Patches in the Network
 #'  * get_patch: Return a list of all patches or a single Patch specified by PatchID
 #'  * get_reference: Return reference list for calculating offspring distribution
+#'  * get_s: Return genotype-dependent list of fractional fertilities
 #'  * get_tNow: Return current simulation time
 #'  * get_directory: Return output directory
 #'  * get_conADM: Return adult_male file connection
@@ -72,6 +73,7 @@
 #'  * listPatch: Integer vector listing all the patches, 1:nPatch
 #'  * patches: A list of \code{\link{Patch}} objects
 #'  * reference: Inheritance pattern list
+#'  * s: Fractional reduction/increase in genotype-dependent fertility
 #'  * tNow: Current simulation time
 #'  * directory: a character string of where to store output
 #'  * conADM: a \code{\link[base]{connection}} to write male population dynamics out to
@@ -125,7 +127,8 @@ Network <- R6::R6Class(classname = "Network",
                   private$patchReleases = patchReleases
 
                   #set reproduction type
-                  private$reference = offspringReference
+                  private$reference = offspringReference[1:(length(offspringReference)-1)]
+                  private$s = offspringReference$s
                   switch(EXPR = reproductionType,
                          DaisyDrive = {Patch$set(which = "public",
                                                  name = "offspringDistribution",
@@ -262,6 +265,7 @@ Network <- R6::R6Class(classname = "Network",
                               } else {private$patches[[patch]]}
                             },
                 get_reference = function(){private$reference},
+                get_s = function(){private$s},
                 get_tNow  = function(){private$tNow},
 
                 get_directory = function(){private$directory},
@@ -307,6 +311,7 @@ Network <- R6::R6Class(classname = "Network",
                 listPatch = NULL, #list of patch numbers
                 patches = NULL, # list of patches
                 reference = NULL, # reference rates for offspring
+                s = NULL, #fractional reduction/increase in fertility
                 tNow = 2L, # time starts at 2 because time 1 is the initial condition
 
                 # output

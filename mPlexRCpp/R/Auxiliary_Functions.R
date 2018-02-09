@@ -487,6 +487,50 @@ JaredDirichlet <- function(n=1,alpha){
   Gam/rowSums(Gam)
 }
 
+#' calc_parameter
+#'
+#' Gets the genotype-dependent parameter of choice
+#'
+#' @usage get_parameter(paramList, genotype)
+#'
+#' @param paramList sublist from referenceList, created by Make_reference functions.
+#' @param genotype Genotype of interest
+#'
+#' @details This function gets whatever genotype-dependent factor desired. The inputs
+#' are whatever parameter list of interest, then the genotype it is applied to.
+#'
+#' @return double
+#'
+#' @examples
+#' set.seed(42)
+#' JaredDirichlet(n=4, alpha = c(0.1,0.2,0.3,0.4))
+#'
+#' @export
+calc_parameter <- function(paramList, genotype){
+
+  #default return value
+  holdValue = 1
+
+  #counter for locus in loop
+  counter=1
+  for(i in 1:length(paramList)){
+
+    #get the genotype at that locus, then pull value from parameters
+    locus <- substr(x = genotype, start = counter, stop = counter+1) #use character vector and subset? Would be better.
+    test <- paramList[[i]][[locus]]
+
+    #if the value exists, use it.
+    if(!is.null(test)){
+      holdValue <- holdValue*test
+    }
+
+    #increment counter
+    counter <- counter + 2
+  }
+
+  return(holdValue)
+}
+
 #' Utility to Imitate ggplot2 Colors
 #'
 #' Sample at equally spaced intervals along the color wheel

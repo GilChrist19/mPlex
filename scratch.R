@@ -594,179 +594,42 @@ microbenchmark::microbenchmark(for(i in 1:100){
                                times = 1000)
 
 ###############################################################################
-# Rcpp Mating Function
+# set/get things for
 ###############################################################################
 
-library(Rcpp)
-source("./R/4_MultiplexGeneratingFunction_oneLocus.R")
+referenceList <- setNames(object = vector(mode = "list", length = 2), nm = c("A", "B"))
+referenceList$A <- setNames(object = vector(mode = "list", length = 4), nm = c("AA", "BB", "CC", "DD"))
+referenceList$B <- setNames(object = vector(mode = "list", length = 4), nm = c("AA", "BB", "CC", "DD"))
+
+referenceList[[1]][1:4] <- 2
+referenceList[[2]][1:4] <- 5
+
+testGen <- "ABAA"
 
 
-fGen <- "WHWWWWWWWW"
-mGen <- "WWWWWWWWWW"
-reproductionReference <- MakeReference_Multiplex_oLocus(H = c(0.98, 0.98, 0.7, 0.98, 0.7),
-                                                       R = c(0.0001,0.0001,0.0001,0.0001,0.0001),
-                                                       S = c(0.00003,0.00003,0.00003,0.00003,0.00003),
-                                                       d = c(0,0,0,0,0))
+get_parameter <- function(paramList, genotype){
 
+  #default return value
+  holdValue = 1
 
-fGen <- "WHWW"
-mGen <- "WWWW"
-reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.98,0.98),
-                                                        R = c(0.0001,0.0001),
-                                                        S = c(0.00003,0.00003),
-                                                        d = c(0,0))
+  #counter for locus in loop
+  counter=1
+  for(i in 1:length(paramList)){
 
-fGen <- "WH"
-mGen <- "HW"
-reproductionReference <- MakeReference_Multiplex_oLocus(H = c(0.98),
-                                                        R = c(0.0001),
-                                                        S = c(0.00003),
-                                                        d = c(0))
+    #get the genotype at that locus, then pull value from parameters
+    locus <- substr(x = genotype, start = counter, stop = counter+1) #use character vector and subset? Would be better.
+    test <- paramList[[i]][[locus]]
 
-
-sourceCpp("../scratch.cpp")
-
-oLocus(fGen = fGen, mGen = mGen, reference = testReference)
-
-MultiplexOffspring_oLocus(fGen = fGen, mGen = mGen, reference = testReference)
-
-
-
-
-
-
-HoldTEST <- oLocus(fGen = fGen, mGen = mGen, reference = reproductionReference)
-HoldREF <- MultiplexOffspring_oLocus(fGen = fGen, mGen = mGen, reference = testReference)
-
-
-
-
-testList = list(c("A","B","C"), c("D","E"), c("F","G","H","I"))
-ListTest(myList = testList)
-
-expand.grid(testList)
-
-
-microbenchmark::microbenchmark(oLocus(fGen = fGen, mGen = mGen, reference = reproductionReference),
-                               MultiplexOffspring_oLocus(fGen = fGen, mGen = mGen, reference = reproductionReference),
-                               times = 100)
-1778/212
-
-
-
-
-
-lapply(X = mendProbsList[[1]], FUN = '!=', 0)
-
-
-
-for(i in lapply(X = mendProbsList[[1]], FUN = '!=', 0)){
-
-  cat(i,"\n")
-
-
-}
-
-
-
-
-
-
-
-
-TESTER <- function(H=c(0.9),R=c(0.0), S=R/3, d=c(0.0001)){
-  #H is homing rate. The length of this vector determines the number of loci
-  # in the multiplex drive. Each drive can have the same or different rates.
-
-  #R is the NHEJ rate for deleterious alleles. Must be same length as H,
-  # can be the same or different values.
-
-  #S is the NHEJ rate for neutral alleles. Must be the same length as H,
-  # can be the same or different values.
-
-  #d is the background mutation rate. Must be the same length as H, can
-  # have the same or different values.
-
-
-
-  #Safety checks
-  if(any( c(length(H),length(R), length(S), length(d)) != length(H))){
-    return(cat("All inputs must be the same length!\n",
-               "i.e. length(H) == length(R) == length(S) == length(d)"))
-  }
-  if(any(H>1, R>1, S>1, d>1)){
-    return(cat("All rates must be less than or equal to 1\n"))
-  }
-  if(any((d+H) > 1)){
-    return(cat("Homing rates plus background mutation rates must be <= 1\n",
-               "i.e. H+d <= 1\n"))
-  }
-  if(any((R+S) > 1)){
-    return(cat("Negative and neutral repair rates must sum to <= 1\n",
-               "i.s. R+S <= 1"))
-  }
-
-
-  #setup allele letters
-  #W = Wild-type
-  #H = Homing
-  #R = Deleterious resistant
-  #S = Neutral resistant
-  gtype <- c("W", "H", "R", "S")
-
-  #matrix to hold homing probs, then fill it
-  homingProbs <- matrix(data = 0, nrow = 4, ncol = length(H), dimnames = list(gtype, NULL))
-
-  homingProbs[1, ] <- 1-d-H #chance to stay W is 1-homing-background mutation
-  homingProbs[2, ] <- H*(1-R-S) #chance to become homing is H*1-H*R-H*S
-  homingProbs[3, ] <- H*R   #NHEJ caused resistance, detrimentalt allele
-  homingProbs[4, ] <- d+H*S #good resistant allele, from NHEJ and background mutation rate
-
-  #set up lists to hold probabilities
-  mendProbsList <- vector(mode = "list", length = length(H))
-  homProbsList <- vector(mode = "list", length = length(H))
-
-  mendAlleleList <- vector(mode = "list", length = length(H))
-  homAlleleList <- vector(mode = "list", length = length(H))
-
-  #fill the lists
-  for(i in 1:length(H)){
-    #Mendelian Probabilities
-    mendProbsList[[i]]$W <- setNames(object = c(1-d[i], d[i]), nm = c("W", "S"))
-    mendProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "S"))
-    mendProbsList[[i]]$R <- setNames(object = 1, nm = "R")
-    mendProbsList[[i]]$S <- setNames(object = 1, nm = "S")
-
-    #remove 0 probs things, and set allele names
-    logicalHold <- lapply(X = mendProbsList[[i]], FUN = '!=', 0)
-    for(j in 1:4){
-      mendProbsList[[i]][[j]] <- mendProbsList[[i]][[j]][ logicalHold[[j]] ]
-      mendAlleleList[[i]][[j]] <- names(mendProbsList[[i]][[j]])
-
+    #if the value exists, use it.
+    if(!is.null(test)){
+      holdValue <- holdValue*test
     }
 
-    #Homing Probabilities
-    homProbsList[[i]]$W <- homingProbs[ ,i]
-    homProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "S"))
-    homProbsList[[i]]$R <- setNames(object = 1, nm = "R")
-    homProbsList[[i]]$S <- setNames(object = 1, nm = "S")
-
-    #remove 0 probs things, and set allele names
-    logicalHold <- lapply(X = homProbsList[[i]], FUN = '!=', 0)
-    for(j in 1:4){
-      homProbsList[[i]][[j]] <- homProbsList[[i]][[j]][ logicalHold[[j]] ]
-      homAlleleList[[i]][[j]] <- names(homProbsList[[i]][[j]])
-    }
+    #increment counter
+    counter <- counter + 2
   }
 
-  return(list(
-    mendelian = mendProbsList,
-    homing = homProbsList,
-    mendelianAlleles = mendAlleleList,
-    homingAlleles = homAlleleList))
-
+  return(holdValue)
 }
-
-
 
 

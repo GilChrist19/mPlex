@@ -4,7 +4,7 @@
 \alias{MakeReference_DaisyDrive}
 \title{Daisy Drive Offspring Reference}
 \usage{
-MakeReference_DaisyDrive(H, R, S, d)
+MakeReference_DaisyDrive(H, R, S, d, s_frac)
 }
 \arguments{
 \item{H}{Vector of homing rates for each drive piece}
@@ -14,6 +14,8 @@ MakeReference_DaisyDrive(H, R, S, d)
 \item{S}{Vector of neutral allele generation rates}
 
 \item{d}{Vector of background mutation rates at each locus}
+
+\item{s_frac}{List of lists for genotype-dependent fertility reduction}
 }
 \value{
 list of homing, cutting, and mendelian genotypes and rates
@@ -35,7 +37,8 @@ H <- c(0.9,0.4,0) # This drive has 3 pieces
 R <- c(0.001, 0.002, 0.003)
 S <- c(0.0003, 0.0006, 0.001)
 d <- c(0.0001, 0.0001, 0.0001)
+s_frac = list(NULL, c("HH"=0, "HW"=0.5, "HR"=0, "HS"=0.5), NULL)
 
-MakeReference_DaisyDrive(H,R,S,d)
+MakeReference_DaisyDrive(H,R,S,d,s_frac)
 
 }

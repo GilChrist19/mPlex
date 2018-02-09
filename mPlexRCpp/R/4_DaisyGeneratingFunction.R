@@ -11,12 +11,13 @@
 #'
 #' Create a list specifying the offspring probability distribution.
 #'
-#' @usage MakeReference_DaisyDrive(H, R, S, d)
+#' @usage MakeReference_DaisyDrive(H, R, S, d, s_frac)
 #'
 #' @param H Vector of homing rates for each drive piece
 #' @param R Vector of deleterious allele generation rates
 #' @param S Vector of neutral allele generation rates
 #' @param d Vector of background mutation rates at each locus
+#' @param s_frac List of lists for genotype-dependent fertility reduction
 #'
 #' @details This function creates a reference list for \code{\link{DaisyOffspring}}.
 #' The number of drive elements is specified by the length of H. The final homing
@@ -33,11 +34,12 @@
 #' R <- c(0.001, 0.002, 0.003)
 #' S <- c(0.0003, 0.0006, 0.001)
 #' d <- c(0.0001, 0.0001, 0.0001)
+#' s_frac = list(NULL, c("HH"=0, "HW"=0.5, "HR"=0, "HS"=0.5), NULL)
 #'
-#' MakeReference_DaisyDrive(H,R,S,d)
+#' MakeReference_DaisyDrive(H,R,S,d,s_frac)
 #'
 #' @export
-MakeReference_DaisyDrive <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/3, d=c(0.0001, 0.0001, 0.0001)){
+MakeReference_DaisyDrive <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/3, d=c(0.0001, 0.0001, 0.0001), s_frac=NULL){
 
   #H is homing rate. The length of this vector determines the number of pieces
   # in the daisy drive. Each drive can have the same or different rates.
@@ -144,6 +146,10 @@ MakeReference_DaisyDrive <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/
     }
   }
 
+  #set fractional reduction in fertility
+  s <- vector(mode = "list", length = length(H))
+  if(!is.null(s_frac)){s <- s_frac}
+
 
   return(list(
     mendelian = mendProbsList,
@@ -151,6 +157,7 @@ MakeReference_DaisyDrive <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/
     homing = homProbsList,
     mendelianAlleles = mendAlleleList,
     homingAlleles = homAlleleList,
-    cuttingAlleles = cutAlleleList))
+    cuttingAlleles = cutAlleleList,
+    s = s))
 
 }

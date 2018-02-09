@@ -11,12 +11,13 @@
 #'
 #' Create a list specifying the offspring probability distribution.
 #'
-#' @usage MakeReference_Multiplex_oLocus(H, R, S, d)
+#' @usage MakeReference_Multiplex_oLocus(H, R, S, d, s_frac)
 #'
 #' @param H Vector of homing rates for each drive piece
 #' @param R Vector of deleterious allele generation rates
 #' @param S Vector of neutral allele generation rates
 #' @param d Vector of background mutation rates at each locus
+#' @param s_frac List of lists for genotype-dependent fertility reduction
 #'
 #' @details This function creates a reference list for \code{\link{MultiplexOffspring_oLocus}}.
 #' It assumes multiple targeting gRNAs for 1 locus, all targets segregate together.
@@ -33,11 +34,12 @@
 #' R <- c(0.001, 0.002, 0.003)
 #' S <- c(0.0003, 0.0006, 0.001)
 #' d <- c(0.0001, 0.0001, 0.0001)
+#' s_frac = list(list("HH"=0, "HW"=0.5, "HR"=0, "HS"=0.5))
 #'
-#' MakeReference_Multiplex_oLocus(H,R,S,d)
+#' MakeReference_Multiplex_oLocus(H,R,S,d,s_frac)
 #'
 #' @export
-MakeReference_Multiplex_oLocus <- function(H=c(0.9),R=c(0.0), S=R/3, d=c(0.0001)){
+MakeReference_Multiplex_oLocus <- function(H=c(0.9),R=c(0.0), S=R/3, d=c(0.0001), s_frac=NULL){
   #H is homing rate. The length of this vector determines the number of loci
   # in the multiplex drive. Each drive can have the same or different rates.
 
@@ -121,10 +123,15 @@ MakeReference_Multiplex_oLocus <- function(H=c(0.9),R=c(0.0), S=R/3, d=c(0.0001)
     }
   }
 
+  #set fractional reduction in fertility
+  s <- vector(mode = "list", length = length(H))
+  if(!is.null(s_frac)){s <- s_frac}
+
   return(list(
     mendelian = mendProbsList,
     homing = homProbsList,
     mendelianAlleles = mendAlleleList,
-    homingAlleles = homAlleleList))
+    homingAlleles = homAlleleList,
+    s = s))
 
 }

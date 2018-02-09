@@ -24,9 +24,9 @@ library(mPlexRCpp)
 # Setup Parameters for Network
 ###############################################################################
 
-migration = diag(50L) #matrix(data = c(0.99, 0, 0.05, 0.05, 0, 0.99, 0.05, 0.5, 0.03,0.03,0.99,0.04, 0.02,0.04,0.04,0.99), nrow = 4, ncol = 4, byrow = TRUE) #migration matrix
+migration = diag(1L) #matrix(data = c(0.99, 0, 0.05, 0.05, 0, 0.99, 0.05, 0.5, 0.03,0.03,0.99,0.04, 0.02,0.04,0.04,0.99), nrow = 4, ncol = 4, byrow = TRUE) #migration matrix
 N = nrow(migration) #number of patches
-patchPops = rep(500L,N) #population of eachpatch
+patchPops = rep(100L,N) #population of eachpatch
 directory <- "~/Desktop/HOLD/mPlex/"
 
     #setup alleles to initiate patches
@@ -51,10 +51,13 @@ AllAlleles <- replicate(n = N, expr = alleloTypes, simplify = FALSE)
 
 #these numbers are made up. Just need them all the same length, and that length
 # must match the length of AlleloTypes
+s_frac <- vector(mode = "list", length = length(alleloTypes))
+s_frac[[1]] <- list("HH"=0)
 reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.98),
                                                        R = c(0.0001),
                                                        S = c(0.00003),
-                                                       d = c(0))
+                                                       d = c(0),
+                                                       s_frac = s_frac)
 
 ###############################################################################
 # Release Setup
@@ -77,6 +80,7 @@ holdRel <- Release_basicRepeatedReleases(releaseStart = 1000L,
                                                                  minAge = 16L,
                                                                  maxAge = 24L,
                                                                  ageDist = rep(x = 1, times = 24-16+1)/9)
+patchReleases[[1]]$maleReleases <- holdRel
 
 holdRel2 <- Release_basicRepeatedReleases(releaseStart = 1200L,
                                          releaseEnd = 1210L,
@@ -97,7 +101,7 @@ for(i in seq(1,N,1)){
 ###############################################################################
 
     # calculate network parameters, auxiliary function
-netPar = Network.Parameters(nPatch = N,simTime = 2500L,
+netPar = Network.Parameters(nPatch = N,simTime = 2000L,
                             alleloTypes = AllAlleles,
                             AdPopEQ = patchPops,
                             runID = 1L,
@@ -131,8 +135,8 @@ network$oneRun()
 #summaryRprof(lines = "both")
 network$reset()
 
-parallel::stopCluster(cl)
-rm(cl);gc()
+# parallel::stopCluster(cl)
+# rm(cl);gc()
 
 
 ###############################################################################
@@ -144,7 +148,7 @@ AnalyzeOutput_mLoci_Daisy(readDirectory = directory,
                           genotypes = list(NULL),
                           collapse = c(F))
 
-Plot_mPlex(file = "~/Desktop/HOLD/20180202_Run1_HH_HR_HS_HW_RR_RS_RW_SS_SW_WW.rds", totalPop = F)
+Plot_mPlex(file = "~/Desktop/HOLD/20180209_Run1_HH_HR_HS_HW_RR_RS_RW_SS_SW_WW.rds", totalPop = F)
 
 Run1 <- readRDS(file = "~/Desktop/HOLD/20180119_Run1_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
 Run2 <- readRDS(file = "~/Desktop/HOLD/20180119_Run2_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")

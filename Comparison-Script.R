@@ -82,13 +82,13 @@ saveRDS(object = list(Fmean = Fmean,
 
 #this is to get the split and aggregated files after a run.
 output=retrieveOutput(directory="~/Desktop/HOLD1/UDMel_old/",genotypes=driveCube$genotypesID)
-mPlexThing <- readRDS(file = "~/Desktop/HOLD/20180202_Run1_HH_HR_HS_HW_RR_RS_RW_SS_SW_WW.rds")
+mPlexThing <- readRDS(file = "~/Desktop/HOLD/20180205_Run1_HH_HR_HS_HW_RR_RS_RW_SS_SW_WW.rds")
 
 Patches <- dimnames(mPlexThing$femaleData)[[3]]
 
 #This gets the names for each run
 #get time of simulation and number of genotypes
-Time_numGen <- dim(Females[[1]]$Patch1)
+Time_numGen <- dim(mPlexThing$maleData[,,"Patch1"])
 
 Fmean <- apply(X = mPlexThing$femaleData, MARGIN = c(1,2), FUN = mean)
 Mmean <- apply(X = mPlexThing$maleData, MARGIN = c(1,2), FUN = mean)
@@ -97,8 +97,8 @@ Fsd <- apply(X = mPlexThing$femaleData, c(1,2), sd)
 Msd <- apply(X = mPlexThing$maleData, c(1,2), sd)
 
 #metaData
-Note <- "This is data for comparing MGDrivE to mPlex. It was run on 2/2/2018.
-There are 50 nodes run for 2000 time steps, no migration, so each node is a separate
+Note <- "This is data for comparing MGDrivE to mPlex. It was run on 2/5/2018.
+There are 50 nodes run for 2500 time steps, no migration, so each node is a separate
 experiment. 5 releases were done, starting at t=1000 and ending at t=1010, of
 10 HH males each time. 5 more releases were dont from t=1200-t=1210 of 10 R2R2
 males each time."
@@ -128,5 +128,69 @@ hold <- meanOld$Fmean[[patch]][,1]-meanNew$Fmean[[patch]][,1]
 hold <- hold[!(hold==0)]
 qqnorm(hold)
 qqline(hold)
+
+
+
+
+
+
+
+
+mplexSmall <- readRDS(file = "~/Desktop/HOLD/mPlex_50Patch_1000Pop")
+MGDrivESmall <- readRDS(file = "~/Desktop/HOLD/MGDrivE_50Patch_1000Pop")
+
+
+
+par(mfrow=c(2,1))
+matplot(MGDrivESmall$Mmean, main = "MGDrivE: 1000 Pop, 50 Reps",
+        xlab = "Days", ylab="Population", type = "l",
+        lty = 1, lwd = 4, col = 1:dim(MGDrivESmall$Mmean)[2])
+segments(x0 = 1:dim(MGDrivESmall$Mmean)[1], y0 = MGDrivESmall$Mmean-MGDrivESmall$Msd,
+         x1 = 1:dim(MGDrivESmall$Mmean)[1], y1 = MGDrivESmall$Mmean+MGDrivESmall$Msd,
+         col = rgb(red = 192/255, green = 192/255,blue = 192/255, alpha = 0.5), lty = 1, lwd = 1)
+box(lwd=2)
+grid()
+legend(x = "right", legend = colnames(MGDrivESmall$Mmean),
+       col = 1:dim(MGDrivESmall$Mmean)[2], bty = "n", lty = 1,
+       lwd = 3, cex = 1)
+
+
+matplot(mplexSmall$Mmean[,2:11], main = "mPlex: 1000 Pop, 50 Reps",
+        xlab = "Days", ylab="Population", type = "l",
+        lty = 1, lwd = 4, col = 1:dim(mplexSmall$Mmean[,2:11])[2])
+segments(x0 = 1:dim(mplexSmall$Mmean[,2:11])[1], y0 = mplexSmall$Mmean[,2:11]-mplexSmall$Msd[,2:11],
+         x1 = 1:dim(mplexSmall$Mmean[,2:11])[1], y1 = mplexSmall$Mmean[,2:11]+mplexSmall$Msd[,2:11],
+         col = rgb(red = 192/255, green = 192/255,blue = 192/255, alpha = 0.5), lty = 1, lwd = 1)
+box(lwd=2)
+grid()
+legend(x = "right", legend = colnames(mplexSmall$Mmean[,2:11]),
+       col = 1:dim(mplexSmall$Mmean[,2:11])[2], bty = "n", lty = 1,
+       lwd = 3, cex = 1)
+
+
+matplot(mplexSmall$Mmean[,2:11])
+
+
+
+
+
+matplot(something$Mmean[,2:11])
+something$Mmean
+
+matplot(out[,c("PREV","PREV_H","PREV_L")], main = paste("Prevalence Test: cL =", sweep[i], sep = ""),
+        xlab = "Years", ylab="Fraction of Population", type = "l", xaxt = 'n',
+        lty = 1, lwd = 2, col = 1:3)
+axis(side=1, at=seq(0,15*12*10,12*10), labels = seq(0,15,1))
+box(lwd=2)
+grid()
+legend(x = "right", legend = c("PREV","PREV_H","PREV_L"), col = 1:3, bty = "n", lty = 1,
+       lwd = 3, cex = 1)
+
+
+
+
+
+
+
 
 

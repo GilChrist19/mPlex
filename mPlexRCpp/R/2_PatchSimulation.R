@@ -373,7 +373,11 @@ oneDay_Reproduction_Patch <- function(){
   if(length(private$adult_female)!=0L){
     #get number of new mosquitoes in each batch
     # reusing mates from above. It was a variable length character vector.
-    private$mates <- rpois(n = length(private$adult_female), lambda = private$NetworkPointer$get_beta())
+    private$mates <- vapply(X = private$adult_female, FUN = '[[', "genotype", FUN.VALUE = character(length = 1L))
+    private$mates <- vapply(X = private$mates,
+                            FUN = function(y){calc_parameter(paramList = private$NetworkPointer$get_s(), genotype = y)},
+                            FUN.VALUE = numeric(1))
+    private$mates <- rpois(n = length(private$adult_female), lambda = private$mates*private$NetworkPointer$get_beta())
 
     #Generate new mosquitoe population and set counter
     private$newEggs <- vector(mode = "list", length = sum(private$mates))
