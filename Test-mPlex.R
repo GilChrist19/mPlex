@@ -24,17 +24,17 @@ library(mPlexRCpp)
 # Setup Parameters for Network
 ###############################################################################
 
-migration = diag(1L) #matrix(data = c(0.99, 0, 0.05, 0.05, 0, 0.99, 0.05, 0.5, 0.03,0.03,0.99,0.04, 0.02,0.04,0.04,0.99), nrow = 4, ncol = 4, byrow = TRUE) #migration matrix
+migration = diag(50L) #matrix(data = c(0.99, 0, 0.05, 0.05, 0, 0.99, 0.05, 0.5, 0.03,0.03,0.99,0.04, 0.02,0.04,0.04,0.99), nrow = 4, ncol = 4, byrow = TRUE) #migration matrix
 N = nrow(migration) #number of patches
-patchPops = rep(100L,N) #population of eachpatch
+patchPops = rep(200L,N) #population of eachpatch
 directory <- "~/Desktop/HOLD/mPlex/"
 
     #setup alleles to initiate patches
-alleloTypes <- vector(mode = "list", length = 1L) #3 loci
+alleloTypes <- vector(mode = "list", length = 2L) #3 loci
 alleloTypes[[1]]$alleles <- c("W")
 alleloTypes[[1]]$probs <- c(1L)
-# alleloTypes[[2]]$alleles <- c("W","H")
-# alleloTypes[[2]]$probs <- c(1,0)
+alleloTypes[[2]]$alleles <- c("W","H")
+alleloTypes[[2]]$probs <- c(1,0)
 # alleloTypes[[3]]$alleles <- c("W","H")
 # alleloTypes[[3]]$probs <- c(1,0)
 
@@ -53,11 +53,11 @@ AllAlleles <- replicate(n = N, expr = alleloTypes, simplify = FALSE)
 # must match the length of AlleloTypes
 s_frac <- vector(mode = "list", length = length(alleloTypes))
 s_frac[[1]] <- list("HH"=0)
-reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.98),
-                                                       R = c(0.0001),
-                                                       S = c(0.00003),
-                                                       d = c(0),
-                                                       s_frac = s_frac)
+reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.98,0.98),
+                                                       R = c(0.0001, 0.0001),
+                                                       S = c(0.00003, 0.0003),
+                                                       d = c(0,0),
+                                                       s_frac = NULL)
 
 ###############################################################################
 # Release Setup
@@ -75,12 +75,12 @@ patchReleases = replicate(n = N,
 holdRel <- Release_basicRepeatedReleases(releaseStart = 1000L,
                                                                  releaseEnd = 1010L,
                                                                  releaseInterval = 2L,
-                                                                 genMos = c("HH"),
+                                                                 genMos = c("WWHH"),
                                                                  numMos = c(10L),
                                                                  minAge = 16L,
                                                                  maxAge = 24L,
                                                                  ageDist = rep(x = 1, times = 24-16+1)/9)
-patchReleases[[1]]$maleReleases <- holdRel
+
 
 holdRel2 <- Release_basicRepeatedReleases(releaseStart = 1200L,
                                          releaseEnd = 1210L,
@@ -92,7 +92,7 @@ holdRel2 <- Release_basicRepeatedReleases(releaseStart = 1200L,
                                          ageDist = rep(x = 1, times = 24-16+1)/9)
 
 for(i in seq(1,N,1)){
-  patchReleases[[i]]$maleReleases <- c(holdRel, holdRel2)
+  patchReleases[[i]]$maleReleases <- holdRel
 }
 
 
@@ -101,7 +101,7 @@ for(i in seq(1,N,1)){
 ###############################################################################
 
     # calculate network parameters, auxiliary function
-netPar = Network.Parameters(nPatch = N,simTime = 2000L,
+netPar = Network.Parameters(nPatch = N,simTime = 2500L,
                             alleloTypes = AllAlleles,
                             AdPopEQ = patchPops,
                             runID = 1L,
@@ -145,10 +145,11 @@ network$reset()
 splitOutput(directory = directory)
 AnalyzeOutput_mLoci_Daisy(readDirectory = directory,
                           saveDirectory = "~/Desktop/HOLD",
-                          genotypes = list(NULL),
-                          collapse = c(F))
+                          filename = "TwoLocusTest",
+                          genotypes = list(NULL,NULL),
+                          collapse = c(T,F))
 
-Plot_mPlex(file = "~/Desktop/HOLD/20180209_Run1_HH_HR_HS_HW_RR_RS_RW_SS_SW_WW.rds", totalPop = F)
+Plot_mPlex(file = "~/Desktop/HOLD/20180215_Run1_TwoLocusTest.rds", totalPop = F)
 
 Run1 <- readRDS(file = "~/Desktop/HOLD/20180119_Run1_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
 Run2 <- readRDS(file = "~/Desktop/HOLD/20180119_Run2_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")

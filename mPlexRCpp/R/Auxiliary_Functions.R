@@ -217,7 +217,7 @@ splitOutput <- function(directory){
 #'
 #' @return A *.rds object containing list(metaData=character, maleData=array, femaleData=array)
 #' @export
-AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, genotypes, collapse){
+AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, filename, genotypes, collapse){
 
   #get list of all files, unique runs, and unique patches
   dirFiles = list.files(path = readDirectory, pattern = ".*\\.csv$")
@@ -313,7 +313,7 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, genotyp
     #save output for each run.
     if(is.null(saveDirectory)){saveDirectory <- readDirectory}
     fileName <- paste0(format(x = Sys.Date(), "%Y%m%d"), "_", run, "_",
-                       paste0(gOI, collapse = "_"), ".rds")
+                       filename, ".rds")
 
     saveRDS(object = list(metaData=note, maleData=mArray, femaleData=fArray),
             file = file.path(saveDirectory,fileName),
@@ -337,7 +337,7 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, genotyp
 #'
 #' @return A *.rds object containing list(metaData=character, maleData=array, femaleData=array)
 #' @export
-AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, alleles, collapse){
+AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, filename, alleles, collapse){
 
   #must give in order: "H", "R", "S", "W"
   #alleles <- list(list(c("H","W"),"W", "W"),list(c("H","W"),NULL, "W"))
@@ -449,7 +449,7 @@ AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, alleles, col
     #save output for each run.
     if(is.null(saveDirectory)){saveDirectory <- readDirectory}
     fileName <- paste0(format(x = Sys.Date(), "%Y%m%d"), "_", run, "_",
-                       paste0(gOI, collapse = "_"), ".rds")
+                       filename, ".rds")
 
     saveRDS(object = list(metaData=note, maleData=mArray, femaleData=fArray),
             file = file.path(saveDirectory,fileName),
