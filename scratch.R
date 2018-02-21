@@ -633,3 +633,64 @@ get_parameter <- function(paramList, genotype){
 }
 
 
+
+
+
+
+
+
+
+
+
+#update split function
+
+
+#' @export
+splitOutput <- function(directory){
+  dirFiles = list.files(path = directory, pattern = ".*\\.csv$")
+
+  # for each file read it in
+  for(file in dirFiles){
+    cat("processing ",file,"\n",sep="")
+    fileIn = read.csv(file.path(directory, file))
+    # for each file, get all the patches and split into multiple files
+    for(patch in unique(fileIn$Patch)){
+      patchIn = fileIn[fileIn$Patch==patch,]
+      patchName = gsub(pattern = ".csv",replacement = paste0("_Patch",patch,".csv"),x = file)
+      write.csv(x = patchIn,file = file.path(directory, patchName),row.names = FALSE)
+    }
+    cat("removing ",file,"\n",sep="")
+    file.remove(file.path(directory, file))
+  }
+}
+
+splitOutputTEST <- function(directory, multiCore=FALSE){
+  dirFiles = list.files(path = directory, pattern = ".*\\.csv$")
+
+  if(multiCore){
+    nThread <- getDTthreads()
+  } else{
+    nThread <- 1
+  }
+
+  # for each file read it in
+  for(file in dirFiles){
+    cat("processing ",file,"\n",sep="")
+    fileIn = data.table::fread(input = file.path(directory, file), sep = ",",
+                               header = TRUE, stringsAsFactors = FALSE, data.table = TRUE)
+    # for each file, get all the patches and split into multiple files
+    for(patch in unique(fileIn$Patch)){
+      patchIn = fileIn[Patch==patch]
+      patchName = gsub(pattern = ".csv",replacement = paste0("_Patch",patch,".csv"),x = file)
+      data.table::fwrite(x = patchIn, file = file.path(directory, patchName), nThread = nThread)
+    }
+    cat("removing ",file,"\n",sep="")
+    file.remove(file.path(directory, file))
+  }
+}
+
+
+
+
+
+
