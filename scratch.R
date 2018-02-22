@@ -738,7 +738,59 @@ TESTANALYZE <- function(readDirectory, saveDirectory=NULL, filename, genotypes, 
   }#end run loop
   }#end function
 
-TESTANALYZE2 <- function(readDirectory, saveDirectory=NULL, filename, genotypes, collapse){
+
+
+
+
+#update split function
+
+
+#' @export
+splitOutput <- function(directory){
+  dirFiles = list.files(path = directory, pattern = ".*\\.csv$")
+
+  # for each file read it in
+  for(file in dirFiles){
+    cat("processing ",file,"\n",sep="")
+    fileIn = read.csv(file.path(directory, file))
+    # for each file, get all the patches and split into multiple files
+    for(patch in unique(fileIn$Patch)){
+      patchIn = fileIn[fileIn$Patch==patch,]
+      patchName = gsub(pattern = ".csv",replacement = paste0("_Patch",patch,".csv"),x = file)
+      write.csv(x = patchIn,file = file.path(directory, patchName),row.names = FALSE)
+    }
+    cat("removing ",file,"\n",sep="")
+    file.remove(file.path(directory, file))
+  }
+}
+
+splitOutputTEST <- function(directory, multiCore=FALSE){
+  dirFiles = list.files(path = directory, pattern = ".*\\.csv$")
+
+  if(multiCore){
+    nThread <- getDTthreads()
+  } else{
+    nThread <- 1
+  }
+
+  # for each file read it in
+  for(file in dirFiles){
+    cat("processing ",file,"\n",sep="")
+    fileIn = data.table::fread(input = file.path(directory, file), sep = ",",
+                               header = TRUE, stringsAsFactors = FALSE, data.table = TRUE)
+    # for each file, get all the patches and split into multiple files
+    for(patch in unique(fileIn$Patch)){
+      patchIn = fileIn[Patch==patch]
+      patchName = gsub(pattern = ".csv",replacement = paste0("_Patch",patch,".csv"),x = file)
+      data.table::fwrite(x = patchIn, file = file.path(directory, patchName), nThread = nThread)
+    }
+    cat("removing ",file,"\n",sep="")
+    file.remove(file.path(directory, file))
+  }
+}
+
+
+TEST <- function(readDirectory, saveDirectory=NULL, filename, genotypes, collapse){
 
   #get list of all files, unique runs, and unique patches
   dirFiles = list.files(path = readDirectory, pattern = ".*\\.csv$")
@@ -747,9 +799,8 @@ TESTANALYZE2 <- function(readDirectory, saveDirectory=NULL, filename, genotypes,
   patches = patches[order(as.integer(substring(text = patches, first = 6)))]
 
   #import one file:get simTime, check genotypes for safety checks
-  testFile <- data.table::fread(file = file.path(readDirectory, dirFiles[1]),
-                                header = TRUE, stringsAsFactors = FALSE)
-  simTime <- unique(testFile$Time)
+  testFile <- data.table::fread(input = file.path(readDirectory, dirFiles[1]))
+  simTime <- uniqueN(x = testFile$Time)
 
   #safety checks
   #check that the number of loci is equal to the genotype length
@@ -783,9 +834,9 @@ TESTANALYZE2 <- function(readDirectory, saveDirectory=NULL, filename, genotypes,
 
 
   #create arrays to store information
-  mArray = fArray = array(data = 0, dim = c(length(simTime), length(gOI)+2, length(patches)),
+  mArray = fArray = array(data = 0, dim = c(simTime, length(gOI)+2, length(patches)),
                           dimnames = list(NULL, c("Time", gOI, "Total Pop."), patches) )
-  mArray[,1,] = fArray[,1,] = simTime
+  mArray[,1,] = fArray[,1,] = 1:simTime
   note <- "THIS IS A NOTE ABOUTE THE DATA. Make it reproducible."
 
   #loop over each run
@@ -796,19 +847,17 @@ TESTANALYZE2 <- function(readDirectory, saveDirectory=NULL, filename, genotypes,
       mName = grep(pattern = paste("ADM", run, patch, sep = ".*"),
                    x = dirFiles,ignore.case = FALSE, perl = TRUE,
                    value = TRUE, useBytes = TRUE)[1]
-      mFile = data.table::fread(file = file.path(readDirectory, mName),
-                                header = TRUE, stringsAsFactors = FALSE)
+      mFile = data.table::fread(input = file.path(readDirectory, mName))
       fName = grep(pattern = paste("ADF", run, patch, sep = ".*"),
                    x = dirFiles, ignore.case = FALSE, perl = TRUE,
                    value = TRUE, useBytes = TRUE)[1]
-      fFile = data.table::fread(file = file.path(readDirectory, fName),
-                                header = TRUE, stringsAsFactors = FALSE)
+      fFile = data.table::fread(input = file.path(readDirectory, fName))
 
       #loop over simulation time
-      for(loopTime in simTime){
+      for(loopTime in 1:simTime){
         #subset time objects for ease of reading
-        mTimeObj <- mFile[Time==loopTime, Genotype] #mFile$Genotype[mFile$Time == loopTime]
-        fTimeObj <- fFile[Time==loopTime, Genotype] #fFile$Genotype[fFile$Time == loopTime]
+        mTimeObj <- mFile[Time==loopTime, Genotype]
+        fTimeObj <- fFile[Time==loopTime, Genotype]
         #loop over genotypes of interest
         for(gen in gOI){
           #match genotype pattens, store how many were found
@@ -841,4 +890,44 @@ TESTANALYZE2 <- function(readDirectory, saveDirectory=NULL, filename, genotypes,
             compress = "gzip")
 
   }#end run loop
-  }#end function
+}#end function
+
+
+Rprof(filename = "~/Desktop/HOLD/benchmark", interval = 0.01, line.profiling = TRUE)
+AnalyzeOutput_mLoci_Daisy(readDirectory = "~/Desktop/HOLD",
+                          saveDirectory = "~/Desktop/HOLD",
+                          filename = "TwoLocusTEST1",
+                          genotypes = list(NULL),
+                          collapse = c(F))
+summaryRprof(filename = "~/Desktop/HOLD/benchmark", lines = "both")
+
+
+
+Rprof(filename = "~/Desktop/HOLD/benchmark", interval = 0.01, line.profiling = TRUE)
+TEST(readDirectory = "~/Desktop/HOLD",
+                          saveDirectory = "~/Desktop/HOLD",
+                          filename = "TwoLocusTEST2",
+                          genotypes = list(NULL),
+                          collapse = c(F))
+summaryRprof(filename = "~/Desktop/HOLD/benchmark", lines = "both")
+
+
+
+testold <- readRDS(file = "~/Desktop/HOLD/20180221_Run1_TwoLocusTEST1.rds")
+testnew <- readRDS(file = "~/Desktop/HOLD/20180221_Run1_TwoLocusTEST2.rds")
+
+
+identical(testold$maleData, testnew$maleData)
+
+library(data.table)
+
+hold <- fread(input = "~/Desktop/HOLD/ADF_Run1_Patch1.csv")
+holdTime <- hold[Time==1200]
+holdTime2 <- hold[Time==1200, Genotype]
+
+simTime <- unique(testFile$Time)
+simTime <- 1:uniqueN(x = hold$Time)
+
+
+
+
