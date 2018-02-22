@@ -4,8 +4,8 @@
 \alias{AnalyzeOutput_mLoci_Daisy}
 \title{Analyze output for mPlex-mLoci or DaisyDrive}
 \usage{
-AnalyzeOutput_mLoci_Daisy(readDirectory, saveDirectory = NULL, genotypes,
-  collapse)
+AnalyzeOutput_mLoci_Daisy(readDirectory, saveDirectory = NULL, filename,
+  genotypes, collapse)
 }
 \arguments{
 \item{readDirectory}{directory where output was written to; should not end in path seperator}

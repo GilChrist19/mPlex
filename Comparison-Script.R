@@ -82,7 +82,7 @@ saveRDS(object = list(Fmean = Fmean,
 
 #this is to get the split and aggregated files after a run.
 output=retrieveOutput(directory="~/Desktop/HOLD1/UDMel_old/",genotypes=driveCube$genotypesID)
-mPlexThing <- readRDS(file = "~/Desktop/HOLD/20180214_Run1_HH_HR_HS_HW_RR_RS_RW_SS_SW_WW.rds")
+mPlexThing <- readRDS(file = "~/Desktop/HOLD/20180217_Run1_Daisy2PieceHoming2.rds")
 
 Patches <- dimnames(mPlexThing$femaleData)[[3]]
 
@@ -97,10 +97,13 @@ Fsd <- apply(X = mPlexThing$femaleData, c(1,2), sd)
 Msd <- apply(X = mPlexThing$maleData, c(1,2), sd)
 
 #metaData
-Note <- "This is data for comparing MGDrivE to mPlex. It was run on 2/09/2018.
-There are 50 nodes run for 2500 time steps, no migration, so each node is a separate
+Note <- "This is data for comparing MGDrivE to mPlex. It was run on 2/16/2018.
+There are 50 nodes run for 3500 time steps, no migration, so each node is a separate
 experiment. 5 releases were done, starting at t=1000 and ending at t=1010, of
-10 HH males each time. This constitutes a population suppression system."
+10 HH males each time. This is the 3rd example of the Daisy Drive. It consists of 2
+parts, totally wild-type in the first part and homing in the second. This is the
+second piece, so it should be mendelian in it's inheritance pattern. There are no
+fitness effects in this drive. "
 
 #Save the data as a nice object
 saveRDS(object = list(Fmean = Fmean,
@@ -108,7 +111,7 @@ saveRDS(object = list(Fmean = Fmean,
                       Fsd = Fsd,
                       Msd = Msd,
                       Note = Note),
-        file = "~/Desktop/HOLD/mPlex_50Patch_200Pop_supression",
+        file = "~/Desktop/HOLD/mPlex_Daisy_50Patch_500Pop_2-Piece_Replacement_2of2",
         compress = "gzip")
 
 

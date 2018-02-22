@@ -24,7 +24,7 @@ library(mPlexRCpp)
 # Setup Parameters for Network
 ###############################################################################
 
-migration = diag(50L) #matrix(data = c(0.99, 0, 0.05, 0.05, 0, 0.99, 0.05, 0.5, 0.03,0.03,0.99,0.04, 0.02,0.04,0.04,0.99), nrow = 4, ncol = 4, byrow = TRUE) #migration matrix
+migration = diag(3L) #matrix(data = c(0.99, 0, 0.05, 0.05, 0, 0.99, 0.05, 0.5, 0.03,0.03,0.99,0.04, 0.02,0.04,0.04,0.99), nrow = 4, ncol = 4, byrow = TRUE) #migration matrix
 N = nrow(migration) #number of patches
 patchPops = rep(500L,N) #population of eachpatch
 directory <- "~/Desktop/HOLD/mPlex/"
@@ -55,7 +55,7 @@ s_frac <- vector(mode = "list", length = length(alleloTypes))
 s_frac[[1]] <- list("HH"=0, "HR"=0)
 #s_frac[[2]] <- list(NULL)
 reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.99,0.50),
-                                                       R = c(0.0001, 0.001),
+                                                       R = c(0.0001, 0.01),
                                                        S = c(0.00003, 0.003),
                                                        d = c(0,0),
                                                        s_frac = NULL)
@@ -83,14 +83,14 @@ holdRel <- Release_basicRepeatedReleases(releaseStart = 1000L,
                                                                  ageDist = rep(x = 1, times = 24-16+1)/9)
 
 
-holdRel2 <- Release_basicRepeatedReleases(releaseStart = 1200L,
-                                         releaseEnd = 1210L,
-                                         releaseInterval = 2L,
-                                         genMos = c("SS"),
-                                         numMos = c(10L),
-                                         minAge = 16L,
-                                         maxAge = 24L,
-                                         ageDist = rep(x = 1, times = 24-16+1)/9)
+# holdRel2 <- Release_basicRepeatedReleases(releaseStart = 1200L,
+#                                          releaseEnd = 1210L,
+#                                          releaseInterval = 2L,
+#                                          genMos = c("SS"),
+#                                          numMos = c(10L),
+#                                          minAge = 16L,
+#                                          maxAge = 24L,
+#                                          ageDist = rep(x = 1, times = 24-16+1)/9)
 
 for(i in seq(1,N,1)){
   patchReleases[[i]]$maleReleases <- holdRel
@@ -120,37 +120,26 @@ network = Network$new(networkParameters = netPar,
 
 
 
-    #reset network
-# library(foreach)
-# library(parallel)
-# library(iterators)
-# library(doParallel)
-#
-#
-# cl = parallel::makeForkCluster(nnodes = parallel::detectCores()-4L)
-# parallel::clusterSetRNGStream(cl=cl,iseed=NULL)
-# doParallel::registerDoParallel(cl)
-
-#Rprof(interval = 0.01, line.profiling = TRUE)
+    #run network
 network$oneRun()
-#summaryRprof(lines = "both")
 network$reset()
-
-# parallel::stopCluster(cl)
-# rm(cl);gc()
-
 
 ###############################################################################
 # Post-Run Stuff
 ###############################################################################
+Rprof(filename = "~/Desktop/HOLD/benchmark.out", interval = 0.001, line.profiling = TRUE)
 splitOutput(directory = directory)
+summaryRprof(filename = "~/Desktop/HOLD/benchmark.out", lines = "both")
+
+Rprof(filename = "~/Desktop/HOLD/benchmark.out", interval = 0.001, line.profiling = TRUE)
 AnalyzeOutput_mLoci_Daisy(readDirectory = directory,
-                          saveDirectory = "~/Desktop/HOLD",
-                          filename = "TestLocus1",
+                          saveDirectory = "~/Desktop/HOLD/mPlex/",
+                          filename = "TestLocusold",
                           genotypes = list(NULL,NULL),
                           collapse = c(F,T))
+summaryRprof(filename = "~/Desktop/HOLD/benchmark.out", lines = "both")
 
-Plot_mPlex(file = "~/Desktop/HOLD/20180215_Run1_TestLocus2.rds", totalPop = F)
+Plot_mPlex(file = "~/Desktop/HOLD/mPlex/20180222_Run1_TestLocusold.rds", totalPop = F)
 
 Run1 <- readRDS(file = "~/Desktop/HOLD/20180119_Run1_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
 Run2 <- readRDS(file = "~/Desktop/HOLD/20180119_Run2_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")

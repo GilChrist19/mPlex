@@ -8,6 +8,8 @@ splitOutput(directory)
 }
 \arguments{
 \item{directory}{directory where output was written to; must not end in path seperator}
+
+\item{multiCore}{Set whether or not to use multiple cores for writing output}
 }
 \value{
 *.csv files for each patch and each run

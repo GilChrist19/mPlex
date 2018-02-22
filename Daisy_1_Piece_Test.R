@@ -24,17 +24,17 @@ library(mPlexRCpp)
 # Setup Parameters for Network
 ###############################################################################
 
-migration = diag(50L) #matrix(data = c(0.99, 0, 0.05, 0.05, 0, 0.99, 0.05, 0.5, 0.03,0.03,0.99,0.04, 0.02,0.04,0.04,0.99), nrow = 4, ncol = 4, byrow = TRUE) #migration matrix
+migration = diag(1L) #matrix(data = c(0.99, 0, 0.05, 0.05, 0, 0.99, 0.05, 0.5, 0.03,0.03,0.99,0.04, 0.02,0.04,0.04,0.99), nrow = 4, ncol = 4, byrow = TRUE) #migration matrix
 N = nrow(migration) #number of patches
 patchPops = rep(500L,N) #population of eachpatch
-directory <- "~/Desktop/HOLD/mPlex/"
+directory <- "~/Desktop/HOLD/mPlex2/"
 
     #setup alleles to initiate patches
-alleloTypes <- vector(mode = "list", length = 2L) #3 loci
+alleloTypes <- vector(mode = "list", length = 1L) #3 loci
 alleloTypes[[1]]$alleles <- c("W")
 alleloTypes[[1]]$probs <- c(1L)
-alleloTypes[[2]]$alleles <- c("W","H")
-alleloTypes[[2]]$probs <- c(1,0)
+#alleloTypes[[2]]$alleles <- c("W","H")
+#alleloTypes[[2]]$probs <- c(1,0)
 # alleloTypes[[3]]$alleles <- c("W","H")
 # alleloTypes[[3]]$probs <- c(1,0)
 
@@ -52,12 +52,12 @@ AllAlleles <- replicate(n = N, expr = alleloTypes, simplify = FALSE)
 #these numbers are made up. Just need them all the same length, and that length
 # must match the length of AlleloTypes
 s_frac <- vector(mode = "list", length = length(alleloTypes))
-s_frac[[1]] <- list("HH"=0)
-reproductionReference <- MakeReference_DaisyDrive(H = c(0.98, 0.98),
-                                                       R = c(0.0001,0.0001),
-                                                       S = c(0.00003,0.00003),
-                                                       d = c(0,0),
-                                                       s_frac = NULL)
+s_frac[[1]] <- list("HH"=0, "RR"=0)
+reproductionReference <- MakeReference_DaisyDrive(H = c(0.98),
+                                                       R = c(0.0001),
+                                                       S = c(0.0003),
+                                                       d = c(0),
+                                                       s_frac = s_frac)
 
 ###############################################################################
 # Release Setup
@@ -75,7 +75,7 @@ patchReleases = replicate(n = N,
 holdRel <- Release_basicRepeatedReleases(releaseStart = 1000L,
                                                                  releaseEnd = 1010L,
                                                                  releaseInterval = 2L,
-                                                                 genMos = c("WWHH"),
+                                                                 genMos = c("HH"),
                                                                  numMos = c(50L),
                                                                  minAge = 16L,
                                                                  maxAge = 24L,
@@ -143,11 +143,33 @@ network$reset()
 # Post-Run Stuff
 ###############################################################################
 splitOutput(directory = directory)
+Rprof(line.profiling = TRUE)
 AnalyzeOutput_mLoci_Daisy(readDirectory = directory,
-                          saveDirectory = "~/Desktop/HOLD",
-                          filename = "Daisy2PieceHoming2",
-                          genotypes = list(NULL,NULL),
-                          collapse = c(T,F))
+                          saveDirectory = "~/Desktop/HOLD/mPlex2/",
+                          filename = "ProfileTest",
+                          genotypes = list(NULL),
+                          collapse = c(F))
+
+
+TESTANALYZE(readDirectory = directory,
+                          saveDirectory = "~/Desktop/HOLD/mPlex2/",
+                          filename = "ProfileTest",
+                          genotypes = list(NULL),
+                          collapse = c(F))
+
+microbenchmark::microbenchmark(AnalyzeOutput_mLoci_Daisy(readDirectory = directory,
+                                                         saveDirectory = "~/Desktop/HOLD/mPlex2/",
+                                                         filename = "ProfileTest",
+                                                         genotypes = list(NULL),
+                                                         collapse = c(F)),
+                               TESTANALYZE(readDirectory = directory,
+                                           saveDirectory = "~/Desktop/HOLD/mPlex2/",
+                                           filename = "ProfileTest",
+                                           genotypes = list(NULL),
+                                           collapse = c(F)),
+                               times = 10)
+
+summaryRprof(filename = "Rprof.out", lines = "both")
 
 Plot_mPlex(file = "~/Desktop/HOLD/20180215_Run1_Daisy.rds", totalPop = F)
 

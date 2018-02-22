@@ -4,7 +4,8 @@
 \alias{AnalyzeOutput_oLocus}
 \title{Analyze output for mPlex-oLocus}
 \usage{
-AnalyzeOutput_oLocus(readDirectory, saveDirectory = NULL, alleles, collapse)
+AnalyzeOutput_oLocus(readDirectory, saveDirectory = NULL, filename, alleles,
+  collapse)
 }
 \arguments{
 \item{readDirectory}{directory where output was written to; should not end in path seperator}

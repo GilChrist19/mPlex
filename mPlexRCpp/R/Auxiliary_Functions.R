@@ -181,21 +181,27 @@ CreateMosquitoes_Distribution_Genotype <- function(numMos, minAge, maxAge, ageDi
 #' @usage splitOutput(directory)
 #'
 #' @param directory directory where output was written to; must not end in path seperator
+#' @param multiCore Set whether or not to use multiple cores for writing output
 #'
 #' @return *.csv files for each patch and each run
 #' @export
-splitOutput <- function(directory){
+splitOutput <- function(directory, multiCore=FALSE){
   dirFiles = list.files(path = directory, pattern = ".*\\.csv$")
 
-  # for each file read it in
+  if(multiCore){
+    nThread <- getDTthreads()
+  } else{
+    nThread <- 1
+  }
+
   for(file in dirFiles){
     cat("processing ",file,"\n",sep="")
-    fileIn = read.csv(file.path(directory, file))
+    fileIn = data.table::fread(input = file.path(directory, file))
     # for each file, get all the patches and split into multiple files
     for(patch in unique(fileIn$Patch)){
-      patchIn = fileIn[fileIn$Patch==patch,]
+      patchIn = fileIn[Patch==patch]
       patchName = gsub(pattern = ".csv",replacement = paste0("_Patch",patch,".csv"),x = file)
-      write.csv(x = patchIn,file = file.path(directory, patchName),row.names = FALSE)
+      data.table::fwrite(x = patchIn, file = file.path(directory, patchName), nThread = nThread)
     }
     cat("removing ",file,"\n",sep="")
     file.remove(file.path(directory, file))
@@ -226,9 +232,8 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, filenam
   patches = patches[order(as.integer(substring(text = patches, first = 6)))]
 
   #import one file:get simTime, check genotypes for safety checks
-  testFile <- read.csv(file = file.path(readDirectory, dirFiles[1]),
-                       header = TRUE, stringsAsFactors = FALSE)
-  simTime <- unique(testFile$Time)
+  testFile <- data.table::fread(input = file.path(readDirectory, dirFiles[1]))
+  simTime <- data.table::uniqueN(x = testFile$Time)
 
   #safety checks
   #check that the number of loci is equal to the genotype length
@@ -262,9 +267,9 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, filenam
 
 
   #create arrays to store information
-  mArray = fArray = array(data = 0, dim = c(length(simTime), length(gOI)+2, length(patches)),
+  mArray = fArray = array(data = 0, dim = c(simTime, length(gOI)+2, length(patches)),
                           dimnames = list(NULL, c("Time", gOI, "Total Pop."), patches) )
-  mArray[,1,] = fArray[,1,] = simTime
+  mArray[,1,] = fArray[,1,] = 1:simTime
   note <- "THIS IS A NOTE ABOUTE THE DATA. Make it reproducible."
 
   #loop over each run
@@ -275,19 +280,17 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, filenam
       mName = grep(pattern = paste("ADM", run, patch, sep = ".*"),
                    x = dirFiles,ignore.case = FALSE, perl = TRUE,
                    value = TRUE, useBytes = TRUE)[1]
-      mFile = read.csv(file = file.path(readDirectory, mName),
-                       header = TRUE, stringsAsFactors = FALSE)
+      mFile = data.table::fread(input = file.path(readDirectory, mName))
       fName = grep(pattern = paste("ADF", run, patch, sep = ".*"),
                    x = dirFiles, ignore.case = FALSE, perl = TRUE,
                    value = TRUE, useBytes = TRUE)[1]
-      fFile = read.csv(file = file.path(readDirectory, fName),
-                       header = TRUE, stringsAsFactors = FALSE)
+      fFile = data.table::fread(input = file.path(readDirectory, fName))
 
       #loop over simulation time
-      for(loopTime in simTime){
+      for(loopTime in 1:simTime){
         #subset time objects for ease of reading
-        mTimeObj <- mFile$Genotype[mFile$Time == loopTime]
-        fTimeObj <- fFile$Genotype[fFile$Time == loopTime]
+        mTimeObj <- mFile[Time==loopTime, Genotype]
+        fTimeObj <- fFile[Time==loopTime, Genotype]
         #loop over genotypes of interest
         for(gen in gOI){
           #match genotype pattens, store how many were found
@@ -350,9 +353,8 @@ AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, filename, al
   patches = patches[order(as.integer(substring(text = patches, first = 6)))]
 
   #import one file:get simTime, check genotypes for safety checks
-  testFile <- read.csv(file = file.path(readDirectory, dirFiles[1]),
-                       header = TRUE, stringsAsFactors = FALSE)
-  simTime <- unique(testFile$Time)
+  testFile <- data.table::fread(input = file.path(readDirectory, dirFiles[1]))
+  simTime <- data.table::uniqueN(x = testFile$Time)
 
   #safety checks
   #check that the number of loci is equal to the genotype length
@@ -397,9 +399,9 @@ AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, filename, al
 
 
   #create arrays to store information
-  mArray = fArray = array(data = 0, dim = c(length(simTime), length(gOI)+2, length(patches)),
+  mArray = fArray = array(data = 0, dim = c(simTime, length(gOI)+2, length(patches)),
                           dimnames = list(NULL, c("Time", gOI, "Total Pop."), patches) )
-  mArray[,1,] = fArray[,1,] = simTime
+  mArray[,1,] = fArray[,1,] = 1:simTime
   note <- "THIS IS A NOTE ABOUTE THE DATA. Make it reproducible."
 
 
@@ -411,19 +413,17 @@ AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, filename, al
       mName = grep(pattern = paste("ADM", run, patch, sep = ".*"),
                    x = dirFiles,ignore.case = FALSE, perl = TRUE,
                    value = TRUE, useBytes = TRUE)[1]
-      mFile = read.csv(file = file.path(readDirectory, mName),
-                       header = TRUE, stringsAsFactors = FALSE)
+      mFile = data.table::fread(input = file.path(readDirectory, mName))
       fName = grep(pattern = paste("ADF", run, patch, sep = ".*"),
                    x = dirFiles, ignore.case = FALSE, perl = TRUE,
                    value = TRUE, useBytes = TRUE)[1]
-      fFile = read.csv(file = file.path(readDirectory, fName),
-                       header = TRUE, stringsAsFactors = FALSE)
+      fFile = data.table::fread(input = file.path(readDirectory, fName))
 
       #loop over simulation time
-      for(loopTime in simTime){
+      for(loopTime in 1:simTime){
         #subset time objects for ease of reading
-        mTimeObj <- mFile$Genotype[mFile$Time == loopTime]
-        fTimeObj <- fFile$Genotype[fFile$Time == loopTime]
+        mTimeObj <- mFile[Time==loopTime, Genotype]
+        fTimeObj <- fFile[Time==loopTime, Genotype]
         #loop over genotypes of interest
         for(gen in gOI){
           #match genotype pattens, store how many were found
@@ -456,7 +456,7 @@ AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, filename, al
             compress = "gzip")
 
   }#end run loop
-  }#end function
+}#end function
 
 ###############################################################################
 # Random Others
