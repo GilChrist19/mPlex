@@ -111,8 +111,8 @@ MakeReference_DaisyDrive <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/
   for(i in 1:length(H)){
     mendProbsList[[i]]$W <- setNames(object = c(1-d[i], d[i]), nm = c("W", "S"))
     mendProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "S"))
-    mendProbsList[[i]]$R <- 1
-    mendProbsList[[i]]$S <- 1
+    mendProbsList[[i]]$R <- setNames(object = 1, nm = "R")
+    mendProbsList[[i]]$S <- setNames(object = 1, nm = "S")
 
     #remove 0 probs things, and set allele names
     logicalHold <- lapply(X = mendProbsList[[i]], FUN = '!=', 0)
@@ -123,8 +123,8 @@ MakeReference_DaisyDrive <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/
 
     cutProbsList[[i]]$W <- cuttingProbs[ ,i]
     cutProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "S"))
-    cutProbsList[[i]]$R <- 1
-    cutProbsList[[i]]$S <- 1
+    cutProbsList[[i]]$R <- setNames(object = 1, nm = "R")
+    cutProbsList[[i]]$S <- setNames(object = 1, nm = "S")
 
     #remove 0 probs things, and set allele names
     logicalHold <- lapply(X = cutProbsList[[i]], FUN = '!=', 0)
@@ -135,8 +135,8 @@ MakeReference_DaisyDrive <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/
 
     homProbsList[[i]]$W <- homingProbs[ ,i]
     homProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "S"))
-    homProbsList[[i]]$R <- 1
-    homProbsList[[i]]$S <- 1
+    homProbsList[[i]]$R <- setNames(object = 1, nm = "R")
+    homProbsList[[i]]$S <- setNames(object = 1, nm = "S")
 
     #remove 0 probs things, and set allele names
     logicalHold <- lapply(X = homProbsList[[i]], FUN = '!=', 0)

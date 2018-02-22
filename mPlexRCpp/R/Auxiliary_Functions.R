@@ -304,7 +304,7 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, filenam
           mArray[loopTime, "Total Pop.", patch] <- length(mTimeObj)
         }
         if(!all(grepl(pattern = "NULL", x = fTimeObj, fixed = TRUE))){
-          fArray[loopTime, "Total Pop.", patch] <- length(fFile$Genotype[fFile$Time == loopTime])
+          fArray[loopTime, "Total Pop.", patch] <- length(fTimeObj)
         }
 
       }#end time loop
@@ -440,7 +440,7 @@ AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, filename, al
           mArray[loopTime, "Total Pop.", patch] <- length(mTimeObj)
         }
         if(!all(grepl(pattern = "NULL", x = fTimeObj, fixed = TRUE))){
-          fArray[loopTime, "Total Pop.", patch] <- length(fFile$Genotype[fFile$Time == loopTime])
+          fArray[loopTime, "Total Pop.", patch] <- length(fTimeObj)
         }
 
       }#end time loop

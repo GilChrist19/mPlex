@@ -633,3 +633,212 @@ get_parameter <- function(paramList, genotype){
 }
 
 
+TESTANALYZE <- function(readDirectory, saveDirectory=NULL, filename, genotypes, collapse){
+
+  #get list of all files, unique runs, and unique patches
+  dirFiles = list.files(path = readDirectory, pattern = ".*\\.csv$")
+  runID = unique(x = regmatches(x = dirFiles, m = regexpr(pattern = "Run[0-9]+", text = dirFiles)))
+  patches = unique(x = regmatches(x = dirFiles, m = regexpr(pattern = "Patch[0-9]+", text = dirFiles)))
+  patches = patches[order(as.integer(substring(text = patches, first = 6)))]
+
+  #import one file:get simTime, check genotypes for safety checks
+  testFile <- data.table::fread(file = file.path(readDirectory, dirFiles[1]),
+                       header = TRUE, stringsAsFactors = FALSE)
+  simTime <- unique(testFile$Time)
+
+  #safety checks
+  #check that the number of loci is equal to the genotype length
+  if(nchar(testFile$Genotype[1])/2 != length(genotypes)){
+    stop("genotypes must be the length of loci in the critters to analyze.
+         list(c(locus_1),c(locus_2),etc)
+         NULL -> all genotypes")
+  }
+  #check that the collapse length is equal to genotype length
+  if(length(genotypes) != length(collapse)){
+    stop("collapse must be specified for each loci.
+         length(collapse) == length(genotypes)")
+  }
+  if(pcre_config()["JIT"]){options(PCRE_use_JIT = TRUE)}
+
+  #do collapse if there is some
+  for(i in 1:length(genotypes)){
+    #if null, look at all possible genotypes at that locus
+    if( is.null(genotypes[[i]]) ){
+      genotypes[[i]] <- c("HH","HR","HS","HW","RR","RS","RW","SS","SW","WW")
+    }
+    #if collapse is true, collapse the genotypes so all are searched for as one
+    if(collapse[i]){
+      genotypes[[i]] <- paste0("(",paste0(genotypes[[i]], collapse = "|") , ")", collapse = "")
+    }
+  }
+  #expand all combinations of alleles at each site
+  gOI <- expand.grid(genotypes, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
+  #bind all combinations into complete genotypes
+  gOI <- do.call(what = paste0, args = gOI)
+
+
+  #create arrays to store information
+  mArray = fArray = array(data = 0, dim = c(length(simTime), length(gOI)+2, length(patches)),
+                          dimnames = list(NULL, c("Time", gOI, "Total Pop."), patches) )
+  mArray[,1,] = fArray[,1,] = simTime
+  note <- "THIS IS A NOTE ABOUTE THE DATA. Make it reproducible."
+
+  #loop over each run
+  for(run in runID){
+    #loop over each patch
+    for(patch in patches){
+      #read in male/female files for this run and patch
+      mName = grep(pattern = paste("ADM", run, patch, sep = ".*"),
+                   x = dirFiles,ignore.case = FALSE, perl = TRUE,
+                   value = TRUE, useBytes = TRUE)[1]
+      mFile = data.table::fread(file = file.path(readDirectory, mName),
+                       header = TRUE, stringsAsFactors = FALSE)
+      fName = grep(pattern = paste("ADF", run, patch, sep = ".*"),
+                   x = dirFiles, ignore.case = FALSE, perl = TRUE,
+                   value = TRUE, useBytes = TRUE)[1]
+      fFile = data.table::fread(file = file.path(readDirectory, fName),
+                       header = TRUE, stringsAsFactors = FALSE)
+
+      #loop over simulation time
+      for(loopTime in simTime){
+        #subset time objects for ease of reading
+        mTimeObj <- mFile[Time==loopTime, Genotype] #mFile$Genotype[mFile$Time == loopTime]
+        fTimeObj <- fFile[Time==loopTime, Genotype] #fFile$Genotype[fFile$Time == loopTime]
+        #loop over genotypes of interest
+        for(gen in gOI){
+          #match genotype pattens, store how many were found
+          mArray[loopTime, gen, patch] <- length(grep(pattern = gen, x = mTimeObj,
+                                                      ignore.case = FALSE, perl = TRUE,
+                                                      value = TRUE, useBytes = TRUE))
+          fArray[loopTime, gen, patch] <- length(grep(pattern = gen, x = fTimeObj,
+                                                      ignore.case = FALSE, perl = TRUE,
+                                                      value = TRUE, useBytes = TRUE))
+        }#end gOI loop
+
+        #set total population
+        if(!all(grepl(pattern = "NULL", x = mTimeObj, fixed = TRUE))){
+          mArray[loopTime, "Total Pop.", patch] <- length(mTimeObj)
+        }
+        if(!all(grepl(pattern = "NULL", x = fTimeObj, fixed = TRUE))){
+          fArray[loopTime, "Total Pop.", patch] <- length(fTimeObj)
+        }
+
+      }#end time loop
+    }#end patch loop
+
+    #save output for each run.
+    if(is.null(saveDirectory)){saveDirectory <- readDirectory}
+    fileName <- paste0(format(x = Sys.Date(), "%Y%m%d"), "_", run, "_",
+                       filename, ".rds")
+
+    saveRDS(object = list(metaData=note, maleData=mArray, femaleData=fArray),
+            file = file.path(saveDirectory,fileName),
+            compress = "gzip")
+
+  }#end run loop
+  }#end function
+
+TESTANALYZE2 <- function(readDirectory, saveDirectory=NULL, filename, genotypes, collapse){
+
+  #get list of all files, unique runs, and unique patches
+  dirFiles = list.files(path = readDirectory, pattern = ".*\\.csv$")
+  runID = unique(x = regmatches(x = dirFiles, m = regexpr(pattern = "Run[0-9]+", text = dirFiles)))
+  patches = unique(x = regmatches(x = dirFiles, m = regexpr(pattern = "Patch[0-9]+", text = dirFiles)))
+  patches = patches[order(as.integer(substring(text = patches, first = 6)))]
+
+  #import one file:get simTime, check genotypes for safety checks
+  testFile <- data.table::fread(file = file.path(readDirectory, dirFiles[1]),
+                                header = TRUE, stringsAsFactors = FALSE)
+  simTime <- unique(testFile$Time)
+
+  #safety checks
+  #check that the number of loci is equal to the genotype length
+  if(nchar(testFile$Genotype[1])/2 != length(genotypes)){
+    stop("genotypes must be the length of loci in the critters to analyze.
+         list(c(locus_1),c(locus_2),etc)
+         NULL -> all genotypes")
+  }
+  #check that the collapse length is equal to genotype length
+  if(length(genotypes) != length(collapse)){
+    stop("collapse must be specified for each loci.
+         length(collapse) == length(genotypes)")
+  }
+  if(pcre_config()["JIT"]){options(PCRE_use_JIT = TRUE)}
+
+  #do collapse if there is some
+  for(i in 1:length(genotypes)){
+    #if null, look at all possible genotypes at that locus
+    if( is.null(genotypes[[i]]) ){
+      genotypes[[i]] <- c("HH","HR","HS","HW","RR","RS","RW","SS","SW","WW")
+    }
+    #if collapse is true, collapse the genotypes so all are searched for as one
+    if(collapse[i]){
+      genotypes[[i]] <- paste0("(",paste0(genotypes[[i]], collapse = "|") , ")", collapse = "")
+    }
+  }
+  #expand all combinations of alleles at each site
+  gOI <- expand.grid(genotypes, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
+  #bind all combinations into complete genotypes
+  gOI <- do.call(what = paste0, args = gOI)
+
+
+  #create arrays to store information
+  mArray = fArray = array(data = 0, dim = c(length(simTime), length(gOI)+2, length(patches)),
+                          dimnames = list(NULL, c("Time", gOI, "Total Pop."), patches) )
+  mArray[,1,] = fArray[,1,] = simTime
+  note <- "THIS IS A NOTE ABOUTE THE DATA. Make it reproducible."
+
+  #loop over each run
+  for(run in runID){
+    #loop over each patch
+    for(patch in patches){
+      #read in male/female files for this run and patch
+      mName = grep(pattern = paste("ADM", run, patch, sep = ".*"),
+                   x = dirFiles,ignore.case = FALSE, perl = TRUE,
+                   value = TRUE, useBytes = TRUE)[1]
+      mFile = data.table::fread(file = file.path(readDirectory, mName),
+                                header = TRUE, stringsAsFactors = FALSE)
+      fName = grep(pattern = paste("ADF", run, patch, sep = ".*"),
+                   x = dirFiles, ignore.case = FALSE, perl = TRUE,
+                   value = TRUE, useBytes = TRUE)[1]
+      fFile = data.table::fread(file = file.path(readDirectory, fName),
+                                header = TRUE, stringsAsFactors = FALSE)
+
+      #loop over simulation time
+      for(loopTime in simTime){
+        #subset time objects for ease of reading
+        mTimeObj <- mFile[Time==loopTime, Genotype] #mFile$Genotype[mFile$Time == loopTime]
+        fTimeObj <- fFile[Time==loopTime, Genotype] #fFile$Genotype[fFile$Time == loopTime]
+        #loop over genotypes of interest
+        for(gen in gOI){
+          #match genotype pattens, store how many were found
+          mArray[loopTime, gen, patch] <- length(grep(pattern = gen, x = mTimeObj,
+                                                      ignore.case = FALSE, perl = TRUE,
+                                                      value = TRUE, useBytes = TRUE))
+          fArray[loopTime, gen, patch] <- length(grep(pattern = gen, x = fTimeObj,
+                                                      ignore.case = FALSE, perl = TRUE,
+                                                      value = TRUE, useBytes = TRUE))
+        }#end gOI loop
+
+        #set total population
+        if(!all(grepl(pattern = "NULL", x = mTimeObj, fixed = TRUE))){
+          mArray[loopTime, "Total Pop.", patch] <- length(mTimeObj)
+        }
+        if(!all(grepl(pattern = "NULL", x = fTimeObj, fixed = TRUE))){
+          fArray[loopTime, "Total Pop.", patch] <- length(fTimeObj)
+        }
+
+      }#end time loop
+    }#end patch loop
+
+    #save output for each run.
+    if(is.null(saveDirectory)){saveDirectory <- readDirectory}
+    fileName <- paste0(format(x = Sys.Date(), "%Y%m%d"), "_", run, "_",
+                       filename, ".rds")
+
+    saveRDS(object = list(metaData=note, maleData=mArray, femaleData=fArray),
+            file = file.path(saveDirectory,fileName),
+            compress = "gzip")
+
+  }#end run loop
+  }#end function
