@@ -24,10 +24,10 @@ library(mPlexRCpp)
 # Setup Parameters for Network
 ###############################################################################
 
-migration = diag(1L) #matrix(data = c(0.99, 0, 0.05, 0.05, 0, 0.99, 0.05, 0.5, 0.03,0.03,0.99,0.04, 0.02,0.04,0.04,0.99), nrow = 4, ncol = 4, byrow = TRUE) #migration matrix
+migration = matrix(data = c(0.99, 0, 0.05, 0.05, 0, 0.99, 0.05, 0.5, 0.03,0.03,0.99,0.04, 0.02,0.04,0.04,0.99), nrow = 4, ncol = 4, byrow = TRUE) #migration matrix
 N = nrow(migration) #number of patches
-patchPops = rep(500L,N) #population of eachpatch
-directory <- "~/Desktop/HOLD/mPlex2/"
+patchPops = rep(20L,N) #population of eachpatch
+directory <- "~/Desktop/HOLD/MGDrivE/"
 
     #setup alleles to initiate patches
 alleloTypes <- vector(mode = "list", length = 1L) #3 loci
@@ -101,7 +101,7 @@ for(i in seq(1,N,1)){
 ###############################################################################
 
     # calculate network parameters, auxiliary function
-netPar = Network.Parameters(nPatch = N,simTime = 3500L,
+netPar = Network.Parameters(nPatch = N,simTime = 2000L,
                             alleloTypes = AllAlleles,
                             AdPopEQ = patchPops,
                             runID = 1L,
@@ -131,6 +131,7 @@ network = Network$new(networkParameters = netPar,
 # doParallel::registerDoParallel(cl)
 
 #Rprof(interval = 0.01, line.profiling = TRUE)
+set.seed(seed = 42)
 network$oneRun()
 #summaryRprof(lines = "both")
 network$reset()
@@ -171,7 +172,7 @@ microbenchmark::microbenchmark(AnalyzeOutput_mLoci_Daisy(readDirectory = directo
 
 summaryRprof(filename = "Rprof.out", lines = "both")
 
-Plot_mPlex(file = "~/Desktop/HOLD/20180215_Run1_Daisy.rds", totalPop = F)
+Plot_mPlex(file = "/home/jared/Desktop/HOLD/mPlex2/20180528_Run1_ProfileTest.rds", totalPop = F)
 
 Run1 <- readRDS(file = "~/Desktop/HOLD/20180119_Run1_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
 Run2 <- readRDS(file = "~/Desktop/HOLD/20180119_Run2_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")

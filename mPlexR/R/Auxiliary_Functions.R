@@ -214,10 +214,11 @@ splitOutput <- function(directory){
 #' @param saveDirectory directory to save analyzed data. Default is readDirectory
 #' @param genotypes A list of each locus containing the genotypes of interest at that locus. Default is all genotypes
 #' @param collapse A vector of each locus containing TRUE/FALSE. If TRUE, the genotypes of interest at that locus are collapsed and the output is the sum of all of them.
+#' @param fileName String for a file name
 #'
 #' @return A *.rds object containing list(metaData=character, maleData=array, femaleData=array)
 #' @export
-AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, genotypes, collapse){
+AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, fileName, genotypes, collapse){
 
   #get list of all files, unique runs, and unique patches
   dirFiles = list.files(path = readDirectory, pattern = ".*\\.csv$")
@@ -313,7 +314,7 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, genotyp
     #save output for each run.
     if(is.null(saveDirectory)){saveDirectory <- readDirectory}
     fileName <- paste0(format(x = Sys.Date(), "%Y%m%d"), "_", run, "_",
-                       paste0(gOI, collapse = "_"), ".rds")
+                       fileName, ".rds")
 
     saveRDS(object = list(metaData=note, maleData=mArray, femaleData=fArray),
             file = file.path(saveDirectory,fileName),
@@ -334,10 +335,11 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, genotyp
 #' @param saveDirectory directory to save analyzed data. Default is readDirectory
 #' @param alleles A list of lists that contain the genotypes of interest at each locus. Default is all genotypes
 #' @param collapse A list of lists containing TRUE/FALSE for each locus. If TRUE, the genotypes of interest at that locus are collapsed and the output is the sum of all of them.
+#' @param fileName String for a file name
 #'
 #' @return A *.rds object containing list(metaData=character, maleData=array, femaleData=array)
 #' @export
-AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, alleles, collapse){
+AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, fileName, alleles, collapse){
 
   #must give in order: "H", "R", "S", "W"
   #alleles <- list(list(c("H","W"),"W", "W"),list(c("H","W"),NULL, "W"))
@@ -449,14 +451,14 @@ AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, alleles, col
     #save output for each run.
     if(is.null(saveDirectory)){saveDirectory <- readDirectory}
     fileName <- paste0(format(x = Sys.Date(), "%Y%m%d"), "_", run, "_",
-                       paste0(gOI, collapse = "_"), ".rds")
+                       fileName, ".rds")
 
     saveRDS(object = list(metaData=note, maleData=mArray, femaleData=fArray),
             file = file.path(saveDirectory,fileName),
             compress = "gzip")
 
   }#end run loop
-  }#end function
+}#end function
 
 ###############################################################################
 # Random Others
@@ -485,6 +487,50 @@ JaredDirichlet <- function(n=1,alpha){
   Gam <- matrix(0,n,length(alpha))
   for(i in 1:length(alpha)) {Gam[,i] <- rgamma(n,shape=alpha[i])}
   Gam/rowSums(Gam)
+}
+
+#' calc_parameter
+#'
+#' Gets the genotype-dependent parameter of choice
+#'
+#' @usage get_parameter(paramList, genotype)
+#'
+#' @param paramList sublist from referenceList, created by Make_reference functions.
+#' @param genotype Genotype of interest
+#'
+#' @details This function gets whatever genotype-dependent factor desired. The inputs
+#' are whatever parameter list of interest, then the genotype it is applied to.
+#'
+#' @return double
+#'
+#' @examples
+#' set.seed(42)
+#' JaredDirichlet(n=4, alpha = c(0.1,0.2,0.3,0.4))
+#'
+#' @export
+calc_parameter <- function(paramList, genotype){
+
+  #default return value
+  holdValue = 1
+
+  #counter for locus in loop
+  counter=1L
+  for(i in 1:length(paramList)){
+
+    #get the genotype at that locus, then pull value from parameters
+    locus <- substr(x = genotype, start = counter, stop = counter+1L) #use character vector and subset? Would be better.
+    test <- paramList[[i]][[locus]]
+
+    #if the value exists, use it.
+    if(!is.null(test)){
+      holdValue <- holdValue*test
+    }
+
+    #increment counter
+    counter <- counter + 2L
+  }
+
+  return(holdValue)
 }
 
 #' Utility to Imitate ggplot2 Colors

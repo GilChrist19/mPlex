@@ -212,6 +212,17 @@ oneDay_EggMature_Patch <- function(){
     # This could maybe become a patch variable, so we don't reallocate space.??
     private$ages <- rlnorm(n = private$genericCounter, meanlog = private$meanAge, sdlog = private$sdAge)
 
+
+
+
+
+#    private$ages <- rpois(n = private$genericCounter, lambda = private$NetworkPointer$get_stageTime(stage = "E"))
+
+
+
+
+
+
     #loop over all eggs
     #This maybe could be  vectorized in R, getting all ages is the only problem.
     private$matured <- integer(length = private$genericCounter)
@@ -255,6 +266,18 @@ oneDay_LarvaMature_Patch <- function(){
     # if not, do it one at a time in the loop.
     # This could maybe become a patch variable, so we don't reallocate space.??
     private$ages <- rlnorm(n = private$genericCounter, meanlog = private$meanAge, sdlog = private$sdAge)
+
+
+
+
+
+
+
+
+
+#    private$ages <- rpois(n = private$genericCounter, lambda = sum(private$NetworkPointer$get_stageTime(stage = c("E", "L") ) ))
+
+
 
     #loop over all eggs
     #This maybe could be  vectorized in R, getting all ages is the only problem.
@@ -302,6 +325,14 @@ oneDay_PupaMature_Patch <- function(){
     # if not, do it one at a time in the loop.
     # This could maybe become a patch variable, so we don't reallocate space.??
     private$ages <- rlnorm(n = private$genericCounter, meanlog = private$meanAge, sdlog = private$sdAge)
+
+
+
+
+#    private$ages <- rpois(n = private$genericCounter, lambda = sum(private$NetworkPointer$get_stageTime(stage = c("E", "L", "P")) ))
+
+
+
 
     #loop over all eggs
     #This maybe could be  vectorized in R, getting all private$ages is the only problem.
@@ -408,10 +439,6 @@ oneDay_Reproduction_Patch <- function(){
                              size = private$mates[critter],
                              prob = private$offspring$Probabilities)
 
-      #Generate new mosquitoe population
-      private$newEggs <- vector(mode = "list", length = sum(private$eggNumber))
-
-      private$genericCounter = 1L
       #loop over each genotype
       for(gen in 1:length(private$offspring$Alleles)){
         #skip if there are no mosquitoes of this genotype

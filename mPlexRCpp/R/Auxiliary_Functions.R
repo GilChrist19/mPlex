@@ -198,7 +198,7 @@ splitOutput <- function(directory, multiCore=FALSE){
     cat("processing ",file,"\n",sep="")
     fileIn = data.table::fread(input = file.path(directory, file))
     # for each file, get all the patches and split into multiple files
-    for(patch in unique(fileIn$Patch)){
+    for(patch in 1:data.table::uniqueN(fileIn$Patch)){
       patchIn = fileIn[Patch==patch]
       patchName = gsub(pattern = ".csv",replacement = paste0("_Patch",patch,".csv"),x = file)
       data.table::fwrite(x = patchIn, file = file.path(directory, patchName), nThread = nThread)
@@ -220,10 +220,11 @@ splitOutput <- function(directory, multiCore=FALSE){
 #' @param saveDirectory directory to save analyzed data. Default is readDirectory
 #' @param genotypes A list of each locus containing the genotypes of interest at that locus. Default is all genotypes
 #' @param collapse A vector of each locus containing TRUE/FALSE. If TRUE, the genotypes of interest at that locus are collapsed and the output is the sum of all of them.
+#' @param fileName String for a file name
 #'
 #' @return A *.rds object containing list(metaData=character, maleData=array, femaleData=array)
 #' @export
-AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, filename, genotypes, collapse){
+AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, fileName, genotypes, collapse){
 
   #get list of all files, unique runs, and unique patches
   dirFiles = list.files(path = readDirectory, pattern = ".*\\.csv$")
@@ -316,7 +317,7 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, filenam
     #save output for each run.
     if(is.null(saveDirectory)){saveDirectory <- readDirectory}
     fileName <- paste0(format(x = Sys.Date(), "%Y%m%d"), "_", run, "_",
-                       filename, ".rds")
+                       fileName, ".rds")
 
     saveRDS(object = list(metaData=note, maleData=mArray, femaleData=fArray),
             file = file.path(saveDirectory,fileName),
@@ -337,10 +338,11 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory=NULL, filenam
 #' @param saveDirectory directory to save analyzed data. Default is readDirectory
 #' @param alleles A list of lists that contain the genotypes of interest at each locus. Default is all genotypes
 #' @param collapse A list of lists containing TRUE/FALSE for each locus. If TRUE, the genotypes of interest at that locus are collapsed and the output is the sum of all of them.
+#' @param fileName String for a file name
 #'
 #' @return A *.rds object containing list(metaData=character, maleData=array, femaleData=array)
 #' @export
-AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, filename, alleles, collapse){
+AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, fileName, alleles, collapse){
 
   #must give in order: "H", "R", "S", "W"
   #alleles <- list(list(c("H","W"),"W", "W"),list(c("H","W"),NULL, "W"))
@@ -449,7 +451,7 @@ AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory=NULL, filename, al
     #save output for each run.
     if(is.null(saveDirectory)){saveDirectory <- readDirectory}
     fileName <- paste0(format(x = Sys.Date(), "%Y%m%d"), "_", run, "_",
-                       filename, ".rds")
+                       fileName, ".rds")
 
     saveRDS(object = list(metaData=note, maleData=mArray, femaleData=fArray),
             file = file.path(saveDirectory,fileName),
@@ -512,11 +514,11 @@ calc_parameter <- function(paramList, genotype){
   holdValue = 1
 
   #counter for locus in loop
-  counter=1
+  counter=1L
   for(i in 1:length(paramList)){
 
     #get the genotype at that locus, then pull value from parameters
-    locus <- substr(x = genotype, start = counter, stop = counter+1) #use character vector and subset? Would be better.
+    locus <- substr(x = genotype, start = counter, stop = counter+1L) #use character vector and subset? Would be better.
     test <- paramList[[i]][[locus]]
 
     #if the value exists, use it.
@@ -525,7 +527,7 @@ calc_parameter <- function(paramList, genotype){
     }
 
     #increment counter
-    counter <- counter + 2
+    counter <- counter + 2L
   }
 
   return(holdValue)

@@ -24,9 +24,9 @@ library(mPlexRCpp)
 # Setup Parameters for Network
 ###############################################################################
 
-migration = diag(1L) #matrix(data = c(0.99, 0, 0.05, 0.05, 0, 0.99, 0.05, 0.5, 0.03,0.03,0.99,0.04, 0.02,0.04,0.04,0.99), nrow = 4, ncol = 4, byrow = TRUE) #migration matrix
+migration = matrix(data = c(0.99, 0, 0.05, 0.05, 0, 0.99, 0.05, 0.5, 0.03,0.03,0.99,0.04, 0.02,0.04,0.04,0.99), nrow = 4, ncol = 4, byrow = TRUE) #migration matrix
 N = nrow(migration) #number of patches
-patchPops = rep(200L,N) #population of eachpatch
+patchPops = rep(20L,N) #population of eachpatch
 directory <- "~/Desktop/HOLD/mPlex2/"
 
     #setup alleles to initiate patches
@@ -56,8 +56,7 @@ s_frac[[1]] <- list("HH"=0)
 reproductionReference <- MakeReference_DaisyDrive(H = c(0.98),
                                                        R = c(0.0001),
                                                        S = c(0.0003),
-                                                       d = c(0),
-                                                       s_frac = NULL)
+                                                       d = c(0))
 
 ###############################################################################
 # Release Setup
@@ -101,7 +100,7 @@ for(i in seq(1,N,1)){
 ###############################################################################
 
     # calculate network parameters, auxiliary function
-netPar = Network.Parameters(nPatch = N,simTime = 3500L,
+netPar = Network.Parameters(nPatch = N,simTime = 2000L,
                             alleloTypes = AllAlleles,
                             AdPopEQ = patchPops,
                             runID = 1L,
@@ -131,6 +130,7 @@ network = Network$new(networkParameters = netPar,
 # doParallel::registerDoParallel(cl)
 
 #Rprof(interval = 0.01, line.profiling = TRUE)
+set.seed(seed = 42)
 network$oneRun()
 #summaryRprof(lines = "both")
 network$reset()
@@ -145,11 +145,10 @@ network$reset()
 splitOutput(directory = directory)
 AnalyzeOutput_mLoci_Daisy(readDirectory = directory,
                           saveDirectory = "~/Desktop/HOLD",
-                          filename = "Daisy",
                           genotypes = list(NULL),
                           collapse = c(F))
 
-Plot_mPlex(file = "~/Desktop/HOLD/20180215_Run1_Daisy.rds", totalPop = F)
+Plot_mPlex(file = "/home/jared/Desktop/HOLD/20180528_Run1_HH_HR_HS_HW_RR_RS_RW_SS_SW_WW.rds", totalPop = F)
 
 Run1 <- readRDS(file = "~/Desktop/HOLD/20180119_Run1_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
 Run2 <- readRDS(file = "~/Desktop/HOLD/20180119_Run2_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")

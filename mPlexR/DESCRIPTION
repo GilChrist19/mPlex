@@ -9,8 +9,10 @@ Authors@R: as.person(c(
     ))
 Description: mPlex is an individual based, lumped-age-class, descrete-time step model for exploring the dynamics of multiplex and Daisy gene drives in mosquitoes.
 Depends: R (>= 3.4.3)
+imports: R6
 License: GPL-3
 Encoding: UTF-8
+ByteCompile: true
 LazyData: true
 RoxygenNote: 6.0.1
 Roxygen: list(markdown = TRUE)

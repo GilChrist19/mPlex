@@ -66,7 +66,7 @@ Mosquito <- R6::R6Class(classname = "mosquito",
                       set_mate = function(mate=NULL){private$mate = mate},
                       set_genotype = function(genotype=NULL){private$genotype = genotype},
 
-                      age_one_day = function() {private$age = private$age + 1},
+                      age_one_day = function() {private$age = private$age + 1L},
                       print_female = function(){file.path(private$age, private$genotype, private$mate, fsep = ",")},
                       print_male = function(){file.path(private$age, private$genotype, fsep = ",")},
                       #file.path can't handle nulls
