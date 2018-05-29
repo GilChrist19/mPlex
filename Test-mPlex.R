@@ -54,9 +54,10 @@ AllAlleles <- replicate(n = N, expr = alleloTypes, simplify = FALSE)
 s_frac <- vector(mode = "list", length = length(alleloTypes))
 s_frac[[1]] <- list("HH"=0)
 reproductionReference <- MakeReference_DaisyDrive(H = c(0.98),
-                                                       R = c(0.0001),
-                                                       S = c(0.0003),
-                                                       d = c(0))
+                                                  R = c(0.0001),
+                                                  S = c(0.0003),
+                                                  d = c(0),
+                                                  s_frac = s_frac)
 
 ###############################################################################
 # Release Setup
@@ -144,11 +145,22 @@ network$reset()
 ###############################################################################
 splitOutput(directory = directory)
 AnalyzeOutput_mLoci_Daisy(readDirectory = directory,
-                          saveDirectory = "~/Desktop/HOLD",
+                          saveDirectory = "~/Desktop/HOLD/",
+                          fileName = "ProfileTest",
                           genotypes = list(NULL),
                           collapse = c(F))
 
-Plot_mPlex(file = "/home/jared/Desktop/HOLD/20180528_Run1_HH_HR_HS_HW_RR_RS_RW_SS_SW_WW.rds", totalPop = F)
+Plot_mPlex(file = "/home/jared/Desktop/HOLD/20180528_Run1_ProfileTest.rds", totalPop = F)
+
+
+
+
+
+
+
+
+
+
 
 Run1 <- readRDS(file = "~/Desktop/HOLD/20180119_Run1_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
 Run2 <- readRDS(file = "~/Desktop/HOLD/20180119_Run2_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")

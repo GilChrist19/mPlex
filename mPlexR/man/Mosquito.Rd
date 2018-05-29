@@ -6,7 +6,7 @@
 \title{Mosquito Class Definition}
 \format{An \code{\link{R6Class}} generator object}
 \usage{
-Mosquito
+Mosquito(genotype = NULL, age = NULL)
 }
 \description{
 Mosquitos are the individual units being simulated in mPlex

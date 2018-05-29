@@ -4,13 +4,15 @@
 \alias{AnalyzeOutput_mLoci_Daisy}
 \title{Analyze output for mPlex-mLoci or DaisyDrive}
 \usage{
-AnalyzeOutput_mLoci_Daisy(readDirectory, saveDirectory = NULL, genotypes,
-  collapse)
+AnalyzeOutput_mLoci_Daisy(readDirectory, saveDirectory = NULL, fileName,
+  genotypes, collapse)
 }
 \arguments{
 \item{readDirectory}{directory where output was written to; should not end in path seperator}
 
 \item{saveDirectory}{directory to save analyzed data. Default is readDirectory}
+
+\item{fileName}{String for a file name}
 
 \item{genotypes}{A list of each locus containing the genotypes of interest at that locus. Default is all genotypes}
 

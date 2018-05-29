@@ -160,10 +160,10 @@ CreateMosquitoes_Distribution_Genotype <- function(numMos, minAge, maxAge, ageDi
     }
 
     #generate age
-    holdAge <- sample(x = minAge:maxAge, size = 1, replace = FALSE, prob = ageDist)
+    holdAge <- sample(x = minAge:maxAge, size = 1L, replace = FALSE, prob = ageDist)
 
     #create new mosquito
-    population[[i]] <- Mosquito$new(genotype = paste0(unlist(genotypes), collapse = ""),
+    population[[i]] <- Mosquito(genotype = paste0(unlist(genotypes), collapse = ""),
                                     age = holdAge)
   }
 

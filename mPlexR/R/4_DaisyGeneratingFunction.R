@@ -11,12 +11,13 @@
 #'
 #' Create a list specifying the offspring probability distribution.
 #'
-#' @usage MakeReference_DaisyDrive(H, R, S, d)
+#' @usage MakeReference_DaisyDrive(H, R, S, d, s_frac)
 #'
 #' @param H Vector of homing rates for each drive piece
 #' @param R Vector of deleterious allele generation rates
 #' @param S Vector of neutral allele generation rates
 #' @param d Vector of background mutation rates at each locus
+#' @param s_frac List of lists for genotype-dependent fertility reduction
 #'
 #' @details This function creates a reference list for \code{\link{DaisyOffspring}}.
 #' The number of drive elements is specified by the length of H. The final homing
@@ -33,11 +34,12 @@
 #' R <- c(0.001, 0.002, 0.003)
 #' S <- c(0.0003, 0.0006, 0.001)
 #' d <- c(0.0001, 0.0001, 0.0001)
+#' s_frac = list(NULL, c("HH"=0, "HW"=0.5, "HR"=0, "HS"=0.5), NULL)
 #'
-#' MakeReference_DaisyDrive(H,R,S,d)
+#' MakeReference_DaisyDrive(H,R,S,d,s_frac)
 #'
 #' @export
-MakeReference_DaisyDrive <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/3, d=c(0.0001, 0.0001, 0.0001)){
+MakeReference_DaisyDrive <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/3, d=c(0.0001, 0.0001, 0.0001), s_frac=NULL){
 
   #H is homing rate. The length of this vector determines the number of pieces
   # in the daisy drive. Each drive can have the same or different rates.
@@ -56,7 +58,7 @@ MakeReference_DaisyDrive <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/
   #Safety checks
   if(any( c(length(H),length(R), length(S), length(d)) != length(H))){
     return(cat("All inputs must be the same length!\n",
-           "i.e. length(H) == length(R) == length(S) == length(d)"))
+               "i.e. length(H) == length(R) == length(S) == length(d)"))
   }
   if(any(H[-length(H)]>1, R>1, S>1, d>1)){
     #last H doesn't matter because it may/may not exist and isnt' used
@@ -66,11 +68,11 @@ MakeReference_DaisyDrive <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/
     #need the driving piece's haming rate plus the background mutation rate
     #  of the piece being driven into.
     return(cat("Homing rates plus background mutation rates must be <= 1\n",
-           "i.e. H+d <= 1\n"))
+               "i.e. H+d <= 1\n"))
   }
   if(any((R+S) > 1)){
     return(cat("Negative and neutral repair rates must sum to <= 1\n",
-           "i.s. R+S <= 1"))
+               "i.s. R+S <= 1"))
   }
 
 
@@ -101,29 +103,62 @@ MakeReference_DaisyDrive <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/
   cutProbsList <- vector(mode = "list", length = length(H))
   homProbsList <- vector(mode = "list", length = length(H))
 
+  mendAlleleList <- vector(mode = "list", length = length(H))
+  cutAlleleList <- vector(mode = "list", length = length(H))
+  homAlleleList <- vector(mode = "list", length = length(H))
+
   #fill the lists
   for(i in 1:length(H)){
     mendProbsList[[i]]$W <- setNames(object = c(1-d[i], d[i]), nm = c("W", "S"))
     mendProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "S"))
-    mendProbsList[[i]]$R <- 1
-    mendProbsList[[i]]$S <- 1
+    mendProbsList[[i]]$R <- setNames(object = 1, nm = "R")
+    mendProbsList[[i]]$S <- setNames(object = 1, nm = "S")
+
+    #remove 0 probs things, and set allele names
+    logicalHold <- lapply(X = mendProbsList[[i]], FUN = '!=', 0)
+    for(j in 1:4){
+      mendProbsList[[i]][[j]] <- mendProbsList[[i]][[j]][ logicalHold[[j]] ]
+      mendAlleleList[[i]][[j]] <- names(mendProbsList[[i]][[j]])
+    }
 
     cutProbsList[[i]]$W <- cuttingProbs[ ,i]
     cutProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "S"))
-    cutProbsList[[i]]$R <- 1
-    cutProbsList[[i]]$S <- 1
+    cutProbsList[[i]]$R <- setNames(object = 1, nm = "R")
+    cutProbsList[[i]]$S <- setNames(object = 1, nm = "S")
+
+    #remove 0 probs things, and set allele names
+    logicalHold <- lapply(X = cutProbsList[[i]], FUN = '!=', 0)
+    for(j in 1:4){
+      cutProbsList[[i]][[j]] <- cutProbsList[[i]][[j]][ logicalHold[[j]] ]
+      cutAlleleList[[i]][[j]] <- names(cutProbsList[[i]][[j]])
+    }
 
     homProbsList[[i]]$W <- homingProbs[ ,i]
     homProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "S"))
-    homProbsList[[i]]$R <- 1
-    homProbsList[[i]]$S <- 1
+    homProbsList[[i]]$R <- setNames(object = 1, nm = "R")
+    homProbsList[[i]]$S <- setNames(object = 1, nm = "S")
+
+    #remove 0 probs things, and set allele names
+    logicalHold <- lapply(X = homProbsList[[i]], FUN = '!=', 0)
+    for(j in 1:4){
+      homProbsList[[i]][[j]] <- homProbsList[[i]][[j]][ logicalHold[[j]] ]
+      homAlleleList[[i]][[j]] <- names(homProbsList[[i]][[j]])
+    }
   }
+
+  #set fractional reduction in fertility
+  s <- vector(mode = "list", length = length(H))
+  if(!is.null(s_frac)){s <- s_frac}
 
 
   return(list(
     mendelian = mendProbsList,
     cutting = cutProbsList,
-    homing = homProbsList))
+    homing = homProbsList,
+    mendelianAlleles = mendAlleleList,
+    homingAlleles = homAlleleList,
+    cuttingAlleles = cutAlleleList,
+    s = s))
 
 }
 
@@ -196,16 +231,16 @@ DaisyOffspring <- function(fGen, mGen, reference){
 
         #Fill allele with letter and probs
         if(momAlleles[[i]][[j]]=="W"){
-          fAllele[[i]][[j]] <- c("W","S")
+          fAllele[[i]][[j]] <- reference$mendelianAlleles[[i]][[1]]
           fProbs[[i]][[j]] <- reference$mendelian[[i]]$W
         } else if(momAlleles[[i]][[j]]=="H"){
-          fAllele[[i]][[j]] <- c("H", "S")
+          fAllele[[i]][[j]] <- reference$mendelianAlleles[[i]][[2]]
           fProbs[[i]][[j]] <- reference$mendelian[[i]]$H
         } else if(momAlleles[[i]][[j]]=="R"){
-          fAllele[[i]][[j]] <- "R"
+          fAllele[[i]][[j]] <- reference$mendelianAlleles[[i]][[3]]
           fProbs[[i]][[j]] <- reference$mendelian[[i]]$R
         } else if(momAlleles[[i]][[j]]=="S"){
-          fAllele[[i]][[j]] <- "S"
+          fAllele[[i]][[j]] <- reference$mendelianAlleles[[i]][[4]]
           fProbs[[i]][[j]] <- reference$mendelian[[i]]$S
         }
 
@@ -217,16 +252,16 @@ DaisyOffspring <- function(fGen, mGen, reference){
 
         #Fill allele with letter and probs
         if(momAlleles[[i]][[j]]=="W"){
-          fAllele[[i]][[j]] <- c("W","R","S")
+          fAllele[[i]][[j]] <- reference$cuttingAlleles[[i]][[1]]
           fProbs[[i]][[j]] <- reference$cutting[[i]]$W
         } else if(momAlleles[[i]][[j]]=="H"){
-          fAllele[[i]][[j]] <- c("H", "S")
+          fAllele[[i]][[j]] <- reference$cuttingAlleles[[i]][[2]]
           fProbs[[i]][[j]] <- reference$cutting[[i]]$H
         } else if(momAlleles[[i]][[j]]=="R"){
-          fAllele[[i]][[j]] <- "R"
+          fAllele[[i]][[j]] <- reference$cuttingAlleles[[i]][[3]]
           fProbs[[i]][[j]] <- reference$cutting[[i]]$R
         } else if(momAlleles[[i]][[j]]=="S"){
-          fAllele[[i]][[j]] <- "S"
+          fAllele[[i]][[j]] <- reference$cuttingAlleles[[i]][[4]]
           fProbs[[i]][[j]] <- reference$cutting[[i]]$S
         }
 
@@ -238,16 +273,16 @@ DaisyOffspring <- function(fGen, mGen, reference){
 
         #Fill allele with letter and probs
         if(momAlleles[[i]][[j]]=="W"){
-          fAllele[[i]][[j]] <- c("W","H","R","S")
+          fAllele[[i]][[j]] <- reference$homingAlleles[[i]][[1]]
           fProbs[[i]][[j]] <- reference$homing[[i]]$W
         } else if(momAlleles[[i]][[j]]=="H"){
-          fAllele[[i]][[j]] <- c("H", "S")
+          fAllele[[i]][[j]] <- reference$homingAlleles[[i]][[2]]
           fProbs[[i]][[j]] <- reference$homing[[i]]$H
         } else if(momAlleles[[i]][[j]]=="R"){
-          fAllele[[i]][[j]] <- "R"
+          fAllele[[i]][[j]] <- reference$homingAlleles[[i]][[3]]
           fProbs[[i]][[j]] <- reference$homing[[i]]$R
         } else if(momAlleles[[i]][[j]]=="S"){
-          fAllele[[i]][[j]] <- "S"
+          fAllele[[i]][[j]] <- reference$homingAlleles[[i]][[4]]
           fProbs[[i]][[j]] <- reference$homing[[i]]$S
         }
 
@@ -264,16 +299,16 @@ DaisyOffspring <- function(fGen, mGen, reference){
 
         #Fill allele with letter and probs
         if(dadAlleles[[i]][[j]]=="W"){
-          mAllele[[i]][[j]] <- c("W","S")
+          mAllele[[i]][[j]] <- reference$mendelianAlleles[[i]][[1]]
           mProbs[[i]][[j]] <- reference$mendelian[[i]]$W
         } else if(dadAlleles[[i]][[j]]=="H"){
-          mAllele[[i]][[j]] <- c("H", "S")
+          mAllele[[i]][[j]] <- reference$mendelianAlleles[[i]][[2]]
           mProbs[[i]][[j]] <- reference$mendelian[[i]]$H
         } else if(dadAlleles[[i]][[j]]=="R"){
-          mAllele[[i]][[j]] <- "R"
+          mAllele[[i]][[j]] <- reference$mendelianAlleles[[i]][[3]]
           mProbs[[i]][[j]] <- reference$mendelian[[i]]$R
         } else if(dadAlleles[[i]][[j]]=="S"){
-          mAllele[[i]][[j]] <- "S"
+          mAllele[[i]][[j]] <- reference$mendelianAlleles[[i]][[4]]
           mProbs[[i]][[j]] <- reference$mendelian[[i]]$S
         }
 
@@ -285,16 +320,16 @@ DaisyOffspring <- function(fGen, mGen, reference){
 
         #Fill allele with letter and probs
         if(dadAlleles[[i]][[j]]=="W"){
-          mAllele[[i]][[j]] <- c("W","R","S")
+          mAllele[[i]][[j]] <- reference$cuttingAlleles[[i]][[1]]
           mProbs[[i]][[j]] <- reference$cutting[[i]]$W
         } else if(dadAlleles[[i]][[j]]=="H"){
-          mAllele[[i]][[j]] <- c("H", "S")
+          mAllele[[i]][[j]] <- reference$cuttingAlleles[[i]][[2]]
           mProbs[[i]][[j]] <- reference$cutting[[i]]$H
         } else if(dadAlleles[[i]][[j]]=="R"){
-          mAllele[[i]][[j]] <- "R"
+          mAllele[[i]][[j]] <- reference$cuttingAlleles[[i]][[3]]
           mProbs[[i]][[j]] <- reference$cutting[[i]]$R
         } else if(dadAlleles[[i]][[j]]=="S"){
-          mAllele[[i]][[j]] <- "S"
+          mAllele[[i]][[j]] <- reference$cuttingAlleles[[i]][[4]]
           mProbs[[i]][[j]] <- reference$cutting[[i]]$S
         }
 
@@ -306,16 +341,16 @@ DaisyOffspring <- function(fGen, mGen, reference){
 
         #Fill allele with letter and probs
         if(dadAlleles[[i]][[j]]=="W"){
-          mAllele[[i]][[j]] <- c("W","H","R","S")
+          mAllele[[i]][[j]] <- reference$homingAlleles[[i]][[1]]
           mProbs[[i]][[j]] <- reference$homing[[i]]$W
         } else if(dadAlleles[[i]][[j]]=="H"){
-          mAllele[[i]][[j]] <- c("H", "S")
+          mAllele[[i]][[j]] <- reference$homingAlleles[[i]][[2]]
           mProbs[[i]][[j]] <- reference$homing[[i]]$H
         } else if(dadAlleles[[i]][[j]]=="R"){
-          mAllele[[i]][[j]] <- "R"
+          mAllele[[i]][[j]] <- reference$homingAlleles[[i]][[3]]
           mProbs[[i]][[j]] <- reference$homing[[i]]$R
         } else if(dadAlleles[[i]][[j]]=="S"){
-          mAllele[[i]][[j]] <- "S"
+          mAllele[[i]][[j]] <- reference$homingAlleles[[i]][[4]]
           mProbs[[i]][[j]] <- reference$homing[[i]]$S
         }
 

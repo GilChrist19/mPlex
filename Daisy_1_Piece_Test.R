@@ -56,7 +56,7 @@ s_frac[[1]] <- list("HH"=0, "RR"=0)
 reproductionReference <- MakeReference_DaisyDrive(H = c(0.98),
                                                        R = c(0.0001),
                                                        S = c(0.0003),
-                                                       d = c(0),
+                                                       d = c(0.0001),
                                                        s_frac = s_frac)
 
 ###############################################################################
@@ -144,7 +144,7 @@ network$reset()
 # Post-Run Stuff
 ###############################################################################
 splitOutput(directory = directory)
-Rprof(line.profiling = TRUE)
+#Rprof(line.profiling = TRUE)
 AnalyzeOutput_mLoci_Daisy(readDirectory = directory,
                           saveDirectory = "~/Desktop/HOLD/mPlex2/",
                           filename = "ProfileTest",
@@ -152,63 +152,10 @@ AnalyzeOutput_mLoci_Daisy(readDirectory = directory,
                           collapse = c(F))
 
 
-TESTANALYZE(readDirectory = directory,
-                          saveDirectory = "~/Desktop/HOLD/mPlex2/",
-                          filename = "ProfileTest",
-                          genotypes = list(NULL),
-                          collapse = c(F))
-
-microbenchmark::microbenchmark(AnalyzeOutput_mLoci_Daisy(readDirectory = directory,
-                                                         saveDirectory = "~/Desktop/HOLD/mPlex2/",
-                                                         filename = "ProfileTest",
-                                                         genotypes = list(NULL),
-                                                         collapse = c(F)),
-                               TESTANALYZE(readDirectory = directory,
-                                           saveDirectory = "~/Desktop/HOLD/mPlex2/",
-                                           filename = "ProfileTest",
-                                           genotypes = list(NULL),
-                                           collapse = c(F)),
-                               times = 10)
-
-summaryRprof(filename = "Rprof.out", lines = "both")
+#summaryRprof(filename = "Rprof.out", lines = "both")
 
 Plot_mPlex(file = "/home/jared/Desktop/HOLD/mPlex2/20180528_Run1_ProfileTest.rds", totalPop = F)
 
-Run1 <- readRDS(file = "~/Desktop/HOLD/20180119_Run1_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
-Run2 <- readRDS(file = "~/Desktop/HOLD/20180119_Run2_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
-Run3 <- readRDS(file = "~/Desktop/HOLD/20180119_Run3_(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW)(HH|HR|HS|HW|RR|RS|RW|SS|SW|WW).rds")
-Run4 <- readRDS(file = "~/Desktop/HOLD/20180119_Run4_HH_HR_HS_HW_RR_RS_RW_SS_SW_WW.rds")
-test <- readRDS(file = "~/Desktop/HOLD/20180202_Run1_HH_HR_HS_HW_RR_RS_RW_SS_SW_WW.rds")
-
-
-
-file <- "~/Desktop/HOLD/20180120_Run4_HH_HR_HS_HW_RR_RS_RW_SS_SW_WW.rds"
-library(viridisLite)
-
-
-
-
-
-
-RUN  <- Run4
-
-#male
-R1M <- apply(X = RUN$maleData, MARGIN = c(1,2), FUN = mean)[,3]
-R1Sd <- apply(X = RUN$maleData, MARGIN = c(1,2), FUN = sd)[,3]
-
-plot(RUN$maleData[,1,1], R1M,pch=18,main = "20 patches with AdEq=50",
-     xlab="Time",ylab="Male Population",xlim=c(0, max(RUN$maleData[,1,1])),
-     ylim=c(min(R1M-R1Sd),max(R1M+R1Sd)), col = "blue")
-lines(rbind(RUN$maleData[,1,1],RUN$maleData[,1,1],NA),rbind(R1M-R1Sd,R1M+R1Sd,NA), col = "skyblue1")
-
-#female
-R1M <- apply(X = RUN$femaleData, MARGIN = c(1,2), FUN = mean)[,3]
-R1Sd <- apply(X = RUN$femaleData, MARGIN = c(1,2), FUN = sd)[,3]
-
-plot(RUN$femaleData[,1,1], R1M,pch=18,main = "20 patches with AdEq=50",
-     xlab="Time",ylab="Female Population",xlim=c(0, max(RUN$femaleData[,1,1])),
-     ylim=c(min(R1M-R1Sd),max(R1M+R1Sd)), col = "magenta1", new = TRUE)
-lines(rbind(RUN$femaleData[,1,1],RUN$femaleData[,1,1],NA),rbind(R1M-R1Sd,R1M+R1Sd,NA), col = "lightpink")
 
 
 

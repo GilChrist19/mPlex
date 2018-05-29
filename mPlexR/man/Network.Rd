@@ -43,6 +43,7 @@ or \code{\link{MakeReference_Multiplex_mLoci}}.
 \item get_listPatch: Integer list of Patches in the Network
 \item get_patch: Return a list of all patches or a single Patch specified by PatchID
 \item get_reference: Return reference list for calculating offspring distribution
+\item get_s: Return genotype-dependent list of fractional fertilities
 \item get_tNow: Return current simulation time
 \item get_directory: Return output directory
 \item get_conADM: Return adult_male file connection
@@ -71,6 +72,7 @@ or \code{\link{MakeReference_Multiplex_mLoci}}.
 \item listPatch: Integer vector listing all the patches, 1:nPatch
 \item patches: A list of \code{\link{Patch}} objects
 \item reference: Inheritance pattern list
+\item s: Fractional reduction/increase in genotype-dependent fertility
 \item tNow: Current simulation time
 \item directory: a character string of where to store output
 \item conADM: a \code{\link[base]{connection}} to write male population dynamics out to

@@ -102,7 +102,8 @@ Network <- R6::R6Class(classname = "Network",
             public = list(
 
                 # Constructor
-                initialize = function(networkParameters, patchReleases, reproductionType=NULL, offspringReference, migrationMale, migrationFemale, directory){
+                initialize = function(networkParameters, patchReleases, reproductionType=NULL,
+                                      offspringReference, migrationMale, migrationFemale, directory){
 
                   #set basic things from Parameters
                   private$nPatch = networkParameters$nPatch

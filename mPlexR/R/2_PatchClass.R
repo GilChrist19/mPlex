@@ -359,7 +359,7 @@ oneDay_Releases_Patch <- function(){
     # initialize holder list, then fill it with new mosquitoes
     private$newEggs <- vector(mode = "list", length = length(private$maleReleases[[1]]$genVec))
     for(i in 1:length(private$maleReleases[[1]]$genVec)){
-      private$newEggs[[i]] <- Mosquito$new(genotype = private$maleReleases[[1]]$genVec[i],
+      private$newEggs[[i]] <- Mosquito(genotype = private$maleReleases[[1]]$genVec[i],
                                            age = private$maleReleases[[1]]$ageVec[i])
     }
 
@@ -376,7 +376,7 @@ oneDay_Releases_Patch <- function(){
     # initialize holder list, then fill it with new mosquitoes
     private$newEggs <- vector(mode = "list", length = length(private$femaleReleases[[1]]$genVec))
     for(i in 1:length(private$femaleReleases[[1]]$genVec)){
-      private$newEggs[[i]] <- Mosquito$new(genotype = private$femaleReleases[[1]]$genVec[i],
+      private$newEggs[[i]] <- Mosquito(genotype = private$femaleReleases[[1]]$genVec[i],
                                            age = private$femaleReleases[[1]]$ageVec[i])
     }
 
@@ -393,7 +393,7 @@ oneDay_Releases_Patch <- function(){
     # initialize holder list, then fill it with new mosquitoes
     private$newEggs <- vector(mode = "list", length = length(private$larvaeReleases[[1]]$genVec))
     for(i in 1:length(private$larvaeReleases[[1]]$genVec)){
-      private$newEggs[[i]] <- Mosquito$new(genotype = private$larvaeReleases[[1]]$genVec[i],
+      private$newEggs[[i]] <- Mosquito(genotype = private$larvaeReleases[[1]]$genVec[i],
                                            age = private$larvaeReleases[[1]]$ageVec[i])
     }
 

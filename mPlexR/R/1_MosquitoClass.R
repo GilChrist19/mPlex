@@ -43,48 +43,111 @@
 #'  * genotype: Genotype of Mosquito
 #'
 #' @export
-Mosquito <- R6::R6Class(classname = "mosquito",
-                    portable = TRUE,
-                    cloneable = FALSE,
-                    lock_class = FALSE,
-                    lock_objects = FALSE,
-                    class = FALSE,
+Mosquito <- function(genotype = NULL, age = NULL){
+  #last attribute
+  mate = NULL
+  genotype <<- genotype
+  age <<- age
 
-                    # public memebers
-                    public = list(
+  #getters/setters
+  set_mate <- function(matGen=NULL){mate <<- matGen}
 
-                      # constructor
-                      initialize = function(genotype=NULL, age=NULL){
-                        private$age = age
-                        private$mate = NULL
-                        private$genotype = genotype
 
-                      }, # end constructor
 
-                      # setters
-                      set_age = function(age=NULL){private$age = age},
-                      set_mate = function(mate=NULL){private$mate = mate},
-                      set_genotype = function(genotype=NULL){private$genotype = genotype},
+  #functions
+  age_one_day <- function(){age <<- age + 1L}
+  print_female = function(){file.path(age, genotype, mate, fsep = ",")}
+  print_male = function(){file.path(age, genotype, fsep = ",")}
 
-                      age_one_day = function() {private$age = private$age + 1L},
-                      print_female = function(){file.path(private$age, private$genotype, private$mate, fsep = ",")},
-                      print_male = function(){file.path(private$age, private$genotype, fsep = ",")},
-                      #file.path can't handle nulls
+  #this is an R environment
+  environment()
+}
 
-                      #getters
-                      get_age = function(){private$age},
-                      get_mate = function(){private$mate},
-                      get_genotype = function(){private$genotype}
 
-                    ), # end public
+# Mosquito <- R6::R6Class(classname = "mosquito",
+#                     portable = TRUE,
+#                     cloneable = FALSE,
+#                     lock_class = FALSE,
+#                     lock_objects = FALSE,
+#                     class = FALSE,
+#
+#                     # public memebers
+#                     public = list(
+#
+#                       # constructor
+#                       initialize = function(genotype=NULL, age=NULL){
+#                         private$age = age
+#                         private$mate = NULL
+#                         private$genotype = genotype
+#
+#                       }, # end constructor
+#
+#                       # setters
+#                       set_age = function(age=NULL){private$age = age},
+#                       set_mate = function(mate=NULL){private$mate = mate},
+#                       set_genotype = function(genotype=NULL){private$genotype = genotype},
+#
+#                       age_one_day = function() {private$age = private$age + 1},
+#                       print_female = function(){file.path(private$age, private$genotype, private$mate, fsep = ",")},
+#                       print_male = function(){file.path(private$age, private$genotype, fsep = ",")},
+#                       #file.path can't handle nulls
+#
+#                       #getters
+#                       get_age = function(){private$age},
+#                       get_mate = function(){private$mate},
+#                       get_genotype = function(){private$genotype}
+#
+#                     ), # end public
+#
+#                     private = list(
+#
+#                       # fields
+#                       age = NULL,
+#                       mate = NULL,
+#                       genotype = NULL
+#
+#                     ) # end private
+#
+# ) # end class definition
 
-                    private = list(
 
-                      # fields
-                      age = NULL,
-                      mate = NULL,
-                      genotype = NULL
-
-                    ) # end private
-
-) # end class definition
+#new
+# exact replica of Mosquito class
+# drop in, ready to go
+# NewMosquito <- function(genotype=NULL, age=NULL){
+#   #last attribute
+#   mate = NULL
+#
+#   #getters/setters
+#   set_age <- function(newAge=NULL){age <<- newAge}
+#   set_mate <- function(matGen=NULL){mate <<- matGen}
+#   set_genotype <- function(newGen=NULL){genotype <<- newGen}
+#
+#   get_age <- function(){age}
+#   get_mate <- function(){mate}
+#   get_genotype <- function(){genotype}
+#
+#   #functions
+#   age_one_day <- function(){age <<- age + 1}
+#   print_female = function(){file.path(age, genotype, mate, fsep = ",")}
+#   print_male = function(){file.path(age, genotype, fsep = ",")}
+#
+#   #this is an R environment
+#   environment()
+# }
+#
+# # Smallest, fastest
+# NewMosquitoSMALLEST <- function(genotype=NULL, age=NULL){
+#   #last attribute
+#   mate = NULL
+#
+#   # no getters/setters required
+#
+#   #functions
+#   age_one_day = function(){age <<- age + 1}
+#   print_female = function(){file.path(age, genotype, mate, fsep = ",")}
+#   print_male = function(){file.path(age, genotype, fsep = ",")}
+#
+#   #this is an R environment
+#   environment()
+# }
