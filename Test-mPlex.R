@@ -24,10 +24,10 @@ library(mPlexRCpp)
 # Setup Parameters for Network
 ###############################################################################
 
-migration = matrix(data = c(0.99, 0, 0.05, 0.05, 0, 0.99, 0.05, 0.5, 0.03,0.03,0.99,0.04, 0.02,0.04,0.04,0.99), nrow = 4, ncol = 4, byrow = TRUE) #migration matrix
+migration = diag(5) #matrix(data = c(0.99, 0, 0.05, 0.05, 0, 0.99, 0.05, 0.5, 0.03,0.03,0.99,0.04, 0.02,0.04,0.04,0.99), nrow = 4, ncol = 4, byrow = TRUE) #migration matrix
 N = nrow(migration) #number of patches
-patchPops = rep(20L,N) #population of eachpatch
-directory <- "~/Desktop/HOLD/mPlex2/"
+patchPops = rep(50L,N) #population of eachpatch
+directory <- "~/Desktop/HOLD/mPlex/"
 
     #setup alleles to initiate patches
 alleloTypes <- vector(mode = "list", length = 1L) #3 loci
@@ -72,8 +72,8 @@ patchReleases = replicate(n = N,
 
 
   # Create release object to pass to patches
-holdRel <- Release_basicRepeatedReleases(releaseStart = 1000L,
-                                                                 releaseEnd = 1010L,
+holdRel <- Release_basicRepeatedReleases(releaseStart = 500L,
+                                                                 releaseEnd = 510L,
                                                                  releaseInterval = 2L,
                                                                  genMos = c("HH"),
                                                                  numMos = c(50L),
@@ -82,8 +82,8 @@ holdRel <- Release_basicRepeatedReleases(releaseStart = 1000L,
                                                                  ageDist = rep(x = 1, times = 24-16+1)/9)
 
 
-holdRel2 <- Release_basicRepeatedReleases(releaseStart = 1200L,
-                                         releaseEnd = 1210L,
+holdRel2 <- Release_basicRepeatedReleases(releaseStart = 600L,
+                                         releaseEnd = 610L,
                                          releaseInterval = 2L,
                                          genMos = c("SS"),
                                          numMos = c(10L),
@@ -101,7 +101,7 @@ for(i in seq(1,N,1)){
 ###############################################################################
 
     # calculate network parameters, auxiliary function
-netPar = Network.Parameters(nPatch = N,simTime = 2000L,
+netPar = Network.Parameters(nPatch = N,simTime = 1000L,
                             alleloTypes = AllAlleles,
                             AdPopEQ = patchPops,
                             runID = 1L,
@@ -145,12 +145,12 @@ network$reset()
 ###############################################################################
 splitOutput(directory = directory)
 AnalyzeOutput_mLoci_Daisy(readDirectory = directory,
-                          saveDirectory = "~/Desktop/HOLD/",
+                          saveDirectory = "~/Desktop/HOLD/mPlex/",
                           fileName = "ProfileTest",
                           genotypes = list(NULL),
                           collapse = c(F))
 
-Plot_mPlex(file = "/home/jared/Desktop/HOLD/20180528_Run1_ProfileTest.rds", totalPop = F)
+Plot_mPlex(file = "/home/jared/Desktop/HOLD/mPlex/20180530_Run1_ProfileTest.rds", totalPop = F)
 
 
 
@@ -203,3 +203,5 @@ lines(rbind(RUN$femaleData[,1,1],RUN$femaleData[,1,1],NA),rbind(R1M-R1Sd,R1M+R1S
 
 
 
+detach("package:mPlexR", unload=TRUE)
+detach("package:mPlexRCpp", unload=TRUE)

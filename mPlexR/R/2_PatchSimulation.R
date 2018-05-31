@@ -203,25 +203,7 @@ oneDay_EggMature_Patch <- function(){
   #only do if there are eggs
   if(private$genericCounter > 0){
 
-    #set mean age and sd. THESE NEED TO BE CHECKED or PROVEN
-    private$meanAge <- log(x = private$NetworkPointer$get_stageTime(stage = "E"))
-    private$sdAge <- log(x = 1.2)
-
-    #draw all the private$ages since this can probably be done.
-    # if not, do it one at a time in the loop.
-    # This could maybe become a patch variable, so we don't reallocate space.??
-    private$ages <- rlnorm(n = private$genericCounter, meanlog = private$meanAge, sdlog = private$sdAge)
-
-
-
-
-
-#    private$ages <- rpois(n = private$genericCounter, lambda = private$NetworkPointer$get_stageTime(stage = "E"))
-
-
-
-
-
+    private$ages <- private$NetworkPointer$get_stageTime(stage = "E")
 
     #Get ages
     private$matured <- vapply(X = private$eggs, FUN = '[[', "age", FUN.VALUE = integer(length = 1L))
@@ -254,26 +236,7 @@ oneDay_LarvaMature_Patch <- function(){
   #only do if things are there
   if(private$genericCounter > 0){
 
-    #set mean age and sd. THESE NEED TO BE CHECKED or PROVEN
-    private$meanAge <- log(x = sum(private$NetworkPointer$get_stageTime(stage = c("E", "L") ) ) )
-    private$sdAge <- log(x = 1.2)
-
-    #draw all the private$ages since this can probably be done.
-    # if not, do it one at a time in the loop.
-    # This could maybe become a patch variable, so we don't reallocate space.??
-    private$ages <- rlnorm(n = private$genericCounter, meanlog = private$meanAge, sdlog = private$sdAge)
-
-
-
-
-
-
-
-
-
-#    private$ages <- rpois(n = private$genericCounter, lambda = sum(private$NetworkPointer$get_stageTime(stage = c("E", "L") ) ))
-
-
+    private$ages <- sum(private$NetworkPointer$get_stageTime(stage = c("E", "L")))
 
     #get ages
     private$matured <- vapply(X = private$larva, FUN = '[[', "age", FUN.VALUE = integer(length = 1L))
@@ -309,22 +272,7 @@ oneDay_PupaMature_Patch <- function(){
   #only do things if there are pupa
   if(private$genericCounter > 0){
 
-    #set mean age and sd. THESE NEED TO BE CHECKED or PROVEN
-    private$meanAge <- log(x = sum(private$NetworkPointer$get_stageTime(stage = c("E", "L", "P")) ) )
-    private$sdAge <- log(x = 1.2)
-
-    #draw all the private$ages since this can probably be done.
-    # if not, do it one at a time in the loop.
-    # This could maybe become a patch variable, so we don't reallocate space.??
-    private$ages <- rlnorm(n = private$genericCounter, meanlog = private$meanAge, sdlog = private$sdAge)
-
-
-
-
-#    private$ages <- rpois(n = private$genericCounter, lambda = sum(private$NetworkPointer$get_stageTime(stage = c("E", "L", "P")) ))
-
-
-
+    private$ages <- sum(private$NetworkPointer$get_stageTime(stage = c("E", "L", "P")) )
 
     #get ages
     private$matured <- vapply(X = private$pupa, FUN = '[[', "age", FUN.VALUE = integer(length = 1L))
