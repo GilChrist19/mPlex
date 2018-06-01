@@ -12,17 +12,8 @@
 #include "mPlex-PRNG.hpp"
 
 /* constructor & destructor */
-prng::prng(){
-  #ifdef DEBUG_MPLEX
-  std::cout << "prng being born at " << this << std::endl;
-  #endif
-};
-
-prng::~prng(){
-  #ifdef DEBUG_MPLEX
-  std::cout << "prng being killed at " << this << std::endl;
-  #endif
-};
+prng::prng(){};
+prng::~prng(){};
 
 /* utility methods */
 prng* prng::instance(){
@@ -54,6 +45,11 @@ double prng::get_rlnorm(const double &meanlog, const double &sdlog){
   return rlnorm(rng);
 };
 
+size_t prng::get_oneSample(const std::vector<double>& prob){
+  std::discrete_distribution<size_t> sample(prob.begin(),prob.end());
+  return sample(rng);
+}
+
 /* discrete random variate sampling */
 int prng::get_rpois(const double &lambda){
   std::poisson_distribution<int>rpois(lambda);
@@ -74,6 +70,24 @@ std::vector<int> prng::get_rmultinom(const int &size, const std::vector<double> 
   }
   return sample;
 };
+
+std::vector<double> prng::get_rdirichlet(const std::vector<double>& prob){
+  
+  std::vector<double> sample(prob);
+  
+  for(auto& sampleIt : sample){
+    std::gamma_distribution<double> gamma(sampleIt, 1.0);
+    sampleIt = gamma(rng);
+  }
+  
+  double hold = std::accumulate(sample.begin(), sample.end(), 0.0);
+  
+  for(auto& sampleIt : sample){
+    sampleIt /= hold;
+  }
+
+  return sample;
+}
 
 /* resample template type T x 'size' times */
 template<typename T>

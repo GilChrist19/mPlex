@@ -14,28 +14,37 @@
 class Mosquito {
 public:
 
-  /* constructor & destructor */
-  Mosquito(const int& _age);
-  ~Mosquito();
+  // constructor & destructor
+  Mosquito(const int& _age, const std::string& _genotype);
+  virtual ~Mosquito();
 
-  /* delete copy constructor and assignment operator */
+  // delete copy constructor and assignment operator
   Mosquito(const Mosquito& h) = delete;
   Mosquito& operator=(const Mosquito& h) = delete;
 
-  /* compiler generated move constructor & assignment operator */
+  // compiler generated move constructor & assignment operator
   Mosquito(Mosquito&& h);
   Mosquito& operator=(Mosquito&& h);
 
-  /* accessors */
+  // getters 
   int                   get_age(){return age;};
-  std::string&          get_mate(){return mate;};
   std::string&          get_genotype(){return genotype;};
-  void                  set_mate(){}
-
-private:
+  std::string&          get_mate(){return mate;};
+  
+  
+  // setter
+  void                  age_one_day(){age++;};
+  void                  set_mate(std::string newMate){mate = newMate;};
+  
+  
+  // print
+  std::string           print_male();
+  std::string           print_female();
+  
+protected:
 
   int                   age;
-  std::string           mate;
   std::string           genotype;
+  std::string           mate;
 
 };
