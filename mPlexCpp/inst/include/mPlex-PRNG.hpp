@@ -22,7 +22,6 @@ public:
     /* utility methods */
     static prng*                           instance(); /* get instance */
     void                                   set_seed(const uint_least32_t& seed);
-    void                                   suicide();
 
     /* continuous random variate sampling */
     double                                 get_runif();

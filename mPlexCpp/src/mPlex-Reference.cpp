@@ -28,7 +28,7 @@ reference& reference::instance(){
 **************************************/
 
 // s parameter
-void reference::set_reference(const Rcpp::ListOf<double>& s_){
+void reference::set_reference(const Rcpp::NumericVector& s_){
 
   // get genotypes from s vector
   sVec listNames = s_.names();

@@ -26,10 +26,6 @@ void prng::set_seed(const uint_least32_t &seed){
   runif = std::uniform_real_distribution<double>(0,1);
 };
 
-void prng::suicide(){
-  prng::~prng();
-};
-
 /* continuous random variate sampling */
 double prng::get_runif(){
   return runif(rng);

@@ -36,7 +36,7 @@ public:
   /* utility methods */
   static reference&   instance();
   
-  void                set_reference(const Rcpp::ListOf<double>& s_);
+  void                set_reference(const Rcpp::NumericVector& s_);
   
   void                set_mendelian(const Rcpp::ListOf<Rcpp::ListOf<dVec> >& probs_, const Rcpp::ListOf<Rcpp::ListOf<sVec> >& alleles_);
   void                set_homing(const Rcpp::ListOf<Rcpp::ListOf<dVec> >& probs_, const Rcpp::ListOf<Rcpp::ListOf<sVec> >& alleles_);
