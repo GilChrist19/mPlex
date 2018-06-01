@@ -54,7 +54,7 @@ public:
 
   /* biological parameters */
   int               get_stage_time(size_t stage){return stage_time[stage];};
-  int               get_stage_sum(size_t stage){return std::accumulate(stage_time.begin(), stage_time[stage], 0)}
+  int               get_stage_sum(size_t stage){return std::accumulate(stage_time.begin(), stage_time[stage], 0);};
   double            get_beta(){return beta;};
   int               get_mu(size_t stage){return mu[stage];};
   
