@@ -24,16 +24,13 @@ public:
   /* utility methods */
   static parameters&    instance();
   void                  set_parameters(/* simulation fields */
-                                       const int& n_patch_, const int& sim_time_, const double& move_var_, const int run_id_,
+                                       const int& n_patch_, const int& sim_time_, const double& move_var_, const int& run_id_,
                                        /* biological parameters */
                                         const std::vector<int>& stage_time_, const double& beta_, const std::vector<double>& mu_,
                                        /* patch-specific derived parameters */
-                                       const std::vector<double>& alpha_, const std::vector<double>& larva_eq_, const std::vector<double>& adult_pop_eq_,
+                                       const std::vector<double>& alpha_, const std::vector<int>& larva_eq_, const std::vector<int>& adult_pop_eq_,
                                        // batch parameters
                                        const std::vector<double>& batchProbs_, const arma::Cube<double>& sexProbs_, const Rcpp::NumericMatrix& moveMat_);
-  
-  void                  set_batch_parameters(const std::vector<double>& batchProbs_, const arma::Cube<double>& sexProbs_, const Rcpp::NumericMatrix& moveMat_);
-
   
   
   
@@ -71,9 +68,9 @@ public:
   
   /* batch migration parameters */
   double                get_batchProbs(const size_t patch){return batchProbs[patch];};
-  std::vector<double>   get_batchMale(const size_t patch){return sexProbs.tube(patch, 0);};
-  std::vector<double>   get_batchFemale(const size_t patch){return sexProbs.tube(patch,1);};
-  std::vector<double>   get_batchLocation(const size_t patch){return batchLocations.row(patch);};
+  arma::Col<double>     get_batchMale(const size_t patch){return sexProbs.tube(patch, 0);};
+  arma::Col<double>     get_batchFemale(const size_t patch){return sexProbs.tube(patch,1);};
+  Rcpp::NumericVector   get_batchLocation(const size_t patch){return batchLocations.row(patch);};
   
   
   

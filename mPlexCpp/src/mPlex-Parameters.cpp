@@ -25,7 +25,7 @@ parameters& parameters::instance(){
 
 /* set parameters: necessarily ugly, cannot use initializer lists because its not a constructor */
 void parameters::set_parameters(/* simulation fields */
-                                const int& n_patch_, const int& sim_time_, const double& move_var_, const int run_id_,
+                                const int& n_patch_, const int& sim_time_, const double& move_var_, const int& run_id_,
                                 /* biological parameters */
                                 const std::vector<int>& stage_time_, const double& beta_, const std::vector<double>& mu_,
                                 /* patch-specific derived parameters */

@@ -35,7 +35,9 @@ void reference::set_reference(const Rcpp::NumericVector& s_){
   
   // for all of them, fill the map, casting things as key,value pairs
   for(size_t it=0; it<s_.size(); ++it){
-    s.insert(std::make_pair<std::string,double>(listNames[it], s_[it]) );
+    s.insert(std::make_pair(listNames[it], s_[it]) );
+    
+    //std::make_pair<std::string, double>(listNames[it], s_[it] );
   }
   
 };
