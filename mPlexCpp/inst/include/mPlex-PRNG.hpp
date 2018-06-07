@@ -20,7 +20,7 @@
 class prng final {
 public:
     /* utility methods */
-    static prng*                           instance(); /* get instance */
+    static prng&                           instance(); /* get instance */
     void                                   set_seed(const uint_least32_t& seed);
 
     /* continuous random variate sampling */

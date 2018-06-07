@@ -9,6 +9,9 @@
  *    January 2018
 */
 
+#ifndef MOSQUITO_MPLEX
+#define MOSQUITO_MPLEX
+
 #include <string>
 
 class Mosquito {

@@ -6,16 +6,6 @@
 
 using namespace Rcpp;
 
-// unit_test_PRNG
-void unit_test_PRNG(const uint_least32_t& seed);
-RcppExport SEXP _mPlexCpp_unit_test_PRNG(SEXP seedSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const uint_least32_t& >::type seed(seedSEXP);
-    unit_test_PRNG(seed);
-    return R_NilValue;
-END_RCPP
-}
 // rcpp_hello_world
 List rcpp_hello_world();
 RcppExport SEXP _mPlexCpp_rcpp_hello_world() {
@@ -28,7 +18,6 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_mPlexCpp_unit_test_PRNG", (DL_FUNC) &_mPlexCpp_unit_test_PRNG, 1},
     {"_mPlexCpp_rcpp_hello_world", (DL_FUNC) &_mPlexCpp_rcpp_hello_world, 0},
     {NULL, NULL, 0}
 };

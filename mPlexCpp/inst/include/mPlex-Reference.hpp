@@ -36,26 +36,31 @@ public:
   /* utility methods */
   static reference&   instance();
   
-  void                set_reference(const Rcpp::NumericVector& s_);
+  void                set_reference(const Rcpp::NumericVector& eta_, const Rcpp::NumericVector& phi_,
+                                    const Rcpp::NumericVector& omega_, const Rcpp::NumericVector& xiF_,
+                                    const Rcpp::NumericVector& xiM_, const Rcpp::NumericVector& s_);
   
-  void                set_mendelian(const Rcpp::ListOf<Rcpp::ListOf<dVec> >& probs_, const Rcpp::ListOf<Rcpp::ListOf<sVec> >& alleles_);
-  void                set_homing(const Rcpp::ListOf<Rcpp::ListOf<dVec> >& probs_, const Rcpp::ListOf<Rcpp::ListOf<sVec> >& alleles_);
-  void                set_cutting(const Rcpp::ListOf<Rcpp::ListOf<dVec> >& probs_, const Rcpp::ListOf<Rcpp::ListOf<sVec> >& alleles_);
+  void                set_mendelian(const Rcpp::ListOf<Rcpp::ListOf<Rcpp::NumericVector> >& probs_,
+                                    const Rcpp::ListOf<Rcpp::ListOf<Rcpp::StringVector> >& alleles_);
+  void                set_homing(const Rcpp::ListOf<Rcpp::ListOf<Rcpp::NumericVector> >& probs_,
+                                 const Rcpp::ListOf<Rcpp::ListOf<Rcpp::StringVector> >& alleles_);
+  void                set_cutting(const Rcpp::ListOf<Rcpp::ListOf<Rcpp::NumericVector> >& probs_,
+                                  const Rcpp::ListOf<Rcpp::ListOf<Rcpp::StringVector> >& alleles_);
   
-
-  
-  // HOW DO i SET AND GET S/??????
   // getters
+  double      get_eta(std::string genType);
+  double      get_phi(std::string genType);
+  double      get_omega(std::string genType);
+  double      get_xiF(std::string genType);
+  double      get_xiM(std::string genType);
   double      get_s(std::string genType);
-  
+
   dVec        get_mendelian_probs(size_t locus, size_t allele){return mendelian_probs[locus][allele];};
   sVec        get_mendelian_allele(size_t locus, size_t allele){return mendelian_alleles[locus][allele];};
   dVec        get_homing_probs(size_t locus, size_t allele){return homing_probs[locus][allele];};
   sVec        get_homing_allele(size_t locus, size_t allele){return homing_alleles[locus][allele];};
   dVec        get_cutting_probs(size_t locus, size_t allele){return cutting_probs[locus][allele];};
   sVec        get_cutting_allele(size_t locus, size_t allele){return cutting_alleles[locus][allele];};
-  
-  
   
   
 private:
@@ -70,6 +75,11 @@ private:
   reference& operator=(reference&&) = delete;
 
   /* fields */
+  std::unordered_map<std::string, double>   eta;
+  std::unordered_map<std::string, double>   phi;
+  std::unordered_map<std::string, double>   omega;
+  std::unordered_map<std::string, double>   xiF;
+  std::unordered_map<std::string, double>   xiM;
   std::unordered_map<std::string, double>   s;
   
   std::vector<dArVec>                       mendelian_probs;
@@ -80,6 +90,5 @@ private:
   std::vector<sArVec>                       cutting_alleles;
 
 };
-
 
 #endif
