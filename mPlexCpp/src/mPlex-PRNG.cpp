@@ -16,9 +16,9 @@ prng::prng(){};
 prng::~prng(){};
 
 /* utility methods */
-prng* prng::instance(){
+prng& prng::instance(){
     static prng instance;
-    return &instance;
+    return instance;
 };
 
 void prng::set_seed(const uint_least32_t &seed){

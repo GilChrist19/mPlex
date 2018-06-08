@@ -93,7 +93,7 @@ Patch::Patch(const int& patchID_,
                                   Rcpp::as<int>(maleReleases_[i]["tRelease"])
                                   );
     }
-    std::sort(releaseM.begin(), releaseM.end(), [](release_int a, release_int b){
+    std::sort(releaseM.begin(), releaseM.end(), [](release_event a, release_event b){
       return a.release_time > b.release_time;
     });
   }
@@ -108,7 +108,7 @@ Patch::Patch(const int& patchID_,
                                   Rcpp::as<int>(femaleReleases_[i]["tRelease"])
       );
     }
-    std::sort(releaseF.begin(), releaseF.end(), [](release_int a, release_int b){
+    std::sort(releaseF.begin(), releaseF.end(), [](release_event a, release_event b){
       return a.release_time > b.release_time;
     });
   }
@@ -123,7 +123,7 @@ Patch::Patch(const int& patchID_,
                                   Rcpp::as<int>(larvaeReleases_[i]["tRelease"])
       );
     }
-    std::sort(releaseL.begin(), releaseL.end(), [](release_int a, release_int b){
+    std::sort(releaseL.begin(), releaseL.end(), [](release_event a, release_event b){
       return a.release_time > b.release_time;
     });
   }
@@ -378,212 +378,202 @@ void Patch::oneDay_eggMaturation(Patch* P){
 /**************************************
  * Mate
 ***************************************/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/**************************************
-* Mating
-***************************************/
-void Patch::oneGen_Mating(Patch* E){
-
-  // if there are males, do it, else, return zeros
-  if(arma::sum(E->Population.slice(E->tNow).col(0)) > 0){
-
-    // two things I need
-    size_t genotypesN = cube_base::instance().get_genotypesN();
-
-    // probabilities, need conversion to doubles, then normalize
-    Column_dbl probs = arma::conv_to<Column_dbl>::from(E->Population.slice(E->tNow).col(0)) % cube_base::instance().get_eta();
-    probs = probs/ arma::sum(probs);
-
-
-    // loop over females
-    for(size_t i=0; i<genotypesN; ++i){
-      // if there are females, do it, else zeros
-      if(E->Population.slice(E->tNow).at(i,1) > 0){
-        R::rmultinom(E->Population.slice(E->tNow).at(i,0), probs.begin(), genotypesN, E->holdVec.begin());
-        E->matedFemales.row(i) = arma::conv_to<arma::Row<int> >::from(E->holdVec);
-      } else {
-        E->matedFemales.row(i).zeros();
-      }
-    } // end for loop
-  } else {
-    E->matedFemales.zeros();
-  }
-
-}
-
-/**************************************
-* Lay Eggs
-***************************************/
-void Patch::oneGen_layEggs(Patch* E){
-  // Use several times
-  size_t genotypesN = cube_base::instance().get_genotypesN();
-
-  // setup hold matrix
-  double offspring;
-
-  // beta and S combination
-  Column_dbl betaS = E->beta * cube_base::instance().get_s();
-
-  // loop over all offspring genotypes
-  for(size_t slice=0; slice<genotypesN; ++slice){
-    /* hadamard product of AF1dly with cube_offspring */
-    E->AF1_hadamard = arma::conv_to<Matrix_dbl>::from(E->matedFemales) % cube_base::instance().get_cube_z(slice) % cube_base::instance().get_tau_z(slice);
-    /* multiply element-wise by beta * s */
-    E->AF1_hadamard.each_col() %= betaS;
-    offspring = arma::accu(E->AF1_hadamard);
-    /* sum over genotype and put into eggs matrix */
-    if(offspring>0){
-      E->Population.slice(E->tNow).at(slice,2) = R::rpois(offspring);
+void Patch::oneDay_mating(Patch* P){
+  
+  if((P->adult_male.size() != 0) && (P->unmated_female.size() !=0) ){
+    
+    // genotype and probs vectors
+    std::vector<std::string> genotypes(P->adult_male.size());
+    std::vector<double> probs(P->adult_male.size());
+    std::string mate;
+    
+    // loop over males, get genotypes and mating fitness
+    for(size_t it=0; it<P->adult_male.size(); ++it){
+      genotypes[it] = P->adult_male[it].get_genotype();
+      probs[it] = reference::instance().get_eta(genotypes[it]);
     }
-  } // end for loop
+    
+    // loop over unmated females
+    for(auto it= P->unmated_female.rbegin(); it != P->unmated_female.rend(); ++it){
+      //get and set mate
+      mate = genotypes[prng::instance().get_oneSample(probs)];
+      it->set_mate(mate);
+      // move to real adult females and remove
+      P->adult_female.push_back(*it);
+      P->unmated_female.pop_back();
+    } // end loop over unmated females 
+
+  } // only do if there are unmated females and males to mate with
+  
 }
 
 /**************************************
-* Male/Female
+ * Releases
 ***************************************/
-void Patch::oneGen_sexDetermination(Patch* E){
-
-  // get sex ratios
-  Column_dbl phi = cube_base::instance().get_phi();
-  size_t genotypesN= cube_base::instance().get_genotypesN();
-
-  // pull binomial by sex ratio, save as male/female
-  for(size_t i=0; i<genotypesN; ++i){
-    if(E->Population.slice(E->tNow).at(i,2)>0){
-      E->Population.slice(E->tNow).at(i,3) = R::rbinom(E->Population.slice(E->tNow).at(i,2),phi[i]);
-      E->Population.slice(E->tNow).at(i,4) = E->Population.slice(E->tNow).at(i,2) - E->Population.slice(E->tNow).at(i,3);
-    }
-  }// end loop
+void Patch::oneDay_Releases(Patch* P){
+  
+  /****************
+   * MALE
+  ****************/
+  // if there are releases left, and the time is appropriate
+  if( (!P->releaseM.empty()) && (P->releaseM.back().release_time <= parameters::instance().get_t_now()) ){
+    
+    for(size_t it = 0; it < P->releaseM.back().pop_ages.size(); ++it){
+      
+      P->adult_male.push_back(Mosquito(P->releaseM.back().pop_ages[it],
+                                       P->releaseM.back().pop_names[it])
+                              );
+    } // end loop over released mosquitoes
+    
+    // remove release
+    P->releaseM.pop_back();
+  } // end male release
+  
+  /****************
+   * FEMALE
+  ****************/
+  if( (!P->releaseF.empty()) && (P->releaseF.back().release_time <= parameters::instance().get_t_now()) ){
+    
+    
+    for(size_t it = 0; it < P->releaseF.back().pop_ages.size(); ++it){
+      
+      P->adult_female.push_back(Mosquito(P->releaseF.back().pop_ages[it],
+                                         P->releaseF.back().pop_names[it])
+                                );
+    } // end loop over releases
+    
+    // remove release
+    P->releaseF.pop_back();
+  } // end female release
+  
+  /****************
+   * LARVA
+  ****************/
+  if( (!P->releaseL.empty()) && (P->releaseL.back().release_time <= parameters::instance().get_t_now()) ){
+    
+    
+    for(size_t it = 0; it < P->releaseL.back().pop_ages.size(); ++it){
+      
+      P->adult_female.push_back(Mosquito(P->releaseL.back().pop_ages[it],
+                                         P->releaseL.back().pop_names[it])
+      );
+    } // end loop over releases
+    
+    // remove release
+    P->releaseL.pop_back();
+  } // end larva release
+  
 }
 
 /**************************************
-* Sample for Tomorrow
+ * Migration
 ***************************************/
-void Patch::oneGen_adultSampling(Patch* E){
+void Patch::oneDay_migrationOut(Patch* P){
+  
+  // clear old migration
+  P->maleMigration.clear();
+  P->femaleMigration.clear();
+  
+  // used a lot
+  int patch;
+  dVec Probs = prng::instance().get_rdirichlet(parameters::instance().get_male_migration(P->patchID)); 
+  
+  /****************
+   * MALE
+  ****************/
+  // loop over all adult males
+  for(auto it = P->adult_male.rbegin(); it != P->adult_male.rend(); ++it){
+    //get which patch he goes to
+    patch = prng::instance().get_oneSample(Probs);
+    
+    // if not this patch
+    if(patch != P->patchID){ 
+      // add to new patch it goes to
+      P->maleMigration[patch].push_back(*it);
+      // remove
+      std::swap(*it, P->adult_male.back());
+      P->adult_male.pop_back();
+    } // end if this patch
+    
+  } // end loop over adult males
+  
+  
+  /****************
+   * FEMALE
+  ****************/
+  // get slightly more variance in probability
+  Probs = prng::instance().get_rdirichlet(parameters::instance().get_female_migration(P->patchID));
+  
+  // loop over all females
+  for(auto it = P->adult_female.rbegin(); it != P->adult_female.rend(); ++it){
+    // get which patch she goes to
+    patch = prng::instance().get_oneSample(Probs);
+    
+    // if not this patch
+    if(patch != P->patchID){
+      // add to new place
+      P->femaleMigration[patch].push_back(*it);
+      // remove
+      std::swap(*it, P->adult_female.back());
+      P->adult_female.pop_back();
+    } // end if
+    
+  } // end loop over females
+  
+}
 
-  //These hypergeometric things are a problem!!
-  /* The hypergeometric takes integer bins as input.
-   * however, multiplying the integers by doubls should give doubles, which I
-   * am casting back as ints. This is creating a truncation that at low densities
-   * could cause problems. Is th is ok? It matches the deterministic because
-   * there is a cutoff in that one, where anything less than 1 is turned to 0.
-   */
-
-  // use several times
-  int genotypesN = cube_base::instance().get_genotypesN();
-  int drawSize;
-
-  // males for tomorrow
-  drawSize = R::rbinom(E->AdPopEQ, 0.5);
-  E->holdVec = arma::conv_to<Column_int>::from(arma::conv_to<Column_dbl>::from(E->Population.slice(E->tNow).col(3))
-                                                 % cube_base::instance().get_xiM());
-  E->Population.slice(E->tNow+1).col(0) = rmvHyperGeo(E->holdVec, drawSize);
-
-  // females for tomorrow
-  drawSize = R::rbinom(E->AdPopEQ, 0.5);
-  E->holdVec = arma::conv_to<Column_int>::from(arma::conv_to<Column_dbl>::from(E->Population.slice(E->tNow).col(4))
-                                                 % cube_base::instance().get_xiF());
-  E->Population.slice(E->tNow+1).col(1) = rmvHyperGeo(E->holdVec, drawSize);
-
+void Patch::oneDay_migrationIn(const popVec& male, const popVec& female){
+  // append new males
+  adult_male.insert(adult_male.end(), male.begin(), male.end());
+  // append females
+  adult_female.insert(adult_female.end(), female.begin(), female.end() );
 }
 
 /**************************************
- * Release Functions
- ***************************************/
-void Patch::oneGen_maleReleases(Patch* E){
-
-  //These hypergeometric things are a problem!!
-  /* The hypergeometric takes integer bins as input.
-   * however, multiplying the integers by doubls should give doubles, which I
-   * am casting back as ints. This is creating a truncation that at low densities
-   * could cause problems. Is th is ok? It matches the deterministic because
-   * there is a cutoff in that one, where anything less than 1 is turned to 0.
-   */
-
-  // releases queued up
-  if(!E->releaseM.empty()){
-    if(E->releaseM.back().release_time <= E->tNow){
-
-      // adult mosquitoes replaced by release
-      int drawSize = R::rbinom(2*arma::sum(E->releaseM.back().release_pop), 0.5);
-      E->holdVec = arma::conv_to<Column_int>::from(arma::conv_to<Column_dbl>::from(E->Population.slice(E->tNow).col(0))
-                                                     % cube_base::instance().get_xiM());
-      E->holdVec = rmvHyperGeo(E->holdVec, drawSize);
-
-
-      // add new and remove replaces
-      E->Population.slice(E->tNow).col(0) += E->releaseM.back().release_pop;
-      E->Population.slice(E->tNow).col(0) -= E->holdVec;
-
-      // remove release from list
-      E->releaseM.pop_back();
-    }
-  }
-}
-
-void Patch::oneGen_femaleReleases(Patch* E){
-
-  // releases queued up
-  if(!E->releaseF.empty()){
-    if(E->releaseF.back().release_time <= E->tNow){
-
-      // adult mosquitoes replaced by release
-      int drawSize = R::rbinom(2*arma::sum(E->releaseF.back().release_pop), 0.5);
-      E->holdVec = arma::conv_to<Column_int>::from(arma::conv_to<Column_dbl>::from(E->Population.slice(E->tNow).col(1))
-                                                     % cube_base::instance().get_xiF());
-      E->holdVec = rmvHyperGeo(E->holdVec, drawSize);
-
-      // add new and remove old
-      E->Population.slice(E->tNow).col(1) += E->releaseF.back().release_pop;
-      E->Population.slice(E->tNow).col(1) -= E->holdVec;
-
-      // remove release from list
-      E->releaseF.pop_back();
-    }
-  }
-}
-
-/**************************************
- * Reset Function
+ * Reset
 ***************************************/
-void Patch::reset_Experiment(){
-
-  // reset time
-  this->tNow = 0;
-
-  // rezero population cube, set initial adults
-  this->Population.zeros();
-  this->Population.slice(0).col(0) = ADMt0;
-  this->Population.slice(0).col(1) = AF1t0;
-
+void Patch::reset_Patch(){
+  
+  // reset aquatic phases
+  eggs = eggs_t0;
+  larva = larva_t0;
+  pupa = pupa_t0;
+  
+  // reset adults
+  adult_male = adult_male_t0;
+  unmated_female = unmated_female_t0;
+  adult_female.clear();
+  
   // reset releases
-  this->releaseF = releaseF0;
-  this->releaseM = releaseM0;
+  releaseM = releaseM0;
+  releaseF = releaseF0;
+  releaseL = releaseL0;
 }
+
+/**************************************
+ * Print Functions
+***************************************/
+void Patch::init_output(){
+  
+  
+  
+  
+  
+}
+
+
+void Patch::oneDay_writeOutput(){
+  
+  
+  
+  
+  
+  
+  
+}
+
+
+
 
 
 

@@ -14,7 +14,6 @@
 
 #include <random>
 #include <vector>
-#include <numeric>
 
 /* threadsafe prng singleton */
 class prng final {

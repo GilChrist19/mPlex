@@ -22,12 +22,12 @@ public:
   virtual ~Mosquito();
 
   // delete copy constructor and assignment operator
-  Mosquito(const Mosquito& h) = delete;
-  Mosquito& operator=(const Mosquito& h) = delete;
+//  Mosquito(const Mosquito& h) = delete;
+//  Mosquito& operator=(const Mosquito& h) = delete;
 
   // compiler generated move constructor & assignment operator
-  Mosquito(Mosquito&& h);
-  Mosquito& operator=(Mosquito&& h);
+//  Mosquito(Mosquito&& h);
+// Mosquito& operator=(Mosquito&& h);
 
   // getters 
   int                   get_age(){return age;};
@@ -51,3 +51,5 @@ protected:
   std::string           mate;
 
 };
+
+#endif

@@ -16,8 +16,8 @@ Mosquito::Mosquito(const int& _age, const std::string& _genotype) : age(_age),ge
 Mosquito::~Mosquito(){};
 
 // compiler generated move constructor & assignment operator
-Mosquito::Mosquito(Mosquito&& h) = default;
-Mosquito& Mosquito::operator=(Mosquito&& h) = default;
+//Mosquito::Mosquito(Mosquito&& h) = default;
+//Mosquito& Mosquito::operator=(Mosquito&& h) = default;
 
 // print function
 std::string Mosquito::print_male(){

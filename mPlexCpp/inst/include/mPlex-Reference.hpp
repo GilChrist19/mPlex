@@ -19,7 +19,7 @@
 #include <unordered_map>
 #include <algorithm>
 
-#include <Rcpp.h>
+#include <RcppArmadillo.h>
 
 
 using dVec = std::vector<double>; 

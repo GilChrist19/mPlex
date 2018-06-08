@@ -11,7 +11,7 @@
 
 #include "1_Mosquito.hpp"
 #include <vector>
-#include <Rcpp.h>
+#include <RcppArmadillo.h>
 
 
 
@@ -23,7 +23,7 @@
 
 
 
-//#include <memory>
+
 
 
 
@@ -34,6 +34,7 @@
 
 /* forward declarations & alias */
 using popVec = std::vector<Mosquito>;
+using dVec = std::vector<double>;
 using iVec = std::vector<int>; 
 using sVec = std::vector<std::string>;
 
@@ -115,8 +116,8 @@ public:
   popVec    get_adult_female(){return adult_female;};
   popVec    get_unmated_female(){return unmated_female;};
   
-  popVec    get_maleMigration(){return maleMigration;};
-  popVec    get_femaleMigration(){return femaleMigration;};
+  std::vector<popVec>    get_maleMigration(){return maleMigration;};
+  std::vector<popVec>    get_femaleMigration(){return femaleMigration;};
   
   
   
@@ -125,45 +126,44 @@ public:
   
   
   // Population dynamics
-  void      oneDay_popDynamics();
+  void      oneDay_popDynamics(Patch* P);
   
   // Death
-  void      oneDay_eggDeath();
-  void      oneDay_larvaDeath();
-  void      oneDay_pupaDeath();
-  void      oneDay_adultDeath();
+  void      oneDay_eggDeath(Patch* P);
+  void      oneDay_larvaDeath(Patch* P);
+  void      oneDay_pupaDeath(Patch* P);
+  void      oneDay_adultDeath(Patch* P);
   
   // Aging
-  void      oneDay_eggAge();
-  void      oneDAy_larvaeAge();
-  void      oneDay_pupaAge();
-  void      oneDay_adultAge();
+  void      oneDay_eggAge(Patch* P);
+  void      oneDay_larvaeAge(Patch* P);
+  void      oneDay_pupaAge(Patch* P);
+  void      oneDay_adultAge(Patch* P);
   
   // Maturation
-  void      oneDay_pupaMaturation();
-  void      oneDay_larvaMaturation();
-  void      oneDay_eggMaturation();
+  void      oneDay_pupaMaturation(Patch* P);
+  void      oneDay_larvaMaturation(Patch* P);
+  void      oneDay_eggMaturation(Patch* P);
   
   // Mating
-  void      oneDay_mating();
+  void      oneDay_mating(Patch* P);
   
   // New Eggs
-  virtual void      oneDay_layEggs();
+  virtual void      oneDay_layEggs(Patch* P);
   
   // Releases 
-  void      oneDay_maleReleases();
-  void      oneDay_femaleReleases();
-  void      oneDay_larvaeReleases();
+  void      oneDay_Releases(Patch* P);
 
   // migration
-  void      oneDay_migrationOut();
+  void      oneDay_migrationOut(Patch* P);
   void      oneDay_migrationIn(const popVec& male, const popVec& female);
   
   
   
-  
+  // extras
   void      reset_Patch();
-
+  void      init_output();
+  void      oneDay_writeOutput();
 
 
 
@@ -195,8 +195,8 @@ private:
   popVec unmated_female;
   
   // migration things
-  popVec maleMigration;
-  popVec femaleMigration;
+  std::vector<popVec> maleMigration;
+  std::vector<popVec> femaleMigration;
   
   
   

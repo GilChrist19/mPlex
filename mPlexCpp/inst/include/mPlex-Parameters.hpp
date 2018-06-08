@@ -16,21 +16,29 @@
 
 #include <tuple>
 #include <vector>
-
 #include <RcppArmadillo.h>
+
+
+
+using dMat = std::vector<std::vector<double> >;
+using dVec = std::vector<double>;
+
+
 
 class parameters final {
 public:
   /* utility methods */
   static parameters&    instance();
   void                  set_parameters(/* simulation fields */
-                                       const int& n_patch_, const int& sim_time_, const double& move_var_, const int& run_id_,
+                                       const int& n_patch_, const int& sim_time_, const int& run_id_,
                                        /* biological parameters */
-                                        const std::vector<int>& stage_time_, const double& beta_, const std::vector<double>& mu_,
+                                        const std::vector<int>& stage_time_, const double& beta_, const dVec& mu_,
                                        /* patch-specific derived parameters */
-                                       const std::vector<double>& alpha_, const std::vector<int>& larva_eq_, const std::vector<int>& adult_pop_eq_,
+                                       const dVec& alpha_, const std::vector<int>& larva_eq_, const std::vector<int>& adult_pop_eq_,
+                                       // migration
+                                       const dMat& male_migration_, const dMat& female_migration_,
                                        // batch parameters
-                                       const std::vector<double>& batchProbs_, const arma::Cube<double>& sexProbs_, const Rcpp::NumericMatrix& moveMat_);
+                                       const std::vector<double>& batchProbs_, const arma::Cube<double>& sexProbs_, const dMat& moveMat_);
   
   
   
@@ -45,7 +53,8 @@ public:
   int               get_t_now(){return t_now;};
   void              reset_t_now(){t_now = 0;};
   void              increment_t_now(){t_now++;};
-  double            get_move_var(){return move_var;};
+  dVec              get_male_migration(size_t patch){return male_migration[patch];};
+  dVec              get_female_migration(size_t patch){return female_migration[patch];};
   int               get_run_id(){return run_id;};
 
 
@@ -70,7 +79,7 @@ public:
   double                get_batchProbs(const size_t patch){return batchProbs[patch];};
   arma::Col<double>     get_batchMale(const size_t patch){return sexProbs.tube(patch, 0);};
   arma::Col<double>     get_batchFemale(const size_t patch){return sexProbs.tube(patch,1);};
-  Rcpp::NumericVector   get_batchLocation(const size_t patch){return batchLocations.row(patch);};
+  dVec                  get_batchLocation(const size_t patch){return batchLocations[patch];};
   
   
   
@@ -109,23 +118,24 @@ private:
   int                   n_patch;
   int                   sim_time;
   int                   t_now;
-  double                move_var;
   int                   run_id;
+  dMat                  male_migration;
+  dMat                  female_migration;
   
   /* biological parameters */
   std::vector<int>      stage_time;
   double                beta;
-  std::vector<double>   mu;
+  dVec                  mu;
   
   /* patch-specific derived parameters */
-  std::vector<double>   alpha;
+  dVec                  alpha;
   std::vector<int>      larva_eq;
   std::vector<int>      adult_pop_eq;
 
   /* batch migration parameters */
-  std::vector<double>   batchProbs;
+  dVec                  batchProbs;
   arma::Cube<double>    sexProbs;
-  Rcpp::NumericMatrix   batchLocations;
+  dMat                  batchLocations;
 
 };
 
