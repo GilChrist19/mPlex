@@ -126,44 +126,49 @@ public:
   
   
   // Population dynamics
-  void      oneDay_popDynamics(Patch* P);
+  void      oneDay_popDynamics();
   
   // Death
-  void      oneDay_eggDeath(Patch* P);
-  void      oneDay_larvaDeath(Patch* P);
-  void      oneDay_pupaDeath(Patch* P);
-  void      oneDay_adultDeath(Patch* P);
+  void      oneDay_eggDeath();
+  void      oneDay_larvaDeath();
+  void      oneDay_pupaDeath();
+  void      oneDay_adultDeath();
   
   // Aging
-  void      oneDay_eggAge(Patch* P);
-  void      oneDay_larvaeAge(Patch* P);
-  void      oneDay_pupaAge(Patch* P);
-  void      oneDay_adultAge(Patch* P);
+  void      oneDay_eggAge();
+  void      oneDay_larvaeAge();
+  void      oneDay_pupaAge();
+  void      oneDay_adultAge();
   
   // Maturation
-  void      oneDay_pupaMaturation(Patch* P);
-  void      oneDay_larvaMaturation(Patch* P);
-  void      oneDay_eggMaturation(Patch* P);
+  void      oneDay_pupaMaturation();
+  void      oneDay_larvaMaturation();
+  void      oneDay_eggMaturation();
   
   // Mating
-  void      oneDay_mating(Patch* P);
+  void      oneDay_mating();
   
   // New Eggs
-  virtual void      oneDay_layEggs(Patch* P);
+  virtual void      oneDay_layEggs();
   
   // Releases 
-  void      oneDay_Releases(Patch* P);
+  void      oneDay_Releases();
 
   // migration
-  void      oneDay_migrationOut(Patch* P);
+  void      oneDay_migrationOut();
   void      oneDay_migrationIn(const popVec& male, const popVec& female);
   
   
   
   // extras
-  void      reset_Patch();
-  void      init_output();
-  void      oneDay_writeOutput();
+  void      reset_Patch(const popVec& eggs_t0_,
+                        const popVec& larva_t0_,
+                        const popVec& pupa_t0_,
+                        const popVec& adult_male_t0_,
+                        const popVec& unmated_female_t0_);
+  
+  void      init_output(std::ofstream& ADM_log, std::ofstream& ADF_log);
+  void      oneDay_writeOutput(std::ofstream& ADM_log, std::ofstream& ADF_log);
 
 
 
@@ -172,20 +177,11 @@ public:
   
   
   
-private:
+protected:
 
   // patchy things
   int patchID;
-  
-  
-  // store initial populations
-  popVec eggs_t0;
-  popVec larva_t0;
-  popVec pupa_t0;
-  popVec adult_male_t0;
-  popVec unmated_female_t0;
-  
-  
+
   // store current populations
   popVec eggs;
   popVec larva;

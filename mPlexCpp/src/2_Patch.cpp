@@ -45,40 +45,21 @@ Patch::Patch(const int& patchID_,
 
 
   // set populations
-  eggs_t0 = eggs_t0_;
-  larva_t0 = larva_t0_;
-  pupa_t0 = pupa_t0_;
-  adult_male_t0 = adult_male_t0_;
-  unmated_female_t0 = unmated_female_t0_;
-
   eggs.reserve(2*eggs_t0_.size());
   eggs = eggs_t0_;
   
   larva.reserve(2*larva_t0_.size());
   larva = larva_t0_;
   
-  pupa.reserve(pupa_t0_.size());
+  pupa.reserve(2*adult_male_t0_.size());
   pupa = pupa_t0_;
   
-  adult_male.reserve(adult_male_t0_.size());
+  adult_male.reserve(2*adult_male_t0_.size());
   adult_male = adult_male_t0_;
   
-  adult_female.reserve(adult_male_t0_.size());
+  adult_female.reserve(2*adult_male_t0_.size());
   
   unmated_female = unmated_female_t0_;
-  
-  
-  
-  
-
-  
-  
-  
-  
-  
-  
-  
-  
   
   
   // modified mosquito releases
@@ -152,33 +133,33 @@ Patch& Patch::operator=(Patch&& rhs) = default;
 * Population Dynamics for One Day
 ******************************************************************************/
 /* population dynamics */
-void Patch::oneDay_popDynamics(Patch* P){
+void Patch::oneDay_popDynamics(){
 
   // Death
-  oneDay_eggDeath(P);
-  oneDay_larvaDeath(P);
-  oneDay_pupaDeath(P);
-  oneDay_adultDeath(P);
+  oneDay_eggDeath();
+  oneDay_larvaDeath();
+  oneDay_pupaDeath();
+  oneDay_adultDeath();
   
   // Age
-  oneDay_eggAge(P);
-  oneDay_larvaeAge(P);
-  oneDay_pupaAge(P);
-  oneDay_adultAge(P);
+  oneDay_eggAge();
+  oneDay_larvaeAge();
+  oneDay_pupaAge();
+  oneDay_adultAge();
   
   // Mature
-  oneDay_pupaMaturation(P);
-  oneDay_larvaMaturation(P);
-  oneDay_eggMaturation(P);
+  oneDay_pupaMaturation();
+  oneDay_larvaMaturation();
+  oneDay_eggMaturation();
   
   // Mate
-  oneDay_mating(P);
+  oneDay_mating();
   
   // New Eggs
-  oneDay_layEggs(P);
+  oneDay_layEggs();
   
   // Releases
-  oneDay_Releases(P);
+  oneDay_Releases();
 
 };
 
@@ -188,74 +169,74 @@ void Patch::oneDay_popDynamics(Patch* P){
 /**************************************
  * Death
 ***************************************/
-void Patch::oneDay_eggDeath(Patch* P){
+void Patch::oneDay_eggDeath(){
 
   // Loop over all eggs in the vector
-  for(auto it = P->eggs.rbegin(); it != P->eggs.rend(); ++it){
+  for(auto it = eggs.rbegin(); it != eggs.rend(); ++it){
     // If it is your time, swap and remove
     if(prng::instance().get_rbinom(1, parameters::instance().get_mu(0))){
-      std::swap(*it, P->eggs.back());
-      P->eggs.pop_back();
+      std::swap(*it, eggs.back());
+      eggs.pop_back();
     }
   } // end loop
   
 }
 
-void Patch::oneDay_larvaDeath(Patch* P){
+void Patch::oneDay_larvaDeath(){
   
   int stage = parameters::instance().get_stage_time(1);
-  double alpha = parameters::instance().get_alpha(P->patchID);
-  alpha = std::pow(alpha/(alpha + P->larva.size()), 1.0/stage);
+  double alpha = parameters::instance().get_alpha(patchID);
+  alpha = std::pow(alpha/(alpha + larva.size()), 1.0/stage);
   alpha = 1.0-alpha*(1.0-parameters::instance().get_mu(1));
   
   // Loop over all larva in the vector
-  for(auto it = P->larva.rbegin(); it != P->larva.rend(); ++it){
+  for(auto it = larva.rbegin(); it != larva.rend(); ++it){
     // If it is your time, swap and remove
     if(prng::instance().get_rbinom(1, alpha) ){
-      std::swap(*it, P->larva.back());
-      P->larva.pop_back();
+      std::swap(*it, larva.back());
+      larva.pop_back();
     }
   } // end loop
 
 }
 
-void Patch::oneDay_pupaDeath(Patch* P){
+void Patch::oneDay_pupaDeath(){
   
   // Loop over all pupa in the vector
-  for(auto it = P->pupa.rbegin(); it != P->pupa.rend(); ++it){
+  for(auto it = pupa.rbegin(); it != pupa.rend(); ++it){
     // If it is your time, swap and remove
     if(prng::instance().get_rbinom(1, parameters::instance().get_mu(2))){
-      std::swap(*it, P->pupa.back());
-      P->pupa.pop_back();
+      std::swap(*it, pupa.back());
+      pupa.pop_back();
     }
   } // end loop
   
 }
 
-void Patch::oneDay_adultDeath(Patch* P){
+void Patch::oneDay_adultDeath(){
   
   double probs;
   double minusMu = 1.0 - parameters::instance().get_mu(3);
   
   // Loop over all adult males in the vector
-  for(auto it = P->adult_male.rbegin(); it != P->adult_male.rend(); ++it){
+  for(auto it = adult_male.rbegin(); it != adult_male.rend(); ++it){
     // get genotype specific chance of death
     probs = minusMu * reference::instance().get_omega(it->get_genotype());
     // If it is your time, swap and remove
     if(prng::instance().get_rbinom(1, 1.0-probs )){
-      std::swap(*it, P->adult_male.back());
-      P->adult_male.pop_back();
+      std::swap(*it, adult_male.back());
+      adult_male.pop_back();
     }
   } // end loop
   
   // Loop over all adult females in the vector
-  for(auto it = P->adult_female.rbegin(); it != P->adult_female.rend(); ++it){
+  for(auto it = adult_female.rbegin(); it != adult_female.rend(); ++it){
     // get genotype specific chance of death
     probs = minusMu * reference::instance().get_omega(it->get_genotype());
     // If it is your time, swap and remove
     if(prng::instance().get_rbinom(1, 1.0-probs )){
-      std::swap(*it, P->adult_female.back());
-      P->adult_female.pop_back();
+      std::swap(*it, adult_female.back());
+      adult_female.pop_back();
     }
   } // end loop
   
@@ -264,34 +245,34 @@ void Patch::oneDay_adultDeath(Patch* P){
 /**************************************
  * Age
 ***************************************/
-void Patch::oneDay_eggAge(Patch* P){
+void Patch::oneDay_eggAge(){
   // loop over eggs, age them all one day
-  for(auto& it : P->eggs){
+  for(auto& it : eggs){
     it.age_one_day();
   }
 }
 
-void Patch::oneDay_larvaeAge(Patch* P){
+void Patch::oneDay_larvaeAge(){
   // loop over larva, age them all one day
-  for(auto& it : P->larva){
+  for(auto& it : larva){
     it.age_one_day();
   }
 }
 
-void Patch::oneDay_pupaAge(Patch* P){
+void Patch::oneDay_pupaAge(){
   // loop over pupa, age them all one day
-  for(auto& it : P->pupa){
+  for(auto& it : pupa){
     it.age_one_day();
   }
 }
 
-void Patch::oneDay_adultAge(Patch* P){
+void Patch::oneDay_adultAge(){
   // loop over males
-  for(auto& it : P->adult_male){
+  for(auto& it : adult_male){
     it.age_one_day();
   }
   // loop over females
-  for(auto& it : P-> adult_female){
+  for(auto& it :  adult_female){
     it.age_one_day();
   }
 }
@@ -299,12 +280,12 @@ void Patch::oneDay_adultAge(Patch* P){
 /**************************************
  * Mature
 ***************************************/
-void Patch::oneDay_pupaMaturation(Patch* P){
+void Patch::oneDay_pupaMaturation(){
   
   int age = parameters::instance().get_stage_sum(2);
   
   // Loop over all pupa in the vector
-  for(auto it = P->pupa.rbegin(); it != P->pupa.rend(); ++it){
+  for(auto it = pupa.rbegin(); it != pupa.rend(); ++it){
     
     // If it is your time, we move in
     if(it->get_age() > age){
@@ -315,21 +296,21 @@ void Patch::oneDay_pupaMaturation(Patch* P){
         // check if it actually makes it
         if(prng::instance().get_rbinom(1, reference::instance().get_xiF(it->get_genotype()) )){
           // you become an unmated adult female
-          P->unmated_female.push_back(*it);
+          unmated_female.push_back(*it);
         }
         // you actually died
-        std::swap(*it, P->pupa.back());
-        P->pupa.pop_back();
+        std::swap(*it, pupa.back());
+        pupa.pop_back();
       } else {
         // male!
         // see if you actually make it
         if(prng::instance().get_rbinom(1, reference::instance().get_xiM(it->get_genotype()) )){
           // you become and adult male
-          P->adult_male.push_back(*it);
+          adult_male.push_back(*it);
         }
         // you died
-        std::swap(*it, P->pupa.back());
-        P->pupa.pop_back();
+        std::swap(*it, pupa.back());
+        pupa.pop_back();
         
       } // end gender mill
       
@@ -339,37 +320,37 @@ void Patch::oneDay_pupaMaturation(Patch* P){
   
 }
 
-void Patch::oneDay_larvaMaturation(Patch* P){
+void Patch::oneDay_larvaMaturation(){
   
   int age = parameters::instance().get_stage_sum(1);
   
   // Loop over all larva in the vector
-  for(auto it = P->larva.rbegin(); it != P->larva.rend(); ++it){
+  for(auto it = larva.rbegin(); it != larva.rend(); ++it){
     // If it is your time, swap and remove
     if(it->get_age() > age){
       // put maturing egg into larva
-      P->pupa.push_back(*it);
+      pupa.push_back(*it);
       // swap position and remove egg
-      std::swap(*it, P->larva.back());
-      P->larva.pop_back();
+      std::swap(*it, larva.back());
+      larva.pop_back();
     }
   } // end loop
   
 }
 
-void Patch::oneDay_eggMaturation(Patch* P){
+void Patch::oneDay_eggMaturation(){
   
   int age = parameters::instance().get_stage_time(0);
   
   // Loop over all eggs in the vector
-  for(auto it = P->eggs.rbegin(); it != P->eggs.rend(); ++it){
+  for(auto it = eggs.rbegin(); it != eggs.rend(); ++it){
     // If it is your time, swap and remove
     if(it->get_age() > age){
       // put maturing egg into larva
-      P->larva.push_back(*it);
+      larva.push_back(*it);
       // swap position and remove egg
-      std::swap(*it, P->eggs.back());
-      P->eggs.pop_back();
+      std::swap(*it, eggs.back());
+      eggs.pop_back();
     }
   } // end loop
 
@@ -378,29 +359,29 @@ void Patch::oneDay_eggMaturation(Patch* P){
 /**************************************
  * Mate
 ***************************************/
-void Patch::oneDay_mating(Patch* P){
+void Patch::oneDay_mating(){
   
-  if((P->adult_male.size() != 0) && (P->unmated_female.size() !=0) ){
+  if((adult_male.size() != 0) && (unmated_female.size() !=0) ){
     
     // genotype and probs vectors
-    std::vector<std::string> genotypes(P->adult_male.size());
-    std::vector<double> probs(P->adult_male.size());
+    std::vector<std::string> genotypes(adult_male.size());
+    std::vector<double> probs(adult_male.size());
     std::string mate;
     
     // loop over males, get genotypes and mating fitness
-    for(size_t it=0; it<P->adult_male.size(); ++it){
-      genotypes[it] = P->adult_male[it].get_genotype();
+    for(size_t it=0; it<adult_male.size(); ++it){
+      genotypes[it] = adult_male[it].get_genotype();
       probs[it] = reference::instance().get_eta(genotypes[it]);
     }
     
     // loop over unmated females
-    for(auto it= P->unmated_female.rbegin(); it != P->unmated_female.rend(); ++it){
+    for(auto it= unmated_female.rbegin(); it != unmated_female.rend(); ++it){
       //get and set mate
       mate = genotypes[prng::instance().get_oneSample(probs)];
       it->set_mate(mate);
       // move to real adult females and remove
-      P->adult_female.push_back(*it);
-      P->unmated_female.pop_back();
+      adult_female.push_back(*it);
+      unmated_female.pop_back();
     } // end loop over unmated females 
 
   } // only do if there are unmated females and males to mate with
@@ -410,57 +391,57 @@ void Patch::oneDay_mating(Patch* P){
 /**************************************
  * Releases
 ***************************************/
-void Patch::oneDay_Releases(Patch* P){
+void Patch::oneDay_Releases(){
   
   /****************
    * MALE
   ****************/
   // if there are releases left, and the time is appropriate
-  if( (!P->releaseM.empty()) && (P->releaseM.back().release_time <= parameters::instance().get_t_now()) ){
+  if( (!releaseM.empty()) && (releaseM.back().release_time <= parameters::instance().get_t_now()) ){
     
-    for(size_t it = 0; it < P->releaseM.back().pop_ages.size(); ++it){
+    for(size_t it = 0; it < releaseM.back().pop_ages.size(); ++it){
       
-      P->adult_male.push_back(Mosquito(P->releaseM.back().pop_ages[it],
-                                       P->releaseM.back().pop_names[it])
+      adult_male.push_back(Mosquito(releaseM.back().pop_ages[it],
+                                       releaseM.back().pop_names[it])
                               );
     } // end loop over released mosquitoes
     
     // remove release
-    P->releaseM.pop_back();
+    releaseM.pop_back();
   } // end male release
   
   /****************
    * FEMALE
   ****************/
-  if( (!P->releaseF.empty()) && (P->releaseF.back().release_time <= parameters::instance().get_t_now()) ){
+  if( (!releaseF.empty()) && (releaseF.back().release_time <= parameters::instance().get_t_now()) ){
     
     
-    for(size_t it = 0; it < P->releaseF.back().pop_ages.size(); ++it){
+    for(size_t it = 0; it < releaseF.back().pop_ages.size(); ++it){
       
-      P->adult_female.push_back(Mosquito(P->releaseF.back().pop_ages[it],
-                                         P->releaseF.back().pop_names[it])
+      adult_female.push_back(Mosquito(releaseF.back().pop_ages[it],
+                                         releaseF.back().pop_names[it])
                                 );
     } // end loop over releases
     
     // remove release
-    P->releaseF.pop_back();
+    releaseF.pop_back();
   } // end female release
   
   /****************
    * LARVA
   ****************/
-  if( (!P->releaseL.empty()) && (P->releaseL.back().release_time <= parameters::instance().get_t_now()) ){
+  if( (!releaseL.empty()) && (releaseL.back().release_time <= parameters::instance().get_t_now()) ){
     
     
-    for(size_t it = 0; it < P->releaseL.back().pop_ages.size(); ++it){
+    for(size_t it = 0; it < releaseL.back().pop_ages.size(); ++it){
       
-      P->adult_female.push_back(Mosquito(P->releaseL.back().pop_ages[it],
-                                         P->releaseL.back().pop_names[it])
+      adult_female.push_back(Mosquito(releaseL.back().pop_ages[it],
+                                         releaseL.back().pop_names[it])
       );
     } // end loop over releases
     
     // remove release
-    P->releaseL.pop_back();
+    releaseL.pop_back();
   } // end larva release
   
 }
@@ -468,31 +449,31 @@ void Patch::oneDay_Releases(Patch* P){
 /**************************************
  * Migration
 ***************************************/
-void Patch::oneDay_migrationOut(Patch* P){
+void Patch::oneDay_migrationOut(){
   
   // clear old migration
-  P->maleMigration.clear();
-  P->femaleMigration.clear();
+  maleMigration.clear();
+  femaleMigration.clear();
   
   // used a lot
   int patch;
-  dVec Probs = prng::instance().get_rdirichlet(parameters::instance().get_male_migration(P->patchID)); 
+  dVec Probs = prng::instance().get_rdirichlet(parameters::instance().get_male_migration(patchID)); 
   
   /****************
    * MALE
   ****************/
   // loop over all adult males
-  for(auto it = P->adult_male.rbegin(); it != P->adult_male.rend(); ++it){
+  for(auto it = adult_male.rbegin(); it != adult_male.rend(); ++it){
     //get which patch he goes to
     patch = prng::instance().get_oneSample(Probs);
     
     // if not this patch
-    if(patch != P->patchID){ 
+    if(patch != patchID){ 
       // add to new patch it goes to
-      P->maleMigration[patch].push_back(*it);
+      maleMigration[patch].push_back(*it);
       // remove
-      std::swap(*it, P->adult_male.back());
-      P->adult_male.pop_back();
+      std::swap(*it, adult_male.back());
+      adult_male.pop_back();
     } // end if this patch
     
   } // end loop over adult males
@@ -502,20 +483,20 @@ void Patch::oneDay_migrationOut(Patch* P){
    * FEMALE
   ****************/
   // get slightly more variance in probability
-  Probs = prng::instance().get_rdirichlet(parameters::instance().get_female_migration(P->patchID));
+  Probs = prng::instance().get_rdirichlet(parameters::instance().get_female_migration(patchID));
   
   // loop over all females
-  for(auto it = P->adult_female.rbegin(); it != P->adult_female.rend(); ++it){
+  for(auto it = adult_female.rbegin(); it != adult_female.rend(); ++it){
     // get which patch she goes to
     patch = prng::instance().get_oneSample(Probs);
     
     // if not this patch
-    if(patch != P->patchID){
+    if(patch != patchID){
       // add to new place
-      P->femaleMigration[patch].push_back(*it);
+      femaleMigration[patch].push_back(*it);
       // remove
-      std::swap(*it, P->adult_female.back());
-      P->adult_female.pop_back();
+      std::swap(*it, adult_female.back());
+      adult_female.pop_back();
     } // end if
     
   } // end loop over females
@@ -532,16 +513,20 @@ void Patch::oneDay_migrationIn(const popVec& male, const popVec& female){
 /**************************************
  * Reset
 ***************************************/
-void Patch::reset_Patch(){
+void Patch::reset_Patch(const popVec& eggs_t0_,
+                        const popVec& larva_t0_,
+                        const popVec& pupa_t0_,
+                        const popVec& adult_male_t0_,
+                        const popVec& unmated_female_t0_){
   
   // reset aquatic phases
-  eggs = eggs_t0;
-  larva = larva_t0;
-  pupa = pupa_t0;
+  eggs = eggs_t0_;
+  larva = larva_t0_;
+  pupa = pupa_t0_;
   
   // reset adults
-  adult_male = adult_male_t0;
-  unmated_female = unmated_female_t0;
+  adult_male = adult_male_t0_;
+  unmated_female = unmated_female_t0_;
   adult_female.clear();
   
   // reset releases
@@ -553,22 +538,36 @@ void Patch::reset_Patch(){
 /**************************************
  * Print Functions
 ***************************************/
-void Patch::init_output(){
+void Patch::init_output(std::ofstream& ADM_log, std::ofstream& ADF_log){
   
+  // write headers
+  ADM_log << "Time,Patch,Age,Genotype\n";
+  ADF_log << "Time,Patch,Age,Genotype,Mate\n";
   
+  // write males
+  for(auto& mos : adult_male){
+    ADM_log << parameters::instance().get_t_now() <<  "," << patchID << "," << mos.print_male();
+  }
   
-  
+  // write unmated females
+  for(auto& mos : unmated_female){
+    ADF_log << parameters::instance().get_t_now() <<  "," << patchID << "," << mos.print_female();
+  }
   
 }
 
 
-void Patch::oneDay_writeOutput(){
+void Patch::oneDay_writeOutput(std::ofstream& ADM_log, std::ofstream& ADF_log){
   
+  // write males
+  for(auto& mos : adult_male){
+    ADM_log << parameters::instance().get_t_now() <<  "," << patchID << "," << mos.print_male();
+  }
   
-  
-  
-  
-  
+  // write unmated females
+  for(auto& mos : adult_female){
+    ADF_log << parameters::instance().get_t_now() <<  "," << patchID << "," << mos.print_female();
+  }
   
 }
 
