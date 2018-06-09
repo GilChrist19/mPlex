@@ -501,6 +501,41 @@ void Patch::oneDay_migrationOut(){
     
   } // end loop over females
   
+  
+  /****************
+   * BATCH
+  ****************/
+  if(prng::instance().get_rbinom(1, parameters::instance().get_batchProbs(patchID))){
+    
+    // which patch will they migrate to
+    patch = prng::instance().get_oneSample(parameters::instance().get_batchLocation(patchID));
+    
+    // do male migration
+    for(auto mos = adult_male.rbegin(); mos != adult_male.rend(); ++mos){
+      // see if it moves
+      if(prng::instance().get_rbinom(1, parameters::instance().get_batchMale(patchID)) ){
+        // put him in new patch migration set
+        maleMigration[patch].push_back(*mos);
+        // remove him from here
+        std::swap(*mos, adult_male.back());
+        adult_male.pop_back();
+      }
+    } // end males
+    
+    // female batch migration
+    for(auto mos = adult_female.rbegin(); mos != adult_female.rend(); ++mos){
+      // see if she moves
+      if(prng::instance().get_rbinom(1, parameters::instance().get_batchFemale(patchID)) ){
+        // put her in the new patch
+        femaleMigration[patch].push_back(*mos);
+        // remove from current patch
+        std::swap(*mos, adult_female.back());
+        adult_female.pop_back();
+      }
+    } // end female batch
+
+  } // end batch migration
+  
 }
 
 void Patch::oneDay_migrationIn(const popVec& male, const popVec& female){

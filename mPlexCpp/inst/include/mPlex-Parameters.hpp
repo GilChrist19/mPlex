@@ -16,7 +16,7 @@
 
 #include <tuple>
 #include <vector>
-#include <RcppArmadillo.h>
+#include <numeric>
 
 
 
@@ -38,7 +38,7 @@ public:
                                        // migration
                                        const dMat& male_migration_, const dMat& female_migration_,
                                        // batch parameters
-                                       const std::vector<double>& batchProbs_, const arma::Cube<double>& sexProbs_, const dMat& moveMat_);
+                                       const std::vector<double>& batchProbs_, const dMat& sexProbs_, const dMat& moveMat_);
   
   
   
@@ -77,8 +77,8 @@ public:
   
   /* batch migration parameters */
   double                get_batchProbs(const size_t patch){return batchProbs[patch];};
-  arma::Col<double>     get_batchMale(const size_t patch){return sexProbs.tube(patch, 0);};
-  arma::Col<double>     get_batchFemale(const size_t patch){return sexProbs.tube(patch,1);};
+  double                get_batchMale(const size_t patch){return sexProbs[patch][0];};
+  double                get_batchFemale(const size_t patch){return sexProbs[patch][1];};
   dVec                  get_batchLocation(const size_t patch){return batchLocations[patch];};
   
   
@@ -134,7 +134,7 @@ private:
 
   /* batch migration parameters */
   dVec                  batchProbs;
-  arma::Cube<double>    sexProbs;
+  dMat                  sexProbs;
   dMat                  batchLocations;
 
 };

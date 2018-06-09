@@ -33,7 +33,7 @@ void parameters::set_parameters(/* simulation fields */
                                 // migration
                                 const dMat& male_migration_, const dMat& female_migration_,
                                 // batch parameters
-                                const dVec& batchProbs_, const arma::Cube<double>& sexProbs_, const dMat& moveMat_){
+                                const dVec& batchProbs_, const dMat& sexProbs_, const dMat& moveMat_){
 
 
 

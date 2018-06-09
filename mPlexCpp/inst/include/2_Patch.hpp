@@ -9,10 +9,11 @@
 #define PATCH_MPLEX
 
 
-#include "1_Mosquito.hpp"
+
 #include <vector>
 #include <RcppArmadillo.h>
 
+#include "1_Mosquito.hpp"
 
 
 
