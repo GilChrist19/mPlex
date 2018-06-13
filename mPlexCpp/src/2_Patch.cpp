@@ -5,21 +5,8 @@
 //  /_/  /_/\____/_____/_____/\____/ .___/ .___/
 //                                /_/   /_/
 
-#include "1_Mosquito.hpp"
+
 #include "2_Patch.hpp"
-#include "mPlex-PRNG.hpp"
-#include "mPlex-Parameters.hpp"
-#include "mPlex-Reference.hpp"
-
-#include <math.h>
-
-
-
-
-
-
-
-
 
 
 
@@ -30,103 +17,15 @@
 /******************************************************************************
 * constructor & destructor
 ******************************************************************************/
-Patch::Patch(const int& patchID_,
-             const int& simTime_,
-             const popVec& eggs_t0_,
-             const popVec& larva_t0_,
-             const popVec& pupa_t0_,
-             const popVec& adult_male_t0_,
-             const popVec& unmated_female_t0_,
-             const Rcpp::ListOf<Rcpp::List> maleReleases_,
-             const Rcpp::ListOf<Rcpp::List> femaleReleases_,
-             const Rcpp::ListOf<Rcpp::List> larvaeReleases_)
-{
-
-
-
-  // set populations
-  eggs.reserve(2*eggs_t0_.size());
-  eggs = eggs_t0_;
-  
-  larva.reserve(2*larva_t0_.size());
-  larva = larva_t0_;
-  
-  pupa.reserve(2*adult_male_t0_.size());
-  pupa = pupa_t0_;
-  
-  adult_male.reserve(2*adult_male_t0_.size());
-  adult_male = adult_male_t0_;
-  
-  adult_female.reserve(2*adult_male_t0_.size());
-  
-  unmated_female = unmated_female_t0_;
-  
-  
-  // modified mosquito releases
-
-  // male releases
-  if(maleReleases_.size()>0){
-    size_t mR = maleReleases_.size();
-    releaseM.reserve(mR);
-    for(size_t i=0; i<mR; i++){
-      releaseM[i] = release_event(Rcpp::as<sVec>(maleReleases_[i]["genVec"]),
-                                  Rcpp::as<iVec>(maleReleases_[i]["ageVec"]),
-                                  Rcpp::as<int>(maleReleases_[i]["tRelease"])
-                                  );
-    }
-    std::sort(releaseM.begin(), releaseM.end(), [](release_event a, release_event b){
-      return a.release_time > b.release_time;
-    });
-  }
-
-  // female releases
-  if(femaleReleases_.size()>0){
-    size_t mR = femaleReleases_.size();
-    releaseF.reserve(mR);
-    for(size_t i=0; i<mR; i++){
-      releaseF[i] = release_event(Rcpp::as<sVec>(femaleReleases_[i]["genVec"]),
-                                  Rcpp::as<iVec>(femaleReleases_[i]["ageVec"]),
-                                  Rcpp::as<int>(femaleReleases_[i]["tRelease"])
-      );
-    }
-    std::sort(releaseF.begin(), releaseF.end(), [](release_event a, release_event b){
-      return a.release_time > b.release_time;
-    });
-  }
-  
-  // larva releases
-  if(larvaeReleases_.size()>0){
-    size_t mR = larvaeReleases_.size();
-    releaseL.reserve(mR);
-    for(size_t i=0; i<mR; i++){
-      releaseL[i] = release_event(Rcpp::as<sVec>(larvaeReleases_[i]["genVec"]),
-                                  Rcpp::as<iVec>(larvaeReleases_[i]["ageVec"]),
-                                  Rcpp::as<int>(larvaeReleases_[i]["tRelease"])
-      );
-    }
-    std::sort(releaseL.begin(), releaseL.end(), [](release_event a, release_event b){
-      return a.release_time > b.release_time;
-    });
-  }
-  
-  // Things to hold for reset
-  releaseM0 = releaseM;
-  releaseF0 = releaseF;
-  releaseL0 = releaseL;
-  
-};
-
+Patch::Patch(){};
 Patch::~Patch(){};
+
 
 /******************************************************************************
 * default (compiler-generated) move semantics
 ******************************************************************************/
 Patch::Patch(Patch&& rhs) = default;
 Patch& Patch::operator=(Patch&& rhs) = default;
-
-
-
-
 
 
 /******************************************************************************
@@ -543,31 +442,6 @@ void Patch::oneDay_migrationIn(const popVec& male, const popVec& female){
   adult_male.insert(adult_male.end(), male.begin(), male.end());
   // append females
   adult_female.insert(adult_female.end(), female.begin(), female.end() );
-}
-
-/**************************************
- * Reset
-***************************************/
-void Patch::reset_Patch(const popVec& eggs_t0_,
-                        const popVec& larva_t0_,
-                        const popVec& pupa_t0_,
-                        const popVec& adult_male_t0_,
-                        const popVec& unmated_female_t0_){
-  
-  // reset aquatic phases
-  eggs = eggs_t0_;
-  larva = larva_t0_;
-  pupa = pupa_t0_;
-  
-  // reset adults
-  adult_male = adult_male_t0_;
-  unmated_female = unmated_female_t0_;
-  adult_female.clear();
-  
-  // reset releases
-  releaseM = releaseM0;
-  releaseF = releaseF0;
-  releaseL = releaseL0;
 }
 
 /**************************************

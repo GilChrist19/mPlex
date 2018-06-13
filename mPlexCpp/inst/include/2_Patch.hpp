@@ -11,10 +11,15 @@
 
 
 #include <vector>
-#include <RcppArmadillo.h>
+#include <fstream>
+#include <math.h>
 
 #include "1_Mosquito.hpp"
+#include "4_Reference.hpp"
+#include "4_PRNG.hpp"
+#include "4_Parameters.hpp"
 
+#include <Rcpp.h>
 
 
 
@@ -80,17 +85,7 @@ class Patch {
 public:
 
   /* constructor & destructor */
-  Patch(const int& patchID_,
-        const int& simTime_,
-        const popVec& eggs_t0_,
-        const popVec& larva_t0_,
-        const popVec& pupa_t0_,
-        const popVec& adult_male_t0_,
-        const popVec& unmated_female_t0_,
-        const Rcpp::ListOf<Rcpp::List> maleReleases_,
-        const Rcpp::ListOf<Rcpp::List> femaleReleases_,
-        const Rcpp::ListOf<Rcpp::List> larvaeReleases_);
-
+  Patch();
   ~Patch();
 
   /* delete all copy semantics: ensures we get legible compile-time errors if we do something stupid */
@@ -150,7 +145,7 @@ public:
   void      oneDay_mating();
   
   // New Eggs
-  virtual void      oneDay_layEggs();
+  virtual void  oneDay_layEggs();
   
   // Releases 
   void      oneDay_Releases();
@@ -162,11 +157,7 @@ public:
   
   
   // extras
-  void      reset_Patch(const popVec& eggs_t0_,
-                        const popVec& larva_t0_,
-                        const popVec& pupa_t0_,
-                        const popVec& adult_male_t0_,
-                        const popVec& unmated_female_t0_);
+  virtual void  reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes);
   
   void      init_output(std::ofstream& ADM_log, std::ofstream& ADF_log);
   void      oneDay_writeOutput(std::ofstream& ADM_log, std::ofstream& ADF_log);

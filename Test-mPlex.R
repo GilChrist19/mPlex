@@ -30,13 +30,13 @@ patchPops = rep(50L,N) #population of eachpatch
 directory <- "~/Desktop/HOLD/mPlex/"
 
     #setup alleles to initiate patches
-alleloTypes <- vector(mode = "list", length = 1L) #3 loci
+alleloTypes <- vector(mode = "list", length = 3L) #3 loci
 alleloTypes[[1]]$alleles <- c("W")
 alleloTypes[[1]]$probs <- c(1L)
-#alleloTypes[[2]]$alleles <- c("W","H")
-#alleloTypes[[2]]$probs <- c(1,0)
-# alleloTypes[[3]]$alleles <- c("W","H")
-# alleloTypes[[3]]$probs <- c(1,0)
+alleloTypes[[2]]$alleles <- c("W","H")
+alleloTypes[[2]]$probs <- c(1,0)
+alleloTypes[[3]]$alleles <- c("W","H")
+alleloTypes[[3]]$probs <- c(1,0)
 
 AllAlleles <- replicate(n = N, expr = alleloTypes, simplify = FALSE)
 

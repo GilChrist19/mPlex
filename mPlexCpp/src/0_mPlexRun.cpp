@@ -1,16 +1,18 @@
 
 
-#include <RcppArmadillo.h>
+
 
 #include <progress.hpp>
 #include <progress_bar.hpp>
 
+#include <Rcpp.h>
+
 #include "1_Mosquito.hpp"
 #include "2_Patch.hpp"
 #include "3_DriveDefinitions.hpp"
-#include "mPlex-Parameters.hpp"
-#include "mPlex-Reference.hpp"
-#include "mPlex-PRNG.hpp"
+#include "4_Parameters.hpp"
+#include "4_PRNG.hpp"
+#include "4_Reference.hpp"
 
 
 
@@ -18,39 +20,32 @@
 /******************************************************************************
  * Initialization function for mosquitoes
 ******************************************************************************/
-popVec CreateMosquitoes(int numMos, int minAge, dVec ageDist, Rcpp::List aTypes){
-  
-  //I DON'T KNOW THAT THIS WORKS FOR ALL TYPES OF MULTIPLEXING, N
-  // NEED TO CHECK LOGIC AGAIN!!!!!!!
-  
-  popVec returnPop(numMos);
-  
-  
-  Rcpp::CharacterVector(Rcpp::as<Rcpp::List>(aTypes[0]).length() );
-  std::vector<std::string> holder(2);
-  
-  
-  int age;
-  
-  // loop over number of mosquitoes to create
-  for(int count=0; count <= numMos; ++count){
-    
-    // generate each genotype
-    for
-    
-    
-    
-    
-    age = minAge + prng::instance().get_oneSample(ageDist);
-    
-    returnPop[count] = Mosquito(age, );
-  } // end loop over mosquitoes
-  
-  
-  // return population
-  return( returnPop );
-  
-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 /******************************************************************************

@@ -9,7 +9,7 @@
  *    January 2018
 */
 
-#include "mPlex-PRNG.hpp"
+#include "4_PRNG.hpp"
 
 /* constructor & destructor */
 prng::prng(){};

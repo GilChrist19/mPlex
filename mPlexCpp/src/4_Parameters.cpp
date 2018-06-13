@@ -11,7 +11,7 @@
  #
 */
 
-#include "mPlex-Parameters.hpp"
+#include "4_Parameters.hpp"
 
 /* constructor & destructor */
 parameters::parameters(){};
