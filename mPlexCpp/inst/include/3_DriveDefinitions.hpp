@@ -21,8 +21,23 @@ using sMat = std::vector<sVec>;
 #ifndef DAISY_MPLEX
 #define DAISY_MPLEX
 
+/****************
+ * SETUP AND GENERATING FUNCTION
+ ****************/
+// for setting up Daisy and multiLocus patches
+void CreateMosquitoes2Allele(const int& numMos, const int& minAge, const dVec& ageDist,
+                             const Rcpp::ListOf<Rcpp::List>& aTypes, popVec returnPop);
+
+// Daisy generating function
+void DaisyOffspring(const std::string& fGen, const std::string& mGen);
+
+
+/****************
+ * CLASS
+ ****************/
 class Daisy: public Patch{
 public:
+  
   
   // constructor
   Daisy(const int& patchID_,
@@ -55,6 +70,16 @@ public:
 #ifndef MULTILOCUS_MPLEX
 #define MULTILOCUS_MPLEX
 
+/****************
+ * GENERATING FUNCTION
+ ****************/
+// multiLocus Generating function
+void MultiplexOffspring_mLoci(const std::string& fGen, const std::string& mGen);
+
+
+/****************
+ * CLASS
+ ****************/
 class multiLocus: public Patch{
 public:
   
@@ -89,6 +114,19 @@ public:
 #ifndef ONELOCUS_MPLEX
 #define ONELOCUS_MPLEX
 
+/****************
+ * SETUP AND GENERATING FUNCTION
+ ****************/
+// for setting up oneLocus patch
+void CreateMosquitoes2Loci(const int& numMos, const int& minAge, const dVec& ageDist,
+                           const Rcpp::ListOf<Rcpp::List>& aTypes, popVec returnPop);
+
+// one locus, several targets in allele generating function
+void MultiplexOffspring_oLocus(const std::string& fGen, const std::string& mGen);
+
+/****************
+ * CLASS
+ ****************/
 class oneLocus: public Patch{
 public:
   
@@ -116,31 +154,3 @@ public:
 };
 
 #endif
-
-/******************************************************************************
- * Mosquito Creation Functions
-******************************************************************************/
-// These are for initializing patches. It's ugly here, but I won't lose it.
-#ifndef MOSQUITO_INITIALIZATION_MPLEX
-#define MOSQUITO_INITIALIZATION_MPLEX
-
-// for setting up Daisy and multiLocus patches
-void CreateMosquitoes2Allele(int numMos, int minAge, dVec ageDist,
-                             Rcpp::ListOf<Rcpp::List> aTypes, popVec returnPop);
-
-// for setting up oneLocus patch
-void CreateMosquitoes2Loci(int numMos, int minAge, dVec ageDist,
-                           Rcpp::ListOf<Rcpp::List> aTypes, popVec returnPop);
-
-// Daisy generating function
-void DaisyOffspring(const std::string& fGen, const std::string& mGen);
-
-// multiLocus Generating function
-void MultiplexOffspring_mLoci(const std::string& fGen, const std::string& mGen);
-
-// oneLocus Generating Function
-
-
-
-#endif
-

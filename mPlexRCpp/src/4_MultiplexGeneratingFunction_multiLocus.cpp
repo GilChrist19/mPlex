@@ -45,6 +45,10 @@ List MultiplexOffspring_mLoci_C(StringVector fGen, StringVector mGen, List& refe
   LogicalVector fScore(numAlleles);
   LogicalVector mScore(numAlleles);
 
+  /*****************************************************************************/
+  //Split Loci Within Alleles and Score Each Allele
+  /*****************************************************************************/
+
   //loop over loci, separate alleles and score
   for(int i=0; i<numAlleles; i++){
     //loop over alleles. All diploid
@@ -62,6 +66,14 @@ List MultiplexOffspring_mLoci_C(StringVector fGen, StringVector mGen, List& refe
       fScore[i]=1;
     }
   }//end sublist and scoring loop over loci
+
+  /*****************************************************************************/
+  //End Split and Score
+  /*****************************************************************************/
+
+  /*****************************************************************************/
+  //Determine Next-Gen alleles
+  /*****************************************************************************/
 
   //setup male/female allele/probs lists
   List fAllele(numAlleles);
@@ -185,6 +197,13 @@ List MultiplexOffspring_mLoci_C(StringVector fGen, StringVector mGen, List& refe
 
   }//end loci loop
 
+  /*****************************************************************************/
+  //End Alleles and Probs at Each Locus
+  /*****************************************************************************/
+
+  /*****************************************************************************/
+  //Unlist Loci
+  /*****************************************************************************/
 
   //unlist loop!
   for(int i=0; i<numAlleles; i++){
@@ -240,6 +259,10 @@ List MultiplexOffspring_mLoci_C(StringVector fGen, StringVector mGen, List& refe
 
   }//end loci loop
 
+  /*****************************************************************************/
+  //All Combinations of Male/Female for each Loci
+  /*****************************************************************************/
+
   List lociAList(numAlleles);
   List lociPList(numAlleles);
 
@@ -293,7 +316,13 @@ List MultiplexOffspring_mLoci_C(StringVector fGen, StringVector mGen, List& refe
 
   }//end loop over alleles
 
+  /*****************************************************************************/
+  //End All Combinations of MAle/Female for Each Loci
+  /*****************************************************************************/
 
+  /*****************************************************************************/
+  //Final Combinations of Loci for each Allele
+  /*****************************************************************************/
 
   //final things in program
   //total length of output
