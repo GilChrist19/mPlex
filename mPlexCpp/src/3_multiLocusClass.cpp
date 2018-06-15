@@ -196,7 +196,25 @@ void multiLocus::oneDay_layEggs(){
   
   Rcpp::Rcout<<"You chose the multiLocus function!"<<std::endl;
   
+  iVec newEggs;
   
+  for(auto female : adult_female){
+    
+    // calculate genotypes and probs of offspring
+    MultiplexOffspring_mLoci(female.get_genotype(), female.get_mate());
+    
+    // pull eggs over offspring probs
+    newEggs = prng::instance().get_rmultinom(parameters::instance().get_beta()
+                                               * reference::instance().get_s(female.get_genotype()),
+                                               finalProbs);
+    
+    // create new eggs
+    for(size_t eggIndex=0; eggIndex<newEggs.size(); ++eggIndex){
+      for(size_t it=0; it<eggIndex; ++it){
+        eggs.emplace_back(Mosquito(0, finalGenotypes[eggIndex]));
+      } // end loop over number of eggs per genotype
+    } // end loop over newEggs vector
+  } // end loop over females
   
 }
 
@@ -207,51 +225,22 @@ void multiLocus::oneDay_layEggs(){
 /**************************************
  * GENERATING FUNCTION
  **************************************/
-void MultiplexOffspring_mLoci(const std::string& fGen, const std::string& mGen){
+void multiLocus::MultiplexOffspring_mLoci(const std::string& fGen, const std::string& mGen){
   
   
   
-  //// list of objects I am currently creating ////
-  
-  // int numAlleles
-  
-  // vector<bool> fScore, mScore
-  // int index
-  
-  // dMat fProbs, mProbs
-  // sMat fAllele, mAllele
-  
-  // std::string holdAllele;
-  // std::unordered_map<std::string, double>   duplicates;
-  // std::unordered_map<std::string, double>::iterator value;
+  //// list of objects I create every time ////
+  // vector<bool> fScore
+  // vector<bool> mScore
+
   
   
-  // sVec finalGenotypes;
-  // dVec finalProbs;
-  
-  // sVec holdGens;
-  // dVec holdProbs;
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+
   
   
   // get number of alleles
-  int numAlleles = fGen.size()/2;
+  // don't need to reset because it's redefined every time
+  numAlleles = fGen.size()/2;
   
   /*****************************************************************************/
   // Score Each Allele
@@ -259,7 +248,7 @@ void MultiplexOffspring_mLoci(const std::string& fGen, const std::string& mGen){
   std::vector<bool> fScore(numAlleles, false), mScore(numAlleles, false);
   
   //loop over loci, separate alleles and score
-  int index=0;
+  index=0;
   for(size_t i=0; i<fGen.size(); i+=2, ++index){
     // female score
     if( (fGen[i] == 'H') || (fGen[i+1] == 'H')) {fScore[index] = true;}
@@ -274,8 +263,11 @@ void MultiplexOffspring_mLoci(const std::string& fGen, const std::string& mGen){
   /*****************************************************************************/
   // Determine Next-Gen alleles
   /*****************************************************************************/
-  sMat fAllele(numAlleles), mAllele(numAlleles);
-  dMat fProbs(numAlleles), mProbs(numAlleles);
+  // these get reused, so clear them first
+  fProbs.clear();
+  mProbs.clear();
+  fAllele.clear();
+  mAllele.clear();
   
   
   // loop over all loci
@@ -410,11 +402,12 @@ void MultiplexOffspring_mLoci(const std::string& fGen, const std::string& mGen){
   /*****************************************************************************/
   // All Combinations of Male/Female for each Loci
   /*****************************************************************************/
-  std::string holdAllele;
   
   // Aggregate duplicates before storing
-  std::unordered_map<std::string, double>   duplicates;
-  std::unordered_map<std::string, double>::iterator value;
+  // these get reused, so save them
+  duplicates.clear();
+  // value
+  // holdAllele is defined in class, always gets reset
   
   
   // loop over alleles
@@ -462,12 +455,12 @@ void MultiplexOffspring_mLoci(const std::string& fGen, const std::string& mGen){
   /*****************************************************************************/
   // Cartesian Product of All Loci
   /*****************************************************************************/
+  // these get reused, clear them
+  finalGenotypes.clear();
+  finalProbs.clear();
   
-  sVec finalGenotypes;
-  dVec finalProbs;
-  
-  sVec holdGens;
-  dVec holdProbs;
+  holdGens.clear();
+  holdProbs.clear();
   
   // fill first index
   for(index=0; index<fAllele[0].size(); ++index){

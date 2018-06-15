@@ -85,8 +85,8 @@ class Patch {
 public:
 
   /* constructor & destructor */
-  Patch();
-  ~Patch();
+  Patch(){};
+  ~Patch(){};
 
   /* delete all copy semantics: ensures we get legible compile-time errors if we do something stupid */
   Patch(const Patch&) = delete;
@@ -145,7 +145,7 @@ public:
   void      oneDay_mating();
   
   // New Eggs
-  virtual void  oneDay_layEggs();
+  virtual void  oneDay_layEggs() = 0;
   
   // Releases 
   void      oneDay_Releases();
@@ -157,7 +157,7 @@ public:
   
   
   // extras
-  virtual void  reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes);
+  virtual void  reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes) = 0;
   
   void      init_output(std::ofstream& ADM_log, std::ofstream& ADF_log);
   void      oneDay_writeOutput(std::ofstream& ADM_log, std::ofstream& ADF_log);

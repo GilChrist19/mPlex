@@ -193,10 +193,27 @@ void Daisy::reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes){
 ******************************************************************************/
 void Daisy::oneDay_layEggs(){
   
-  
   Rcpp::Rcout<<"You chose the daisy function!"<<std::endl;
   
+  iVec newEggs;
   
+  for(auto female : adult_female){
+    
+    // calculate genotypes and probs of offspring
+    DaisyOffspring(female.get_genotype(), female.get_mate());
+    
+    // pull eggs over offspring probs
+    newEggs = prng::instance().get_rmultinom(parameters::instance().get_beta()
+                                              * reference::instance().get_s(female.get_genotype()),
+                                              finalProbs);
+    
+    // create new eggs
+    for(size_t eggIndex=0; eggIndex<newEggs.size(); ++eggIndex){
+      for(size_t it=0; it<eggIndex; ++it){
+        eggs.emplace_back(Mosquito(0, finalGenotypes[eggIndex]));
+      } // end loop over number of eggs per genotype
+    } // end loop over newEggs vector
+  } // end loop over females
   
 }
 
@@ -250,7 +267,7 @@ void CreateMosquitoes2Allele(const int& numMos, const int& minAge, const dVec& a
     age = minAge + prng::instance().get_oneSample(ageDist);
     
     // add new mosquito to population
-    returnPop.push_back(Mosquito(age, genotype));
+    returnPop.emplace_back(Mosquito(age, genotype));
     
     // clear genotype for next one
     genotype.clear();
@@ -261,34 +278,19 @@ void CreateMosquitoes2Allele(const int& numMos, const int& minAge, const dVec& a
 /**************************************
  * GENERATING FUNCTION
  **************************************/
-void DaisyOffspring(const std::string& fGen, const std::string& mGen){
+void Daisy::DaisyOffspring(const std::string& fGen, const std::string& mGen){
   
   
-  //// list of objects I am currently creating ////
-  
-  // int numAlleles
-  
-  // vector<bool> fScore, mScore
-  // int index
-  
-  // dMat fProbs, mProbs
-  // sMat fAllele, mAllele
-  
-  // std::string holdAllele;
-  // std::unordered_map<std::string, double>   duplicates;
-  // std::unordered_map<std::string, double>::iterator value;
+  //// list of objects I create every time ////
+  // vector<bool> fScore
+  // vector<bool> mScore
+
   
   
-  // sVec finalGenotypes;
-  // dVec finalProbs;
+
+
   
-  // sVec holdGens;
-  // dVec holdProbs;
-  
-  
-  
-  
-  
+
   
   
   
@@ -296,7 +298,8 @@ void DaisyOffspring(const std::string& fGen, const std::string& mGen){
   
   
   // get number of alleles
-  int numAlleles = fGen.size()/2;
+  // gets redefined every time
+  numAlleles = fGen.size()/2;
   
   /*****************************************************************************/
   // Score Each Allele
@@ -304,7 +307,7 @@ void DaisyOffspring(const std::string& fGen, const std::string& mGen){
   std::vector<bool> fScore(numAlleles+1, false), mScore(numAlleles+1, false);
   
   //loop over loci, separate alleles and score
-  int index=1;
+  index=1;
   for(size_t i=0; i<fGen.size(); i+=2, ++index){
     // female score
     if( (fGen[i] == 'H') || (fGen[i+1] == 'H')) {fScore[index] = true;}
@@ -319,8 +322,11 @@ void DaisyOffspring(const std::string& fGen, const std::string& mGen){
   /*****************************************************************************/
   // Determine Next-Gen alleles
   /*****************************************************************************/
-  dMat fProbs(numAlleles), mProbs(numAlleles);
-  sMat fAllele(numAlleles), mAllele(numAlleles);
+  // these get reused, so clear them first
+  fProbs.clear();
+  mProbs.clear();
+  fAllele.clear();
+  mAllele.clear();
   
   // loop over all loci
   index=0;
@@ -508,11 +514,12 @@ void DaisyOffspring(const std::string& fGen, const std::string& mGen){
   /*****************************************************************************/
   // All Combinations of Male/Female for each Loci
   /*****************************************************************************/
-  std::string holdAllele;
-  
+
   // Aggregate duplicates before storing
-  std::unordered_map<std::string, double>   duplicates;
-  std::unordered_map<std::string, double>::iterator value;
+  // these get reused, so save them
+  duplicates.clear();
+  // value gets redefined, don't clear
+  // holdAllele is defined in class, always gets reset
   
   
   // loop over alleles
@@ -560,12 +567,12 @@ void DaisyOffspring(const std::string& fGen, const std::string& mGen){
   /*****************************************************************************/
   // Cartesian Product of All Loci
   /*****************************************************************************/
+  // these get reused, clear them
+  finalGenotypes.clear();
+  finalProbs.clear();
   
-  sVec finalGenotypes;
-  dVec finalProbs;
-  
-  sVec holdGens;
-  dVec holdProbs;
+  holdGens.clear();
+  holdProbs.clear();
   
   // fill first index
   for(index=0; index<fAllele[0].size(); ++index){

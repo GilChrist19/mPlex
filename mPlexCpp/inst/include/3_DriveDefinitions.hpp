@@ -22,15 +22,11 @@ using sMat = std::vector<sVec>;
 #define DAISY_MPLEX
 
 /****************
- * SETUP AND GENERATING FUNCTION
+ * SETUP FUNCTION
  ****************/
 // for setting up Daisy and multiLocus patches
 void CreateMosquitoes2Allele(const int& numMos, const int& minAge, const dVec& ageDist,
                              const Rcpp::ListOf<Rcpp::List>& aTypes, popVec returnPop);
-
-// Daisy generating function
-void DaisyOffspring(const std::string& fGen, const std::string& mGen);
-
 
 /****************
  * CLASS
@@ -56,9 +52,29 @@ public:
   Daisy(Daisy&&);
   Daisy& operator=(Daisy&&);
   
-  // single function this class exists for
+  // functions specific to this class
   void oneDay_layEggs();
+  void DaisyOffspring(const std::string& fGen, const std::string& mGen);
   void reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes); 
+  
+private:
+  // these are values that are used in the mating function
+  int numAlleles;
+  int index;
+  dMat fProbs;
+  dMat mProbs;
+  sMat fAllele;
+  sMat mAllele;
+  
+  std::string holdAllele;
+  std::unordered_map<std::string, double>   duplicates;
+  std::unordered_map<std::string, double>::iterator value;
+  
+  sVec finalGenotypes;
+  dVec finalProbs;
+  
+  sVec holdGens;
+  dVec holdProbs;
 
 };
 
@@ -69,12 +85,6 @@ public:
  ******************************************************************************/
 #ifndef MULTILOCUS_MPLEX
 #define MULTILOCUS_MPLEX
-
-/****************
- * GENERATING FUNCTION
- ****************/
-// multiLocus Generating function
-void MultiplexOffspring_mLoci(const std::string& fGen, const std::string& mGen);
 
 
 /****************
@@ -100,9 +110,29 @@ public:
   multiLocus(multiLocus&&);
   multiLocus& operator=(multiLocus&&);
   
-  // single function this class exists for
+  // functions specific to this class
   void oneDay_layEggs();
+  void MultiplexOffspring_mLoci(const std::string& fGen, const std::string& mGen);
   void reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes);
+  
+private:
+  // these are values that are used in the mating function
+  int numAlleles;
+  int index;
+  dMat fProbs;
+  dMat mProbs;
+  sMat fAllele;
+  sMat mAllele;
+  
+  std::string holdAllele;
+  std::unordered_map<std::string, double>   duplicates;
+  std::unordered_map<std::string, double>::iterator value;
+    
+  sVec finalGenotypes;
+  dVec finalProbs;
+  
+  sVec holdGens;
+  dVec holdProbs;
   
 };
 
@@ -115,14 +145,11 @@ public:
 #define ONELOCUS_MPLEX
 
 /****************
- * SETUP AND GENERATING FUNCTION
+ * SETUP FUNCTION
  ****************/
 // for setting up oneLocus patch
 void CreateMosquitoes2Loci(const int& numMos, const int& minAge, const dVec& ageDist,
                            const Rcpp::ListOf<Rcpp::List>& aTypes, popVec returnPop);
-
-// one locus, several targets in allele generating function
-void MultiplexOffspring_oLocus(const std::string& fGen, const std::string& mGen);
 
 /****************
  * CLASS
@@ -147,9 +174,33 @@ public:
   oneLocus(oneLocus&&);
   oneLocus& operator=(oneLocus&&);
   
-  // single function this class exists for
+  // functions specific to this class
   void oneDay_layEggs();
+  void MultiplexOffspring_oLocus(const std::string& fGen, const std::string& mGen);
   void reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes);
+  
+private:
+  // these are values that are used in the mating function
+  int numAlleles;
+  int index;
+  bool fScore;
+  bool mScore;
+  
+  sVec holdGens1;
+  sVec holdGens2;
+  sVec holdGens3;
+  sVec fAllele;
+  sVec mAllele;
+  
+  dVec holdProbs1;
+  dVec holdProbs2;
+  dVec holdProbs3;
+  dVec fProbs;
+  dVec mProbs;
+  
+  std::string holdAllele;
+  std::unordered_map<std::string, double>   duplicates;
+  std::unordered_map<std::string, double>::iterator value;
   
 };
 
