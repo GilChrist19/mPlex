@@ -4,13 +4,15 @@
 \alias{AnalyzeOutput_oLocus}
 \title{Analyze output for mPlex-oLocus}
 \usage{
-AnalyzeOutput_oLocus(readDirectory, saveDirectory = NULL, filename, alleles,
+AnalyzeOutput_oLocus(readDirectory, saveDirectory = NULL, fileName, alleles,
   collapse)
 }
 \arguments{
 \item{readDirectory}{directory where output was written to; should not end in path seperator}
 
 \item{saveDirectory}{directory to save analyzed data. Default is readDirectory}
+
+\item{fileName}{String for a file name}
 
 \item{alleles}{A list of lists that contain the genotypes of interest at each locus. Default is all genotypes}
 

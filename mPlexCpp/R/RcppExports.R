@@ -6,11 +6,14 @@
 #' Run mPlex experiments, choosing the type of inheritance desired.
 #' 
 #' @examples
+#' \dontrun{
 #' nope
 #' none
 #' sorry
+#' }
 #' 
-run_mPlex_repetitions <- function() {
-    invisible(.Call('_mPlexCpp_run_mPlex_repetitions', PACKAGE = 'mPlexCpp'))
+#' 
+run_mPlex_Cpp <- function(seed, networkParameters_, reproductionReference_, migrationMale_, migrationFemale_, migrationBatch_, reproductionType_, verbose) {
+    invisible(.Call('_mPlexCpp_run_mPlex_Cpp', PACKAGE = 'mPlexCpp', seed, networkParameters_, reproductionReference_, migrationMale_, migrationFemale_, migrationBatch_, reproductionType_, verbose))
 }
 
