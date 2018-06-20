@@ -201,141 +201,107 @@ double reference::get_s(std::string genType){
 /**************************************
  * reproduction parameters
 **************************************/
-
 void reference::set_mendelian(const Rcpp::ListOf<Rcpp::ListOf<Rcpp::NumericVector> >& probs_,
                               const Rcpp::ListOf<Rcpp::ListOf<Rcpp::StringVector> >& alleles_){
-  
-  Rcpp::Rcout << "Made it into set_mendelian\n";
-  
-  Rcpp::Rcout << "probs size is " << probs_.size() << std::endl;
-  
-  // There are always 4 alleles possible
-  std::vector<int> alleles = {0,1,2,3};
-  
-  homing_probs.resize(probs_.size()); // size of outer vector
-  homing_alleles.resize(alleles_.size());; // size outer vector
+
+  // set size of outer vector
+  mendelian_probs.resize(probs_.size());
+  mendelian_alleles.resize(alleles_.size());;
    
-   
-  Rcpp::Rcout << "Setup homing probs and alleles\n";
-  
-  Rcpp::Rcout << "dim of homing probs is: " << homing_probs.size() << std::endl;
-  Rcpp::Rcout << homing_probs[0].size() << std::endl;
-//  Rcpp::Rcout << homing_probs[0][0].size() << std::endl;
-  
-  
-  //   
-  // using dVec = std::vector<double>; 
-  // using sVec = std::vector<std::string>;
-  // 
-  // using dArVec = std::vector<dVec>;
-  // using sArVec = std::vector<sVec>;
-  //   
-  // (probs_.size(), std::vector<dVec>(4));
-  
-  Rcpp::NumericVector holdP;
-  Rcpp::StringVector holdA;
-  
-  
-  // homing_probs.reserve(probs_.size());
-  // homing_alleles.reserve(probs_.size());
+  // holder objects to make life easier in the loop
+  std::vector<std::string> holdA;
   
   // loop over number of loci
   for(size_t locus=0; locus < probs_.size(); ++locus){
     
-    Rcpp::Rcout << "In loop iter: "<<locus<<std::endl;
-    
     // size inner vector
-    homing_probs[locus].resize(4);
-    homing_alleles[locus].resize(4);
-    
-    Rcpp::Rcout << "dim of homing probs is: " << homing_probs.size() << std::endl;
-    Rcpp::Rcout << homing_probs[0].size() << std::endl;
-    Rcpp::Rcout << homing_probs[0][0].size() << std::endl;
-    
-    // // create place to put things
-    //homing_probs.push_back();
-    // homing_alleles.push_back(std::vector<sVec>);
-    
-
-    
+    mendelian_probs[locus].resize(4);
+    mendelian_alleles[locus].resize(4);
     
     // loop over possible alleles at that locus
-    for(size_t allele : alleles){
-      
-      Rcpp::Rcout << "Inner loop iter: " << allele << std::endl;
-      
-      
-      holdP = Rcpp::as<dVec>(probs_[locus][allele]);
+    for(size_t allele : {0,1,2,3}){
+      // convert things in holders
       holdA = Rcpp::as<sVec>(alleles_[locus][allele]);
       
-      //mendelian_probs[locus][allele].reserve(holdP.size());
-      //mendelian_alleles[locus][allele].reserve(holdP.size());
-      
-      // mendelian_probs[locus][allele] = Rcpp::as<dVec>(probs_[locus][allele]);
-      // mendelian_alleles[locus][allele] = Rcpp::as<sVec>(alleles_[locus][allele]);
-      
-      for(auto it=0; it < holdP.size(); ++ it){
-        
-        mendelian_probs[locus][allele].emplace_back(holdP[it]);
-        mendelian_alleles[locus][allele].emplace_back(holdA[it]);
-        
-        
-      }
+      // set things in final reference
+      mendelian_probs[locus][allele].insert(mendelian_probs[locus][allele].end(),
+                                            probs_[locus][allele].begin(),
+                                            probs_[locus][allele].end());
 
-      
-      
-      // mendelian_probs[locus][allele].insert(mendelian_probs[locus][allele].end(),
-      //                                       holdP.begin(),
-      //                                       holdP.end());
-      // 
-      // mendelian_alleles[locus][allele].insert(mendelian_alleles[locus][allele].end(),
-      //                                         holdA.begin(),
-      //                                         holdA.end());
-
-      
-      
-      
-      // mendelian_probs[locus][allele] = Rcpp::as<dVec>(probs_[locus][allele]);
-      // mendelian_alleles[locus][allele] = Rcpp::as<sVec>(alleles_[locus][allele]);
+      mendelian_alleles[locus][allele].insert(mendelian_alleles[locus][allele].end(),
+                                              holdA.begin(),
+                                              holdA.end());
     }
   }
-  
-  Rcpp::Rcout << "Finished mendelian stuffs" << std::endl;
 
 }
  
- 
 void reference::set_homing(const Rcpp::ListOf<Rcpp::ListOf<Rcpp::NumericVector> >& probs_,
                             const Rcpp::ListOf<Rcpp::ListOf<Rcpp::StringVector> >& alleles_){
-   
-   // There are always 4 alleles possible
-   std::vector<int> alleles = {0,1,2,3};
-   
+  
+  // set size of outer vector
+  homing_probs.resize(probs_.size());
+  homing_alleles.resize(alleles_.size());;
+  
+  // holder objects to make life easier in the loop
+  std::vector<std::string> holdA;
+  
+  
    // loop over number of loci
    for(size_t locus=0; locus < probs_.size(); ++locus){
+     
+     // size inner vector
+     homing_probs[locus].resize(4);
+     homing_alleles[locus].resize(4);
+     
      // loop over possible alleles at that locus
-     for(size_t allele : alleles){
-       homing_probs[locus].push_back( Rcpp::as<dVec>(probs_[locus][allele]) );
-       homing_alleles[locus].push_back( Rcpp::as<sVec>(alleles_[locus][allele]) );
+     for(size_t allele : {0,1,2,3}){
+       // convert things in holders
+       holdA = Rcpp::as<sVec>(alleles_[locus][allele]);
+       
+       // set things in final reference
+       homing_probs[locus][allele].insert(homing_probs[locus][allele].end(),
+                                             probs_[locus][allele].begin(),
+                                             probs_[locus][allele].end());
+       
+       homing_alleles[locus][allele].insert(homing_alleles[locus][allele].end(),
+                                               holdA.begin(),
+                                               holdA.end());
      }
    }
    
 }
 
-
-
 void reference::set_cutting(const Rcpp::ListOf<Rcpp::ListOf<Rcpp::NumericVector> >& probs_,
                             const Rcpp::ListOf<Rcpp::ListOf<Rcpp::StringVector> >& alleles_){
   
-  // There are always 4 alleles possible
-  std::vector<int> alleles = {0,1,2,3};
+  // set size of outer vector
+  cutting_probs.resize(probs_.size());
+  cutting_alleles.resize(alleles_.size());;
+  
+  // holder objects to make life easier in the loop
+  std::vector<std::string> holdA;
   
   // loop over number of loci
   for(size_t locus=0; locus < probs_.size(); ++locus){
+    
+    // size inner vector
+    cutting_probs[locus].resize(4);
+    cutting_alleles[locus].resize(4);
+    
     // loop over possible alleles at that locus
-    for(size_t allele : alleles){
-      cutting_probs[locus][allele] = Rcpp::as<dVec>(probs_[locus][allele]);
-      cutting_alleles[locus][allele] = Rcpp::as<sVec>(alleles_[locus][allele]);
+    for(size_t allele : {0,1,2,3}){
+      // convert things in holders
+      holdA = Rcpp::as<sVec>(alleles_[locus][allele]);
+      
+      // set things in final reference
+      cutting_probs[locus][allele].insert(cutting_probs[locus][allele].end(),
+                                         probs_[locus][allele].begin(),
+                                         probs_[locus][allele].end());
+      
+      cutting_alleles[locus][allele].insert(cutting_alleles[locus][allele].end(),
+                                           holdA.begin(),
+                                           holdA.end());
     }
   }
   

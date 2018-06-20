@@ -6,6 +6,107 @@
 #                         |_| |_| |_|_|   |_|\___/_/\_\
 #
 ###############################################################################
+###############################################################################
+# Release Functions
+###############################################################################
+
+#' Make List of Mosquito Releases
+#'
+#' Sets up a release schedule for a single patch, returns a list to be used in
+#' \code{\link{oneDay_Releases_Patch}}
+#'
+#' @param releaseStart Day releases start
+#' @param releaseEnd Day releases end
+#' @param releaseInterval Interval between releases
+#' @param genMos List of genotypes for new Mosquitoes
+#' @param numMos Integer number of Mosquitoes to create
+#' @param minAge Integer specifying the minimum age of Mosquitoes
+#' @param maxAge Integer specifying the maximum age of Mosquiotes
+#' @param ageDist Distribution for ages of Mosquitoes. Must be length(maxAge-minAge+1)
+#'
+#' @details This function creates a release schedule and the genotypes and ages
+#' of mosquitoes to be released at that time. The release schedule is determined
+#' by releaseStart, releaseEnd, and releaseInterval. The mosquitoes to be released
+#' are determined by genMos (a list of genotypes), numMos (a vector of how many of
+#' each genotype to release), and minAge/maxAge/ageDist. The last three determine
+#' the age distribution of the mosquitoes to be released.
+#'
+#' @return List of release dates and the population to be released on that day.
+#'
+#' @examples
+#' # to setup for 3 patches but only release in the first with a defined release schedule:
+#'
+#' patchReleases = replicate(n = 3,
+#'                           expr = list(maleReleases = NULL,femaleReleases = NULL,larvaeReleases=NULL),
+#'                           simplify = FALSE)
+#'
+#' set.seed(42)
+#' patchReleases[[1]]$femaleReleases = Release_basicRepeatedReleases(releaseStart = 5,
+#' releaseEnd = 30,
+#' releaseInterval = 5,
+#' genMos = c("A", "B", "C"),
+#' numMos = c(10, 20, 30),
+#' minAge = 1,
+#' maxAge = 10,
+#' ageDist = rep(x = 1, times = 10-1+1)/(10-1+1)) #uniform distribution of ages
+#'
+#' set.seed(42)
+#' patchReleases[[1]]$maleReleases = Release_basicRepeatedReleases(releaseStart = 50,
+#' releaseEnd = 60,
+#' releaseInterval = 1,
+#' genMos = c("A", "B", "C"),
+#' numMos = c(10, 20, 30),
+#' minAge = 5,
+#' maxAge = 10,
+#' ageDist = c(0,0,0,0,0,1)) #all mosqutioes will be 10
+#'
+#' set.seed(42)
+#' patchReleases[[1]]$larvaeReleases = Release_basicRepeatedReleases(releaseStart = 1,
+#' releaseEnd = 5,
+#' releaseInterval = 1,
+#' genMos = c("A", "B", "C"),
+#' numMos = c(10, 20, 30),
+#' minAge = 5,
+#' maxAge = 10,
+#' ageDist = c(0,1,0,1,0,0)) #half of mosquitoes are 6, half are 8
+#'
+#' @export
+Release_basicRepeatedReleases <- function(releaseStart, releaseEnd, releaseInterval, genMos, numMos, minAge, maxAge, ageDist){
+  #genMos is a list of genotypes to relaese
+  #numMos is a vector of the number of mosquitoes you want to make, corresponding
+  #  to the genotypes of genMos
+  
+  #minAge, maxAge are the min/max age range. To get a single age, must be length
+  # 2 with a c(1,0) vector in ageDist
+  #ageDist - probabilities to sample from for age range. must be length
+  #  minAge:maxAge
+  
+  # check timing of releases
+  if(releaseInterval > (releaseEnd - releaseStart)){
+    stop("interval between releases cannot be greater than time between start and end of releases")
+  }
+  
+  # Initialize release times. Initialize return list
+  releaseTimes = seq(from=releaseStart,to = releaseEnd,by = floor(releaseInterval))
+  releaseList = vector(mode="list",length=length(releaseTimes))
+  
+  # Initialize genotypes and ages
+  genotypeVector = rep.int(x = genMos, times = numMos)
+  ageVector <- sample(x = minAge:maxAge, size = sum(numMos), replace = TRUE, prob = ageDist)
+  
+  # check for male/female/larvae. Fill appropriate list.
+  for(tx in 1:length(releaseTimes)){
+    releaseList[[tx]]$genVec = genotypeVector
+    releaseList[[tx]]$ageVec = ageVector
+    releaseList[[tx]]$tRelease = releaseTimes[[tx]]
+  }
+  
+  return(releaseList)
+}
+
+###############################################################################
+# Network Initialization Functions
+###############################################################################
 
 #' Network Parameters
 #'

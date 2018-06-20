@@ -56,12 +56,20 @@ public:
   double      get_xiM(std::string genType);
   double      get_s(std::string genType);
 
-  dVec        get_mendelian_probs(size_t locus, size_t allele){return mendelian_probs[locus][allele];};
-  sVec        get_mendelian_allele(size_t locus, size_t allele){return mendelian_alleles[locus][allele];};
-  dVec        get_homing_probs(size_t locus, size_t allele){return homing_probs[locus][allele];};
-  sVec        get_homing_allele(size_t locus, size_t allele){return homing_alleles[locus][allele];};
-  dVec        get_cutting_probs(size_t locus, size_t allele){return cutting_probs[locus][allele];};
-  sVec        get_cutting_allele(size_t locus, size_t allele){return cutting_alleles[locus][allele];};
+  dVec::iterator    get_mendelian_probs_begin(size_t locus, size_t allele){return mendelian_probs[locus][allele].begin();};
+  dVec::iterator    get_mendelian_probs_end(size_t locus, size_t allele){return mendelian_probs[locus][allele].end();};
+  sVec::iterator    get_mendelian_allele_begin(size_t locus, size_t allele){return mendelian_alleles[locus][allele].begin();};
+  sVec::iterator    get_mendelian_allele_end(size_t locus, size_t allele){return mendelian_alleles[locus][allele].end();};
+  
+  dVec::iterator    get_homing_probs_begin(size_t locus, size_t allele){return homing_probs[locus][allele].begin();};
+  dVec::iterator    get_homing_probs_end(size_t locus, size_t allele){return homing_probs[locus][allele].end();};
+  sVec::iterator    get_homing_allele_begin(size_t locus, size_t allele){return homing_alleles[locus][allele].begin();};
+  sVec::iterator    get_homing_allele_end(size_t locus, size_t allele){return homing_alleles[locus][allele].end();};
+  
+  dVec::iterator    get_cutting_probs_begin(size_t locus, size_t allele){return cutting_probs[locus][allele].begin();};
+  dVec::iterator    get_cutting_probs_end(size_t locus, size_t allele){return cutting_probs[locus][allele].end();};
+  sVec::iterator    get_cutting_allele_begin(size_t locus, size_t allele){return cutting_alleles[locus][allele].begin();};
+  sVec::iterator    get_cutting_allele_end(size_t locus, size_t allele){return cutting_alleles[locus][allele].end();};
   
   
 private:

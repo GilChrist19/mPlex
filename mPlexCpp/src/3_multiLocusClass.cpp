@@ -18,9 +18,9 @@
  ******************************************************************************/
 multiLocus::multiLocus(const int& patchID_,
                        const Rcpp::ListOf<Rcpp::List>& aTypes,
-                       const Rcpp::ListOf<Rcpp::List>& maleReleases_,
-                       const Rcpp::ListOf<Rcpp::List>& femaleReleases_,
-                       const Rcpp::ListOf<Rcpp::List>& larvaeReleases_) : Patch::Patch()
+                       const Rcpp::List& maleReleases_,
+                       const Rcpp::List& femaleReleases_,
+                       const Rcpp::List& larvaeReleases_) : Patch::Patch()
 {
   
    patchID = patchID_;
@@ -77,10 +77,10 @@ multiLocus::multiLocus(const int& patchID_,
      size_t mR = maleReleases_.size();
      releaseM.reserve(mR);
      for(size_t i=0; i<mR; i++){
-       releaseM[i] = release_event(Rcpp::as<sVec>(maleReleases_[i]["genVec"]),
-                                   Rcpp::as<iVec>(maleReleases_[i]["ageVec"]),
-                                   Rcpp::as<int>(maleReleases_[i]["tRelease"])
-       );
+       releaseM.emplace_back(release_event(Rcpp::as<Rcpp::List>(maleReleases_[i])["genVec"],
+                                           Rcpp::as<Rcpp::List>(maleReleases_[i])["ageVec"],
+                                           Rcpp::as<Rcpp::List>(maleReleases_[i])["tRelease"]
+       ));
      }
      std::sort(releaseM.begin(), releaseM.end(), [](release_event a, release_event b){
        return a.release_time > b.release_time;
@@ -92,10 +92,10 @@ multiLocus::multiLocus(const int& patchID_,
      size_t mR = femaleReleases_.size();
      releaseF.reserve(mR);
      for(size_t i=0; i<mR; i++){
-       releaseF[i] = release_event(Rcpp::as<sVec>(femaleReleases_[i]["genVec"]),
-                                   Rcpp::as<iVec>(femaleReleases_[i]["ageVec"]),
-                                   Rcpp::as<int>(femaleReleases_[i]["tRelease"])
-       );
+       releaseF.emplace_back(release_event(Rcpp::as<Rcpp::List>(femaleReleases_[i])["genVec"],
+                                           Rcpp::as<Rcpp::List>(femaleReleases_[i])["ageVec"],
+                                           Rcpp::as<Rcpp::List>(femaleReleases_[i])["tRelease"]
+       ));
      }
      std::sort(releaseF.begin(), releaseF.end(), [](release_event a, release_event b){
        return a.release_time > b.release_time;
@@ -107,10 +107,10 @@ multiLocus::multiLocus(const int& patchID_,
      size_t mR = larvaeReleases_.size();
      releaseL.reserve(mR);
      for(size_t i=0; i<mR; i++){
-       releaseL[i] = release_event(Rcpp::as<sVec>(larvaeReleases_[i]["genVec"]),
-                                   Rcpp::as<iVec>(larvaeReleases_[i]["ageVec"]),
-                                   Rcpp::as<int>(larvaeReleases_[i]["tRelease"])
-       );
+       releaseL.emplace_back(release_event(Rcpp::as<Rcpp::List>(larvaeReleases_[i])["genVec"],
+                                           Rcpp::as<Rcpp::List>(larvaeReleases_[i])["ageVec"],
+                                           Rcpp::as<Rcpp::List>(larvaeReleases_[i])["tRelease"]
+       ));
      }
      std::sort(releaseL.begin(), releaseL.end(), [](release_event a, release_event b){
        return a.release_time > b.release_time;
@@ -121,6 +121,17 @@ multiLocus::multiLocus(const int& patchID_,
    releaseM0 = releaseM;
    releaseF0 = releaseF;
    releaseL0 = releaseL;
+   
+   // migration setup
+   maleMigration.resize(parameters::instance().get_n_patch());
+   femaleMigration.resize(parameters::instance().get_n_patch());
+   
+   // Reproduction setup
+   numAlleles = aTypes.size();
+   fProbs.resize(numAlleles);
+   mProbs.resize(numAlleles);
+   fAllele.resize(numAlleles);
+   mAllele.resize(numAlleles);
 
 };
 
@@ -210,7 +221,7 @@ void multiLocus::oneDay_layEggs(){
     
     // create new eggs
     for(size_t eggIndex=0; eggIndex<newEggs.size(); ++eggIndex){
-      for(size_t it=0; it<eggIndex; ++it){
+      for(size_t it=0; it<newEggs[eggIndex]; ++it){
         eggs.emplace_back(Mosquito(0, finalGenotypes[eggIndex]));
       } // end loop over number of eggs per genotype
     } // end loop over newEggs vector
@@ -226,27 +237,27 @@ void multiLocus::oneDay_layEggs(){
  * GENERATING FUNCTION
  **************************************/
 void multiLocus::MultiplexOffspring_mLoci(const std::string& fGen, const std::string& mGen){
-  
-  
-  
+
+
+
   //// list of objects I create every time ////
   // vector<bool> fScore
   // vector<bool> mScore
 
-  
-  
 
-  
-  
+
+
+
+
   // get number of alleles
   // don't need to reset because it's redefined every time
-  numAlleles = fGen.size()/2;
-  
+  // numAlleles = fGen.size()/2;
+
   /*****************************************************************************/
   // Score Each Allele
   /*****************************************************************************/
   std::vector<bool> fScore(numAlleles, false), mScore(numAlleles, false);
-  
+
   //loop over loci, separate alleles and score
   index=0;
   for(size_t i=0; i<fGen.size(); i+=2, ++index){
@@ -254,26 +265,28 @@ void multiLocus::MultiplexOffspring_mLoci(const std::string& fGen, const std::st
     if( (fGen[i] == 'H') || (fGen[i+1] == 'H')) {fScore[index] = true;}
     // male score
     if( (mGen[i] == 'H') || (mGen[i+1] == 'H')) {mScore[index] = true;}
-    
+
   } // end scoring loop
   /*****************************************************************************/
   // End Score Each Allele
   /*****************************************************************************/
-  
+
   /*****************************************************************************/
   // Determine Next-Gen alleles
   /*****************************************************************************/
   // these get reused, so clear them first
-  fProbs.clear();
-  mProbs.clear();
-  fAllele.clear();
-  mAllele.clear();
-  
-  
+  for(index=0; index < numAlleles; ++index){
+    fProbs[index].clear();
+    mProbs[index].clear();
+    fAllele[index].clear();
+    mAllele[index].clear();
+  }
+
+
   // loop over all loci
   index=0;
   for(size_t i=0; i<numAlleles; ++i, index+=2){
-    
+
     // FEMALES
     if( fScore[i] ){
       // homing
@@ -281,27 +294,27 @@ void multiLocus::MultiplexOffspring_mLoci(const std::string& fGen, const std::st
       for(size_t j=0; j<2; ++j){
         // fill allele and probs
         if(fGen[index+j] == 'W'){
-          fAllele[i].insert(fAllele[i].end(), reference::instance().get_homing_allele(i,0).begin(),
-                            reference::instance().get_homing_allele(i,0).end());
-          fProbs[i].insert(fProbs[i].end(), reference::instance().get_homing_probs(i,0).begin(),
-                           reference::instance().get_homing_probs(i,0).end());
+          fAllele[i].insert(fAllele[i].end(), reference::instance().get_homing_allele_begin(i,0),
+                            reference::instance().get_homing_allele_end(i,0));
+          fProbs[i].insert(fProbs[i].end(), reference::instance().get_homing_probs_begin(i,0),
+                           reference::instance().get_homing_probs_end(i,0));
         } else if(fGen[index+j] == 'H'){
-          fAllele[i].insert(fAllele[i].end(), reference::instance().get_homing_allele(i,1).begin(),
-                            reference::instance().get_homing_allele(i,1).end());
-          fProbs[i].insert(fProbs[i].end(), reference::instance().get_homing_probs(i,1).begin(),
-                           reference::instance().get_homing_probs(i,1).end());
+          fAllele[i].insert(fAllele[i].end(), reference::instance().get_homing_allele_begin(i,1),
+                            reference::instance().get_homing_allele_end(i,1));
+          fProbs[i].insert(fProbs[i].end(), reference::instance().get_homing_probs_begin(i,1),
+                           reference::instance().get_homing_probs_end(i,1));
         } else if(fGen[index+j] == 'R'){
-          fAllele[i].insert(fAllele[i].end(), reference::instance().get_homing_allele(i,2).begin(),
-                            reference::instance().get_homing_allele(i,2).end());
-          fProbs[i].insert(fProbs[i].end(), reference::instance().get_homing_probs(i,2).begin(),
-                           reference::instance().get_homing_probs(i,2).end());
+          fAllele[i].insert(fAllele[i].end(), reference::instance().get_homing_allele_begin(i,2),
+                            reference::instance().get_homing_allele_end(i,2));
+          fProbs[i].insert(fProbs[i].end(), reference::instance().get_homing_probs_begin(i,2),
+                           reference::instance().get_homing_probs_end(i,2));
         } else if(fGen[index+j] == 'S'){
-          fAllele[i].insert(fAllele[i].end(), reference::instance().get_homing_allele(i,3).begin(),
-                            reference::instance().get_homing_allele(i,3).end());
-          fProbs[i].insert(fProbs[i].end(), reference::instance().get_homing_probs(i,3).begin(),
-                           reference::instance().get_homing_probs(i,3).end());
+          fAllele[i].insert(fAllele[i].end(), reference::instance().get_homing_allele_begin(i,3),
+                            reference::instance().get_homing_allele_end(i,3));
+          fProbs[i].insert(fProbs[i].end(), reference::instance().get_homing_probs_begin(i,3),
+                           reference::instance().get_homing_probs_end(i,3));
         }
-        
+
       } // end allele loop
     } else {
       // no homing
@@ -309,31 +322,31 @@ void multiLocus::MultiplexOffspring_mLoci(const std::string& fGen, const std::st
       for(size_t j=0; j<2; ++j){
         // fill allele and probs
         if(fGen[index+j] == 'W'){
-          fAllele[i].insert(fAllele[i].end(), reference::instance().get_mendelian_allele(i,0).begin(),
-                            reference::instance().get_mendelian_allele(i,0).end());
-          fProbs[i].insert(fProbs[i].end(), reference::instance().get_mendelian_probs(i,0).begin(),
-                           reference::instance().get_mendelian_probs(i,0).end());
+          fAllele[i].insert(fAllele[i].end(), reference::instance().get_mendelian_allele_begin(i,0),
+                            reference::instance().get_mendelian_allele_end(i,0));
+          fProbs[i].insert(fProbs[i].end(), reference::instance().get_mendelian_probs_begin(i,0),
+                           reference::instance().get_mendelian_probs_end(i,0));
         } else if(fGen[index+j] == 'H'){
-          fAllele[i].insert(fAllele[i].end(), reference::instance().get_mendelian_allele(i,1).begin(),
-                            reference::instance().get_mendelian_allele(i,1).end());
-          fProbs[i].insert(fProbs[i].end(), reference::instance().get_mendelian_probs(i,1).begin(),
-                           reference::instance().get_mendelian_probs(i,1).end());
+          fAllele[i].insert(fAllele[i].end(), reference::instance().get_mendelian_allele_begin(i,1),
+                            reference::instance().get_mendelian_allele_end(i,1));
+          fProbs[i].insert(fProbs[i].end(), reference::instance().get_mendelian_probs_begin(i,1),
+                           reference::instance().get_mendelian_probs_end(i,1));
         } else if(fGen[index+j] == 'R'){
-          fAllele[i].insert(fAllele[i].end(), reference::instance().get_mendelian_allele(i,2).begin(),
-                            reference::instance().get_mendelian_allele(i,2).end());
-          fProbs[i].insert(fProbs[i].end(), reference::instance().get_mendelian_probs(i,2).begin(),
-                           reference::instance().get_mendelian_probs(i,2).end());
+          fAllele[i].insert(fAllele[i].end(), reference::instance().get_mendelian_allele_begin(i,2),
+                            reference::instance().get_mendelian_allele_end(i,2));
+          fProbs[i].insert(fProbs[i].end(), reference::instance().get_mendelian_probs_begin(i,2),
+                           reference::instance().get_mendelian_probs_end(i,2));
         } else if(fGen[index+j] == 'S'){
-          fAllele[i].insert(fAllele[i].end(), reference::instance().get_mendelian_allele(i,3).begin(),
-                            reference::instance().get_mendelian_allele(i,3).end());
-          fProbs[i].insert(fProbs[i].end(), reference::instance().get_mendelian_probs(i,3).begin(),
-                           reference::instance().get_mendelian_probs(i,3).end());
+          fAllele[i].insert(fAllele[i].end(), reference::instance().get_mendelian_allele_begin(i,3),
+                            reference::instance().get_mendelian_allele_end(i,3));
+          fProbs[i].insert(fProbs[i].end(), reference::instance().get_mendelian_probs_begin(i,3),
+                           reference::instance().get_mendelian_probs_end(i,3));
         }
-        
-      } // end allele loop 
+
+      } // end allele loop
     } // end females
-    
-    
+
+
     // MALES
     if( mScore[i] ){
       // homing
@@ -341,27 +354,27 @@ void multiLocus::MultiplexOffspring_mLoci(const std::string& fGen, const std::st
       for(size_t j=0; j<2; ++j){
         // fill allele and probs
         if(mGen[index+j] == 'W'){
-          mAllele[i].insert(mAllele[i].end(), reference::instance().get_homing_allele(i,0).begin(),
-                            reference::instance().get_homing_allele(i,0).end());
-          mProbs[i].insert(mProbs[i].end(), reference::instance().get_homing_probs(i,0).begin(),
-                           reference::instance().get_homing_probs(i,0).end());
+          mAllele[i].insert(mAllele[i].end(), reference::instance().get_homing_allele_begin(i,0),
+                            reference::instance().get_homing_allele_end(i,0));
+          mProbs[i].insert(mProbs[i].end(), reference::instance().get_homing_probs_begin(i,0),
+                           reference::instance().get_homing_probs_end(i,0));
         } else if(mGen[index+j] == 'H'){
-          mAllele[i].insert(mAllele[i].end(), reference::instance().get_homing_allele(i,1).begin(),
-                            reference::instance().get_homing_allele(i,1).end());
-          mProbs[i].insert(mProbs[i].end(), reference::instance().get_homing_probs(i,1).begin(),
-                           reference::instance().get_homing_probs(i,1).end());
+          mAllele[i].insert(mAllele[i].end(), reference::instance().get_homing_allele_begin(i,1),
+                            reference::instance().get_homing_allele_end(i,1));
+          mProbs[i].insert(mProbs[i].end(), reference::instance().get_homing_probs_begin(i,1),
+                           reference::instance().get_homing_probs_end(i,1));
         } else if(mGen[index+j] == 'R'){
-          mAllele[i].insert(mAllele[i].end(), reference::instance().get_homing_allele(i,2).begin(),
-                            reference::instance().get_homing_allele(i,2).end());
-          mProbs[i].insert(mProbs[i].end(), reference::instance().get_homing_probs(i,2).begin(),
-                           reference::instance().get_homing_probs(i,2).end());
+          mAllele[i].insert(mAllele[i].end(), reference::instance().get_homing_allele_begin(i,2),
+                            reference::instance().get_homing_allele_end(i,2));
+          mProbs[i].insert(mProbs[i].end(), reference::instance().get_homing_probs_begin(i,2),
+                           reference::instance().get_homing_probs_end(i,2));
         } else if(mGen[index+j] == 'S'){
-          mAllele[i].insert(mAllele[i].end(), reference::instance().get_homing_allele(i,3).begin(),
-                            reference::instance().get_homing_allele(i,3).end());
-          mProbs[i].insert(mProbs[i].end(), reference::instance().get_homing_probs(i,3).begin(),
-                           reference::instance().get_homing_probs(i,3).end());
+          mAllele[i].insert(mAllele[i].end(), reference::instance().get_homing_allele_begin(i,3),
+                            reference::instance().get_homing_allele_end(i,3));
+          mProbs[i].insert(mProbs[i].end(), reference::instance().get_homing_probs_begin(i,3),
+                           reference::instance().get_homing_probs_end(i,3));
         }
-        
+
       } // end allele loop
     } else {
       // no homing
@@ -369,57 +382,57 @@ void multiLocus::MultiplexOffspring_mLoci(const std::string& fGen, const std::st
       for(size_t j=0; j<2; ++j){
         // fill allele and probs
         if(mGen[index+j] == 'W'){
-          mAllele[i].insert(mAllele[i].end(), reference::instance().get_mendelian_allele(i,0).begin(),
-                            reference::instance().get_mendelian_allele(i,0).end());
-          mProbs[i].insert(mProbs[i].end(), reference::instance().get_mendelian_probs(i,0).begin(),
-                           reference::instance().get_mendelian_probs(i,0).end());
+          mAllele[i].insert(mAllele[i].end(), reference::instance().get_mendelian_allele_begin(i,0),
+                            reference::instance().get_mendelian_allele_end(i,0));
+          mProbs[i].insert(mProbs[i].end(), reference::instance().get_mendelian_probs_begin(i,0),
+                           reference::instance().get_mendelian_probs_end(i,0));
         } else if(mGen[index+j] == 'H'){
-          mAllele[i].insert(mAllele[i].end(), reference::instance().get_mendelian_allele(i,1).begin(),
-                            reference::instance().get_mendelian_allele(i,1).end());
-          mProbs[i].insert(mProbs[i].end(), reference::instance().get_mendelian_probs(i,1).begin(),
-                           reference::instance().get_mendelian_probs(i,1).end());
+          mAllele[i].insert(mAllele[i].end(), reference::instance().get_mendelian_allele_begin(i,1),
+                            reference::instance().get_mendelian_allele_end(i,1));
+          mProbs[i].insert(mProbs[i].end(), reference::instance().get_mendelian_probs_begin(i,1),
+                           reference::instance().get_mendelian_probs_end(i,1));
         } else if(mGen[index+j] == 'R'){
-          mAllele[i].insert(mAllele[i].end(), reference::instance().get_mendelian_allele(i,2).begin(),
-                            reference::instance().get_mendelian_allele(i,2).end());
-          mProbs[i].insert(mProbs[i].end(), reference::instance().get_mendelian_probs(i,2).begin(),
-                           reference::instance().get_mendelian_probs(i,2).end());
+          mAllele[i].insert(mAllele[i].end(), reference::instance().get_mendelian_allele_begin(i,2),
+                            reference::instance().get_mendelian_allele_end(i,2));
+          mProbs[i].insert(mProbs[i].end(), reference::instance().get_mendelian_probs_begin(i,2),
+                           reference::instance().get_mendelian_probs_end(i,2));
         } else if(mGen[index+j] == 'S'){
-          mAllele[i].insert(mAllele[i].end(), reference::instance().get_mendelian_allele(i,3).begin(),
-                            reference::instance().get_mendelian_allele(i,3).end());
-          mProbs[i].insert(mProbs[i].end(), reference::instance().get_mendelian_probs(i,3).begin(),
-                           reference::instance().get_mendelian_probs(i,3).end());
+          mAllele[i].insert(mAllele[i].end(), reference::instance().get_mendelian_allele_begin(i,3),
+                            reference::instance().get_mendelian_allele_end(i,3));
+          mProbs[i].insert(mProbs[i].end(), reference::instance().get_mendelian_probs_begin(i,3),
+                           reference::instance().get_mendelian_probs_end(i,3));
         }
-        
+
       } // end allele loop
     } // end males
-    
+
   } // end loci loop
-  
+
   /*****************************************************************************/
   // End Next-Gen alleles
   /*****************************************************************************/
-  
+
   /*****************************************************************************/
   // All Combinations of Male/Female for each Loci
   /*****************************************************************************/
-  
+
   // Aggregate duplicates before storing
   // these get reused, so save them
   duplicates.clear();
   // value
   // holdAllele is defined in class, always gets reset
-  
-  
+
+
   // loop over alleles
   for(size_t i=0; i<numAlleles; ++i){
-    
+
     // all combinations of female/male alleles, and probs
     for(size_t fem=0; fem<fAllele[i].size(); ++fem){
       for(size_t mal=0; mal<mAllele[i].size(); ++mal){
         // combine and sort allele
         holdAllele = fAllele[i][fem] + mAllele[i][mal];
         std::sort(holdAllele.begin(), holdAllele.end() );
-        
+
         // Here we aggregate non-unique values
         // check if it is in map
         value = duplicates.find(holdAllele);
@@ -430,44 +443,44 @@ void multiLocus::MultiplexOffspring_mLoci(const std::string& fGen, const std::st
           // is in map, combine with existing value
           value->second += fProbs[i][fem]*mProbs[i][mal];
         }
-        
+
       } // end male loop
     } // end female loop
-    
+
     // clear fAllele and fProbs for re-use
     fAllele[i].clear();
     fProbs[i].clear();
-    
+
     // Take unique values in map, return to matrix
     for(auto elem : duplicates){
       fAllele[i].push_back(elem.first);
       fProbs[i].push_back(elem.second);
     }
-    
+
     // clear map
     duplicates.clear();
-  } // end 
-  
+  } // end
+
   /*****************************************************************************/
   // End All Combinations of MAle/Female for Each Loci
   /*****************************************************************************/
-  
+
   /*****************************************************************************/
   // Cartesian Product of All Loci
   /*****************************************************************************/
   // these get reused, clear them
   finalGenotypes.clear();
   finalProbs.clear();
-  
+
   holdGens.clear();
   holdProbs.clear();
-  
+
   // fill first index
   for(index=0; index<fAllele[0].size(); ++index){
     finalGenotypes.push_back(fAllele[0][index]);
     finalProbs.push_back(fProbs[0][index]);
   }
-  
+
   // loop over rest of them
   for(index=1; index<numAlleles; ++index){
     // loop over current elements in return, and elements in next vector
@@ -478,20 +491,20 @@ void multiLocus::MultiplexOffspring_mLoci(const std::string& fGen, const std::st
         holdProbs.push_back(finalProbs[current] * fProbs[index][newOne]);
       } // end loop over new things
     } // end loop over current things
-    
+
     // set returns
     finalGenotypes = holdGens;
-    finalProbs = holdProbs; 
-    
+    finalProbs = holdProbs;
+
     // clear holders
     holdGens.clear();
     holdProbs.clear();
   } // end loop over loci
-  
+
   /*****************************************************************************/
   // End Cartesian Product of All Loci
   /*****************************************************************************/
-  
+
 } // end function
 
 

@@ -58,6 +58,9 @@ void Patch::oneDay_popDynamics(){
   
   // Releases
   oneDay_Releases();
+  
+  // Migration out
+  oneDay_migrationOut();
 
 };
 
@@ -448,10 +451,6 @@ void Patch::oneDay_migrationIn(const popVec& male, const popVec& female){
 ***************************************/
 void Patch::init_output(std::ofstream& ADM_log, std::ofstream& ADF_log){
   
-  // write headers
-  ADM_log << "Time,Patch,Age,Genotype\n";
-  ADF_log << "Time,Patch,Age,Genotype,Mate\n";
-  
   // write males
   for(auto& mos : adult_male){
     ADM_log << parameters::instance().get_t_now() <<  "," << patchID << "," << mos.print_male();
@@ -468,14 +467,24 @@ void Patch::init_output(std::ofstream& ADM_log, std::ofstream& ADF_log){
 void Patch::oneDay_writeOutput(std::ofstream& ADM_log, std::ofstream& ADF_log){
   
   // write males
-  for(auto& mos : adult_male){
-    ADM_log << parameters::instance().get_t_now() <<  "," << patchID << "," << mos.print_male();
+  if(adult_male.size() > 0){
+    for(auto& mos : adult_male){
+      ADM_log << parameters::instance().get_t_now() <<  "," << patchID << "," << mos.print_male();
+    }
+  } else {
+    ADM_log << parameters::instance().get_t_now() <<  "," << patchID << ",,\n";
   }
+
   
-  // write unmated females
-  for(auto& mos : adult_female){
-    ADF_log << parameters::instance().get_t_now() <<  "," << patchID << "," << mos.print_female();
+  // write adult females
+  if(adult_female.size() > 0){
+    for(auto& mos : adult_female){
+      ADF_log << parameters::instance().get_t_now() <<  "," << patchID << "," << mos.print_female();
+    }
+  } else {
+    ADF_log << parameters::instance().get_t_now() <<  "," << patchID << ",,,\n";
   }
+
   
 }
 

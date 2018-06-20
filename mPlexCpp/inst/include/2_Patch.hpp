@@ -112,8 +112,8 @@ public:
   popVec    get_adult_female(){return adult_female;};
   popVec    get_unmated_female(){return unmated_female;};
   
-  std::vector<popVec>    get_maleMigration(){return maleMigration;};
-  std::vector<popVec>    get_femaleMigration(){return femaleMigration;};
+  popVec    get_maleMigration(size_t patch){return maleMigration[patch];};
+  popVec    get_femaleMigration(size_t patch){return femaleMigration[patch];};
   
   
   

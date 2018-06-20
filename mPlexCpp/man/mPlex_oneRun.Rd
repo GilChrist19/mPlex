@@ -4,8 +4,9 @@
 \alias{mPlex_oneRun}
 \title{Run one run of mPlex}
 \usage{
-mPlex_oneRun(seed, networkParameters, reproductionReference, migrationMale,
-  migrationFemale, migrationBatch, reproductionType, verbose)
+mPlex_oneRun(seed, networkParameters, reproductionReference, patchReleases,
+  migrationMale, migrationFemale, migrationBatch, output_directory,
+  reproductionType, verbose)
 }
 \arguments{
 \item{seed}{An integer seed for random number generator}
@@ -14,11 +15,15 @@ mPlex_oneRun(seed, networkParameters, reproductionReference, migrationMale,
 
 \item{reproductionReference}{A list of reproduction and genotype specific parameters}
 
+\item{patchReleases}{A list of releases}
+
 \item{migrationMale}{A matrix specifying male migration rates}
 
 \item{migrationFemale}{A matrix specifying female migration rates}
 
 \item{migrationBatch}{A list specifing batch migration probabilities, rates, and sex ratios}
+
+\item{output_directory}{String folder name to write output}
 
 \item{reproductionType}{String specifying type of reproduction model}
 

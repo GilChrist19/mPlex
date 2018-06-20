@@ -4,8 +4,9 @@
 \alias{run_mPlex_Cpp}
 \title{Run Multi-Plex Experiment}
 \usage{
-run_mPlex_Cpp(seed, networkParameters_, reproductionReference_, migrationMale_,
-  migrationFemale_, migrationBatch_, reproductionType_, verbose)
+run_mPlex_Cpp(seed, networkParameters_, reproductionReference_, patchReleases_,
+  migrationMale_, migrationFemale_, migrationBatch_, output_directory,
+  reproductionType_, verbose)
 }
 \description{
 Run mPlex experiments, choosing the type of inheritance desired.

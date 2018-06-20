@@ -18,9 +18,9 @@
  ******************************************************************************/
 oneLocus::oneLocus(const int& patchID_,
                    const Rcpp::ListOf<Rcpp::List>& aTypes,
-                   const Rcpp::ListOf<Rcpp::List>& maleReleases_,
-                   const Rcpp::ListOf<Rcpp::List>& femaleReleases_,
-                   const Rcpp::ListOf<Rcpp::List>& larvaeReleases_) : Patch::Patch()
+                   const Rcpp::List& maleReleases_,
+                   const Rcpp::List& femaleReleases_,
+                   const Rcpp::List& larvaeReleases_) : Patch::Patch()
 {
  
   patchID = patchID_;
@@ -77,10 +77,10 @@ oneLocus::oneLocus(const int& patchID_,
    size_t mR = maleReleases_.size();
    releaseM.reserve(mR);
    for(size_t i=0; i<mR; i++){
-     releaseM[i] = release_event(Rcpp::as<sVec>(maleReleases_[i]["genVec"]),
-                                 Rcpp::as<iVec>(maleReleases_[i]["ageVec"]),
-                                 Rcpp::as<int>(maleReleases_[i]["tRelease"])
-     );
+     releaseM.emplace_back(release_event(Rcpp::as<Rcpp::List>(maleReleases_[i])["genVec"],
+                                         Rcpp::as<Rcpp::List>(maleReleases_[i])["ageVec"],
+                                         Rcpp::as<Rcpp::List>(maleReleases_[i])["tRelease"]
+     ));
    }
    std::sort(releaseM.begin(), releaseM.end(), [](release_event a, release_event b){
      return a.release_time > b.release_time;
@@ -92,10 +92,10 @@ oneLocus::oneLocus(const int& patchID_,
    size_t mR = femaleReleases_.size();
    releaseF.reserve(mR);
    for(size_t i=0; i<mR; i++){
-     releaseF[i] = release_event(Rcpp::as<sVec>(femaleReleases_[i]["genVec"]),
-                                 Rcpp::as<iVec>(femaleReleases_[i]["ageVec"]),
-                                 Rcpp::as<int>(femaleReleases_[i]["tRelease"])
-     );
+     releaseF.emplace_back(release_event(Rcpp::as<Rcpp::List>(femaleReleases_[i])["genVec"],
+                                         Rcpp::as<Rcpp::List>(femaleReleases_[i])["ageVec"],
+                                         Rcpp::as<Rcpp::List>(femaleReleases_[i])["tRelease"]
+     ));
    }
    std::sort(releaseF.begin(), releaseF.end(), [](release_event a, release_event b){
      return a.release_time > b.release_time;
@@ -107,10 +107,10 @@ oneLocus::oneLocus(const int& patchID_,
    size_t mR = larvaeReleases_.size();
    releaseL.reserve(mR);
    for(size_t i=0; i<mR; i++){
-     releaseL[i] = release_event(Rcpp::as<sVec>(larvaeReleases_[i]["genVec"]),
-                                 Rcpp::as<iVec>(larvaeReleases_[i]["ageVec"]),
-                                 Rcpp::as<int>(larvaeReleases_[i]["tRelease"])
-     );
+     releaseL.emplace_back(release_event(Rcpp::as<Rcpp::List>(larvaeReleases_[i])["genVec"],
+                                         Rcpp::as<Rcpp::List>(larvaeReleases_[i])["ageVec"],
+                                         Rcpp::as<Rcpp::List>(larvaeReleases_[i])["tRelease"]
+     ));
    }
    std::sort(releaseL.begin(), releaseL.end(), [](release_event a, release_event b){
      return a.release_time > b.release_time;
@@ -121,6 +121,10 @@ oneLocus::oneLocus(const int& patchID_,
   releaseM0 = releaseM;
   releaseF0 = releaseF;
   releaseL0 = releaseL;
+  
+  // migration setup
+  maleMigration.resize(parameters::instance().get_n_patch());
+  femaleMigration.resize(parameters::instance().get_n_patch());
  
 };
 
@@ -227,7 +231,7 @@ void oneLocus::oneDay_layEggs(){
  * SETUP
  **************************************/
 void CreateMosquitoes2Loci(const int& numMos, const int& minAge, const dVec& ageDist,
-                           const Rcpp::ListOf<Rcpp::List>& aTypes, popVec returnPop){
+                           const Rcpp::ListOf<Rcpp::List>& aTypes, popVec& returnPop){
   
   // This only good for things that have 2 loci, but multiple alleles
   
@@ -279,417 +283,417 @@ void CreateMosquitoes2Loci(const int& numMos, const int& minAge, const dVec& age
  **************************************/
 void oneLocus::MultiplexOffspring_oLocus(const std::string& fGen, const std::string& mGen){
 
-  
-  
-  
-  // get number of alleles, this is reused every time and resets here
-  numAlleles = fGen.size()/2;
-  
-  /*****************************************************************************/
-  // Score Each Allele
-  /*****************************************************************************/
-  // these get reused, and set here
-  fScore = false;
-  mScore = false;
-  index = 0;
-  
-  //loop over loci, separate alleles and score
-  while(!fScore || !mScore){
-    // female score
-    if(fGen[index] == 'H') {fScore = true;}
-    // male score
-    if(mGen[index] == 'H') {mScore = true;}
-    // increment index
-    ++index;
-  }
-  /*****************************************************************************/
-  // End Score Each Allele
-  /*****************************************************************************/
-  
-  /*****************************************************************************/
-  // Determine Next-Gen alleles
-  /*****************************************************************************/
-  // reset things that are reused
-  index=0;
-  
-  holdGens1.clear();
-  holdProbs1.clear();
-  
-  fAllele.clear();
-  fProbs.clear();
-  mAllele.clear();
-  mProbs.clear();
-  
-  
-  // FEMALES
-  if(fScore){
-    // TRUE - there is homing
-    // loop over alleles, only two
-    for(size_t allele=0; allele<2; ++allele, index+=numAlleles){
-      // loop over each target in allele
-      for(size_t i=0; i<numAlleles; ++i){
-        // fill allele and probs
-        if(fGen[i+index] == 'W'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele(i,0).begin(),
-                                 reference::instance().get_homing_allele(i,0).end());
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs(i,0).begin(),
-                           reference::instance().get_homing_probs(i,0).end());
-        } else if(fGen[i+index] == 'H'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele(i,1).begin(),
-                            reference::instance().get_homing_allele(i,1).end());
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs(i,1).begin(),
-                           reference::instance().get_homing_probs(i,1).end());
-        } else if(fGen[i+index] == 'R'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele(i,2).begin(),
-                            reference::instance().get_homing_allele(i,2).end());
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs(i,2).begin(),
-                           reference::instance().get_homing_probs(i,2).end());
-        } else if(fGen[i+index] == 'S'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele(i,3).begin(),
-                            reference::instance().get_homing_allele(i,3).end());
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs(i,3).begin(),
-                           reference::instance().get_homing_probs(i,3).end());
-        }
-        
-        /********************************
-        // All Combinations of Target Sites
-        *********************************/
-        // make combinations
-        for(size_t first=0; first < holdGens1.size(); ++first){
-          for(size_t second=0; second < holdGens2.size(); ++second){
-            holdGens3.push_back(holdGens1[first] + holdGens2[second]);
-            holdProbs3.push_back(holdProbs1[first] * holdProbs2[second]);
-          }
-        }
-         
-        // set combinations in return matrix
-        //  Is there a better way to set the first one?
-        if(holdGens1.size() == 0){
-          holdGens1 = holdGens2;
-          holdProbs1 = holdProbs2;
-        } else {
-          holdGens1 = holdGens3;
-          holdProbs1 = holdProbs3;
-        }
-        
-        // clear hold values
-        holdGens2.clear();
-        holdProbs2.clear();
-        holdGens3.clear();
-        holdProbs3.clear();
-        /********************************
-        // End All Combinations of Target Sites
-        *********************************/
-      } // end loop over target sites at each allele
-      
-      /********************************
-      // "Unlist"
-      *********************************/
-      // put finished set of alleles from each locus into a final vector, they 
-      //  can't mix with each other
-      //  There could be duplicates here, do I care?
-      fAllele.insert(fAllele.end(), holdGens1.begin(), holdGens1.end());
-      fProbs.insert(fProbs.end(), holdProbs1.begin(), holdProbs1.end());
-      
-      // clear holder
-      holdGens1.clear();
-      holdProbs1.clear();
-      
-      /********************************
-      // End "Unlist"
-      *********************************/
-    } // end allele loop
-    
-  } else {
-    // FALSE - there is not homing
-    // loop over alleles, only two
-    for(size_t allele=0; allele<2; ++allele, index+=numAlleles){
-      // loop over each target in allele
-      for(size_t i=0; i<numAlleles; ++i){
-        // fill allele and probs
-        if(fGen[i+index] == 'W'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele(i,0).begin(),
-                                 reference::instance().get_mendelian_allele(i,0).end());
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs(i,0).begin(),
-                                reference::instance().get_mendelian_probs(i,0).end());
-        } else if(fGen[i+index] == 'H'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele(i,1).begin(),
-                                 reference::instance().get_mendelian_allele(i,1).end());
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs(i,1).begin(),
-                                reference::instance().get_mendelian_probs(i,1).end());
-        } else if(fGen[i+index] == 'R'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele(i,2).begin(),
-                                 reference::instance().get_mendelian_allele(i,2).end());
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs(i,2).begin(),
-                                reference::instance().get_mendelian_probs(i,2).end());
-        } else if(fGen[i+index] == 'S'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele(i,3).begin(),
-                                 reference::instance().get_mendelian_allele(i,3).end());
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs(i,3).begin(),
-                                reference::instance().get_mendelian_probs(i,3).end());
-        }
-        
-        /********************************
-        // All Combinations of Target Sites
-        *********************************/
-        // make combinations
-        for(size_t first=0; first < holdGens1.size(); ++first){
-          for(size_t second=0; second < holdGens2.size(); ++second){
-            holdGens3.push_back(holdGens1[first] + holdGens2[second]);
-            holdProbs3.push_back(holdProbs1[first] * holdProbs2[second]);
-          }
-        }
-        
-        // set combinations in return matrix
-        //  Is there a better way to set the first one?
-        if(holdGens1.size() == 0){
-          holdGens1 = holdGens2;
-          holdProbs1 = holdProbs2;
-        } else {
-          holdGens1 = holdGens3;
-          holdProbs1 = holdProbs3;
-        }
-        
-        // clear hold values
-        holdGens2.clear();
-        holdProbs2.clear();
-        holdGens3.clear();
-        holdProbs3.clear();
-        /********************************
-        // End All Combinations of Target Sites
-        *********************************/
-      } // end loop over target sites at each allele
-      
-      /********************************
-      // "Unlist"
-      *********************************/
-      // put finished set of alleles from each locus into a final vector, they 
-      //  can't mix with each other
-      //  There could be duplicates here, do I care?
-      fAllele.insert(fAllele.end(), holdGens1.begin(), holdGens1.end());
-      fProbs.insert(fProbs.end(), holdProbs1.begin(), holdProbs1.end());
-      
-      // clear holder
-      holdGens1.clear();
-      holdProbs1.clear();
-      
-      /********************************
-      // End "Unlist"
-      *********************************/
-    } // end allele loop
-    
-  } // end female if statement
-  
-  // reset index
-  index=0;
-  
-  // MALES
-  if(mScore){
-    // TRUE - there is homing
-    // loop over alleles, only two
-    for(size_t allele=0; allele<2; ++allele, index+=numAlleles){
-      // loop over each target in allele
-      for(size_t i=0; i<numAlleles; ++i){
-        // fill allele and probs
-        if(mGen[i+index] == 'W'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele(i,0).begin(),
-                                 reference::instance().get_homing_allele(i,0).end());
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs(i,0).begin(),
-                                reference::instance().get_homing_probs(i,0).end());
-        } else if(mGen[i+index] == 'H'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele(i,1).begin(),
-                                 reference::instance().get_homing_allele(i,1).end());
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs(i,1).begin(),
-                                reference::instance().get_homing_probs(i,1).end());
-        } else if(mGen[i+index] == 'R'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele(i,2).begin(),
-                                 reference::instance().get_homing_allele(i,2).end());
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs(i,2).begin(),
-                                reference::instance().get_homing_probs(i,2).end());
-        } else if(mGen[i+index] == 'S'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele(i,3).begin(),
-                                 reference::instance().get_homing_allele(i,3).end());
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs(i,3).begin(),
-                                reference::instance().get_homing_probs(i,3).end());
-        }
-        
-        /********************************
-        // All Combinations of Target Sites
-        *********************************/
-        // make combinations
-        for(size_t first=0; first < holdGens1.size(); ++first){
-          for(size_t second=0; second < holdGens2.size(); ++second){
-            holdGens3.push_back(holdGens1[first] + holdGens2[second]);
-            holdProbs3.push_back(holdProbs1[first] * holdProbs2[second]);
-          }
-        }
-        
-        // set combinations in return matrix
-        //  Is there a better way to set the first one?
-        if(holdGens1.size() == 0){
-          holdGens1 = holdGens2;
-          holdProbs1 = holdProbs2;
-        } else {
-          holdGens1 = holdGens3;
-          holdProbs1 = holdProbs3;
-        }
-        
-        // clear hold values
-        holdGens2.clear();
-        holdProbs2.clear();
-        holdGens3.clear();
-        holdProbs3.clear();
-        /********************************
-        // End All Combinations of Target Sites
-        *********************************/
-      } // end loop over target sites at each allele
-      
-      /********************************
-      // "Unlist"
-      *********************************/
-      // put finished set of alleles from each locus into a final vector, they 
-      //  can't mix with each other
-      //  There could be duplicates here, do I care?
-      mAllele.insert(mAllele.end(), holdGens1.begin(), holdGens1.end());
-      mProbs.insert(mProbs.end(), holdProbs1.begin(), holdProbs1.end());
-      
-      // clear holder
-      holdGens1.clear();
-      holdProbs1.clear();
-      
-      /********************************
-      // End "Unlist"
-      *********************************/
-    } // end allele loop
-    
-  } else {
-    
-    // FALSE - there is no homing
-    // loop over alleles, only two
-    for(size_t allele=0; allele<2; ++allele, index+=numAlleles){
-      // loop over each target in allele
-      for(size_t i=0; i<numAlleles; ++i){
-        // fill allele and probs
-        if(mGen[i+index] == 'W'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele(i,0).begin(),
-                                 reference::instance().get_mendelian_allele(i,0).end());
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs(i,0).begin(),
-                                reference::instance().get_mendelian_probs(i,0).end());
-        } else if(mGen[i+index] == 'H'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele(i,1).begin(),
-                                 reference::instance().get_mendelian_allele(i,1).end());
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs(i,1).begin(),
-                                reference::instance().get_mendelian_probs(i,1).end());
-        } else if(mGen[i+index] == 'R'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele(i,2).begin(),
-                                 reference::instance().get_mendelian_allele(i,2).end());
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs(i,2).begin(),
-                                reference::instance().get_mendelian_probs(i,2).end());
-        } else if(mGen[i+index] == 'S'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele(i,3).begin(),
-                                 reference::instance().get_mendelian_allele(i,3).end());
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs(i,3).begin(),
-                                reference::instance().get_mendelian_probs(i,3).end());
-        }
-        
-        /********************************
-        // All Combinations of Target Sites
-        *********************************/
-        // make combinations
-        for(size_t first=0; first < holdGens1.size(); ++first){
-          for(size_t second=0; second < holdGens2.size(); ++second){
-            holdGens3.push_back(holdGens1[first] + holdGens2[second]);
-            holdProbs3.push_back(holdProbs1[first] * holdProbs2[second]);
-          }
-        }
-        
-        // set combinations in return matrix
-        //  Is there a better way to set the first one?
-        if(holdGens1.size() == 0){
-          holdGens1 = holdGens2;
-          holdProbs1 = holdProbs2;
-        } else {
-          holdGens1 = holdGens3;
-          holdProbs1 = holdProbs3;
-        }
-        
-        // clear hold values
-        holdGens2.clear();
-        holdProbs2.clear();
-        holdGens3.clear();
-        holdProbs3.clear();
-        /********************************
-        // End All Combinations of Target Sites
-        *********************************/
-      } // end loop over target sites at each allele
-      
-      /********************************
-      // "Unlist"
-      *********************************/
-      // put finished set of alleles from each locus into a final vector, they 
-      //  can't mix with each other
-      //  There could be duplicates here, do I care?
-      mAllele.insert(mAllele.end(), holdGens1.begin(), holdGens1.end());
-      mProbs.insert(mProbs.end(), holdProbs1.begin(), holdProbs1.end());
-      
-      // clear holder
-      holdGens1.clear();
-      holdProbs1.clear();
-      
-      /********************************
-      // End "Unlist"
-      *********************************/
-    } // end allele loop
-    
-  } // end male if statement
-  /*****************************************************************************/
-  // End Next-Gen alleles
-  /*****************************************************************************/
-   
-  /*****************************************************************************/
-  // Cartesian Product of male/female loci
-  /*****************************************************************************/
-  // These get reused, but two don't need cleared
-  // holdAllele
-  duplicates.clear();
-  // std::unordered_map<std::string, double>::iterator value;
-  
-  
-  // all combinations of female/male alleles and probs
-  for(size_t fem=0; fem<fAllele.size(); ++fem){
-    for(size_t mal=0; mal<mAllele.size(); ++mal){
-      
-      // combine alleles
-      holdAllele = fAllele[fem] + mAllele[mal];
-      
-      // Here we aggregate non-unique values
-      // check if it is in map
-      value = duplicates.find(holdAllele);
-      if(value == duplicates.end()){
-        // not in map, add it
-        duplicates.insert(std::make_pair(holdAllele, fProbs[fem] * mProbs[mal]));
-      } else {
-        // is in map, combine with existing value
-        value->second += fProbs[fem]*mProbs[mal];
-      }
-      
-    } // end male loop
-  } //  end female loop
-  
-  // clear for reuse
-  holdGens1.clear();
-  holdProbs1.clear();
-  
-  // Take unique values in map, return to matrix
-  for(auto elem : duplicates){
-    holdGens1.push_back(elem.first);
-    holdProbs1.push_back(elem.second);
-  }
-  
-  /*****************************************************************************/
-  // End Cartesian Product of male/female loci
-  /*****************************************************************************/
-  
+  // 
+  // 
+  // 
+  // // get number of alleles, this is reused every time and resets here
+  // numAlleles = fGen.size()/2;
+  // 
+  // /*****************************************************************************/
+  // // Score Each Allele
+  // /*****************************************************************************/
+  // // these get reused, and set here
+  // fScore = false;
+  // mScore = false;
+  // index = 0;
+  // 
+  // //loop over loci, separate alleles and score
+  // while(!fScore || !mScore){
+  //   // female score
+  //   if(fGen[index] == 'H') {fScore = true;}
+  //   // male score
+  //   if(mGen[index] == 'H') {mScore = true;}
+  //   // increment index
+  //   ++index;
+  // }
+  // /*****************************************************************************/
+  // // End Score Each Allele
+  // /*****************************************************************************/
+  // 
+  // /*****************************************************************************/
+  // // Determine Next-Gen alleles
+  // /*****************************************************************************/
+  // // reset things that are reused
+  // index=0;
+  // 
+  // holdGens1.clear();
+  // holdProbs1.clear();
+  // 
+  // fAllele.clear();
+  // fProbs.clear();
+  // mAllele.clear();
+  // mProbs.clear();
+  // 
+  // 
+  // // FEMALES
+  // if(fScore){
+  //   // TRUE - there is homing
+  //   // loop over alleles, only two
+  //   for(size_t allele=0; allele<2; ++allele, index+=numAlleles){
+  //     // loop over each target in allele
+  //     for(size_t i=0; i<numAlleles; ++i){
+  //       // fill allele and probs
+  //       if(fGen[i+index] == 'W'){
+  //         holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele(i,0).begin(),
+  //                                reference::instance().get_homing_allele(i,0).end());
+  //         holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs(i,0).begin(),
+  //                          reference::instance().get_homing_probs(i,0).end());
+  //       } else if(fGen[i+index] == 'H'){
+  //         holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele(i,1).begin(),
+  //                           reference::instance().get_homing_allele(i,1).end());
+  //         holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs(i,1).begin(),
+  //                          reference::instance().get_homing_probs(i,1).end());
+  //       } else if(fGen[i+index] == 'R'){
+  //         holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele(i,2).begin(),
+  //                           reference::instance().get_homing_allele(i,2).end());
+  //         holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs(i,2).begin(),
+  //                          reference::instance().get_homing_probs(i,2).end());
+  //       } else if(fGen[i+index] == 'S'){
+  //         holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele(i,3).begin(),
+  //                           reference::instance().get_homing_allele(i,3).end());
+  //         holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs(i,3).begin(),
+  //                          reference::instance().get_homing_probs(i,3).end());
+  //       }
+  //       
+  //       /********************************
+  //       // All Combinations of Target Sites
+  //       *********************************/
+  //       // make combinations
+  //       for(size_t first=0; first < holdGens1.size(); ++first){
+  //         for(size_t second=0; second < holdGens2.size(); ++second){
+  //           holdGens3.push_back(holdGens1[first] + holdGens2[second]);
+  //           holdProbs3.push_back(holdProbs1[first] * holdProbs2[second]);
+  //         }
+  //       }
+  //        
+  //       // set combinations in return matrix
+  //       //  Is there a better way to set the first one?
+  //       if(holdGens1.size() == 0){
+  //         holdGens1 = holdGens2;
+  //         holdProbs1 = holdProbs2;
+  //       } else {
+  //         holdGens1 = holdGens3;
+  //         holdProbs1 = holdProbs3;
+  //       }
+  //       
+  //       // clear hold values
+  //       holdGens2.clear();
+  //       holdProbs2.clear();
+  //       holdGens3.clear();
+  //       holdProbs3.clear();
+  //       /********************************
+  //       // End All Combinations of Target Sites
+  //       *********************************/
+  //     } // end loop over target sites at each allele
+  //     
+  //     /********************************
+  //     // "Unlist"
+  //     *********************************/
+  //     // put finished set of alleles from each locus into a final vector, they 
+  //     //  can't mix with each other
+  //     //  There could be duplicates here, do I care?
+  //     fAllele.insert(fAllele.end(), holdGens1.begin(), holdGens1.end());
+  //     fProbs.insert(fProbs.end(), holdProbs1.begin(), holdProbs1.end());
+  //     
+  //     // clear holder
+  //     holdGens1.clear();
+  //     holdProbs1.clear();
+  //     
+  //     /********************************
+  //     // End "Unlist"
+  //     *********************************/
+  //   } // end allele loop
+  //   
+  // } else {
+  //   // FALSE - there is not homing
+  //   // loop over alleles, only two
+  //   for(size_t allele=0; allele<2; ++allele, index+=numAlleles){
+  //     // loop over each target in allele
+  //     for(size_t i=0; i<numAlleles; ++i){
+  //       // fill allele and probs
+  //       if(fGen[i+index] == 'W'){
+  //         holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele(i,0).begin(),
+  //                                reference::instance().get_mendelian_allele(i,0).end());
+  //         holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs(i,0).begin(),
+  //                               reference::instance().get_mendelian_probs(i,0).end());
+  //       } else if(fGen[i+index] == 'H'){
+  //         holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele(i,1).begin(),
+  //                                reference::instance().get_mendelian_allele(i,1).end());
+  //         holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs(i,1).begin(),
+  //                               reference::instance().get_mendelian_probs(i,1).end());
+  //       } else if(fGen[i+index] == 'R'){
+  //         holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele(i,2).begin(),
+  //                                reference::instance().get_mendelian_allele(i,2).end());
+  //         holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs(i,2).begin(),
+  //                               reference::instance().get_mendelian_probs(i,2).end());
+  //       } else if(fGen[i+index] == 'S'){
+  //         holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele(i,3).begin(),
+  //                                reference::instance().get_mendelian_allele(i,3).end());
+  //         holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs(i,3).begin(),
+  //                               reference::instance().get_mendelian_probs(i,3).end());
+  //       }
+  //       
+  //       /********************************
+  //       // All Combinations of Target Sites
+  //       *********************************/
+  //       // make combinations
+  //       for(size_t first=0; first < holdGens1.size(); ++first){
+  //         for(size_t second=0; second < holdGens2.size(); ++second){
+  //           holdGens3.push_back(holdGens1[first] + holdGens2[second]);
+  //           holdProbs3.push_back(holdProbs1[first] * holdProbs2[second]);
+  //         }
+  //       }
+  //       
+  //       // set combinations in return matrix
+  //       //  Is there a better way to set the first one?
+  //       if(holdGens1.size() == 0){
+  //         holdGens1 = holdGens2;
+  //         holdProbs1 = holdProbs2;
+  //       } else {
+  //         holdGens1 = holdGens3;
+  //         holdProbs1 = holdProbs3;
+  //       }
+  //       
+  //       // clear hold values
+  //       holdGens2.clear();
+  //       holdProbs2.clear();
+  //       holdGens3.clear();
+  //       holdProbs3.clear();
+  //       /********************************
+  //       // End All Combinations of Target Sites
+  //       *********************************/
+  //     } // end loop over target sites at each allele
+  //     
+  //     /********************************
+  //     // "Unlist"
+  //     *********************************/
+  //     // put finished set of alleles from each locus into a final vector, they 
+  //     //  can't mix with each other
+  //     //  There could be duplicates here, do I care?
+  //     fAllele.insert(fAllele.end(), holdGens1.begin(), holdGens1.end());
+  //     fProbs.insert(fProbs.end(), holdProbs1.begin(), holdProbs1.end());
+  //     
+  //     // clear holder
+  //     holdGens1.clear();
+  //     holdProbs1.clear();
+  //     
+  //     /********************************
+  //     // End "Unlist"
+  //     *********************************/
+  //   } // end allele loop
+  //   
+  // } // end female if statement
+  // 
+  // // reset index
+  // index=0;
+  // 
+  // // MALES
+  // if(mScore){
+  //   // TRUE - there is homing
+  //   // loop over alleles, only two
+  //   for(size_t allele=0; allele<2; ++allele, index+=numAlleles){
+  //     // loop over each target in allele
+  //     for(size_t i=0; i<numAlleles; ++i){
+  //       // fill allele and probs
+  //       if(mGen[i+index] == 'W'){
+  //         holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele(i,0).begin(),
+  //                                reference::instance().get_homing_allele(i,0).end());
+  //         holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs(i,0).begin(),
+  //                               reference::instance().get_homing_probs(i,0).end());
+  //       } else if(mGen[i+index] == 'H'){
+  //         holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele(i,1).begin(),
+  //                                reference::instance().get_homing_allele(i,1).end());
+  //         holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs(i,1).begin(),
+  //                               reference::instance().get_homing_probs(i,1).end());
+  //       } else if(mGen[i+index] == 'R'){
+  //         holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele(i,2).begin(),
+  //                                reference::instance().get_homing_allele(i,2).end());
+  //         holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs(i,2).begin(),
+  //                               reference::instance().get_homing_probs(i,2).end());
+  //       } else if(mGen[i+index] == 'S'){
+  //         holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele(i,3).begin(),
+  //                                reference::instance().get_homing_allele(i,3).end());
+  //         holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs(i,3).begin(),
+  //                               reference::instance().get_homing_probs(i,3).end());
+  //       }
+  //       
+  //       /********************************
+  //       // All Combinations of Target Sites
+  //       *********************************/
+  //       // make combinations
+  //       for(size_t first=0; first < holdGens1.size(); ++first){
+  //         for(size_t second=0; second < holdGens2.size(); ++second){
+  //           holdGens3.push_back(holdGens1[first] + holdGens2[second]);
+  //           holdProbs3.push_back(holdProbs1[first] * holdProbs2[second]);
+  //         }
+  //       }
+  //       
+  //       // set combinations in return matrix
+  //       //  Is there a better way to set the first one?
+  //       if(holdGens1.size() == 0){
+  //         holdGens1 = holdGens2;
+  //         holdProbs1 = holdProbs2;
+  //       } else {
+  //         holdGens1 = holdGens3;
+  //         holdProbs1 = holdProbs3;
+  //       }
+  //       
+  //       // clear hold values
+  //       holdGens2.clear();
+  //       holdProbs2.clear();
+  //       holdGens3.clear();
+  //       holdProbs3.clear();
+  //       /********************************
+  //       // End All Combinations of Target Sites
+  //       *********************************/
+  //     } // end loop over target sites at each allele
+  //     
+  //     /********************************
+  //     // "Unlist"
+  //     *********************************/
+  //     // put finished set of alleles from each locus into a final vector, they 
+  //     //  can't mix with each other
+  //     //  There could be duplicates here, do I care?
+  //     mAllele.insert(mAllele.end(), holdGens1.begin(), holdGens1.end());
+  //     mProbs.insert(mProbs.end(), holdProbs1.begin(), holdProbs1.end());
+  //     
+  //     // clear holder
+  //     holdGens1.clear();
+  //     holdProbs1.clear();
+  //     
+  //     /********************************
+  //     // End "Unlist"
+  //     *********************************/
+  //   } // end allele loop
+  //   
+  // } else {
+  //   
+  //   // FALSE - there is no homing
+  //   // loop over alleles, only two
+  //   for(size_t allele=0; allele<2; ++allele, index+=numAlleles){
+  //     // loop over each target in allele
+  //     for(size_t i=0; i<numAlleles; ++i){
+  //       // fill allele and probs
+  //       if(mGen[i+index] == 'W'){
+  //         holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele(i,0).begin(),
+  //                                reference::instance().get_mendelian_allele(i,0).end());
+  //         holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs(i,0).begin(),
+  //                               reference::instance().get_mendelian_probs(i,0).end());
+  //       } else if(mGen[i+index] == 'H'){
+  //         holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele(i,1).begin(),
+  //                                reference::instance().get_mendelian_allele(i,1).end());
+  //         holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs(i,1).begin(),
+  //                               reference::instance().get_mendelian_probs(i,1).end());
+  //       } else if(mGen[i+index] == 'R'){
+  //         holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele(i,2).begin(),
+  //                                reference::instance().get_mendelian_allele(i,2).end());
+  //         holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs(i,2).begin(),
+  //                               reference::instance().get_mendelian_probs(i,2).end());
+  //       } else if(mGen[i+index] == 'S'){
+  //         holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele(i,3).begin(),
+  //                                reference::instance().get_mendelian_allele(i,3).end());
+  //         holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs(i,3).begin(),
+  //                               reference::instance().get_mendelian_probs(i,3).end());
+  //       }
+  //       
+  //       /********************************
+  //       // All Combinations of Target Sites
+  //       *********************************/
+  //       // make combinations
+  //       for(size_t first=0; first < holdGens1.size(); ++first){
+  //         for(size_t second=0; second < holdGens2.size(); ++second){
+  //           holdGens3.push_back(holdGens1[first] + holdGens2[second]);
+  //           holdProbs3.push_back(holdProbs1[first] * holdProbs2[second]);
+  //         }
+  //       }
+  //       
+  //       // set combinations in return matrix
+  //       //  Is there a better way to set the first one?
+  //       if(holdGens1.size() == 0){
+  //         holdGens1 = holdGens2;
+  //         holdProbs1 = holdProbs2;
+  //       } else {
+  //         holdGens1 = holdGens3;
+  //         holdProbs1 = holdProbs3;
+  //       }
+  //       
+  //       // clear hold values
+  //       holdGens2.clear();
+  //       holdProbs2.clear();
+  //       holdGens3.clear();
+  //       holdProbs3.clear();
+  //       /********************************
+  //       // End All Combinations of Target Sites
+  //       *********************************/
+  //     } // end loop over target sites at each allele
+  //     
+  //     /********************************
+  //     // "Unlist"
+  //     *********************************/
+  //     // put finished set of alleles from each locus into a final vector, they 
+  //     //  can't mix with each other
+  //     //  There could be duplicates here, do I care?
+  //     mAllele.insert(mAllele.end(), holdGens1.begin(), holdGens1.end());
+  //     mProbs.insert(mProbs.end(), holdProbs1.begin(), holdProbs1.end());
+  //     
+  //     // clear holder
+  //     holdGens1.clear();
+  //     holdProbs1.clear();
+  //     
+  //     /********************************
+  //     // End "Unlist"
+  //     *********************************/
+  //   } // end allele loop
+  //   
+  // } // end male if statement
+  // /*****************************************************************************/
+  // // End Next-Gen alleles
+  // /*****************************************************************************/
+  //  
+  // /*****************************************************************************/
+  // // Cartesian Product of male/female loci
+  // /*****************************************************************************/
+  // // These get reused, but two don't need cleared
+  // // holdAllele
+  // duplicates.clear();
+  // // std::unordered_map<std::string, double>::iterator value;
+  // 
+  // 
+  // // all combinations of female/male alleles and probs
+  // for(size_t fem=0; fem<fAllele.size(); ++fem){
+  //   for(size_t mal=0; mal<mAllele.size(); ++mal){
+  //     
+  //     // combine alleles
+  //     holdAllele = fAllele[fem] + mAllele[mal];
+  //     
+  //     // Here we aggregate non-unique values
+  //     // check if it is in map
+  //     value = duplicates.find(holdAllele);
+  //     if(value == duplicates.end()){
+  //       // not in map, add it
+  //       duplicates.insert(std::make_pair(holdAllele, fProbs[fem] * mProbs[mal]));
+  //     } else {
+  //       // is in map, combine with existing value
+  //       value->second += fProbs[fem]*mProbs[mal];
+  //     }
+  //     
+  //   } // end male loop
+  // } //  end female loop
+  // 
+  // // clear for reuse
+  // holdGens1.clear();
+  // holdProbs1.clear();
+  // 
+  // // Take unique values in map, return to matrix
+  // for(auto elem : duplicates){
+  //   holdGens1.push_back(elem.first);
+  //   holdProbs1.push_back(elem.second);
+  // }
+  // 
+  // /*****************************************************************************/
+  // // End Cartesian Product of male/female loci
+  // /*****************************************************************************/
+  // 
 } // end function
 
 

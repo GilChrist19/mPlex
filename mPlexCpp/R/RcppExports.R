@@ -13,7 +13,7 @@
 #' }
 #' 
 #' 
-run_mPlex_Cpp <- function(seed, networkParameters_, reproductionReference_, migrationMale_, migrationFemale_, migrationBatch_, reproductionType_, verbose) {
-    invisible(.Call('_mPlexCpp_run_mPlex_Cpp', PACKAGE = 'mPlexCpp', seed, networkParameters_, reproductionReference_, migrationMale_, migrationFemale_, migrationBatch_, reproductionType_, verbose))
+run_mPlex_Cpp <- function(seed, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, output_directory, reproductionType_, verbose) {
+    invisible(.Call('_mPlexCpp_run_mPlex_Cpp', PACKAGE = 'mPlexCpp', seed, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, output_directory, reproductionType_, verbose))
 }
 

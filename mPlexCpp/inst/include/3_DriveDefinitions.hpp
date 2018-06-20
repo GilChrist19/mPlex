@@ -26,7 +26,7 @@ using sMat = std::vector<sVec>;
  ****************/
 // for setting up Daisy and multiLocus patches
 void CreateMosquitoes2Allele(const int& numMos, const int& minAge, const dVec& ageDist,
-                             const Rcpp::ListOf<Rcpp::List>& aTypes, popVec returnPop);
+                             const Rcpp::ListOf<Rcpp::List>& aTypes, popVec& returnPop);
 
 /****************
  * CLASS
@@ -38,9 +38,9 @@ public:
   // constructor
   Daisy(const int& patchID_,
         const Rcpp::ListOf<Rcpp::List>& aTypes,
-        const Rcpp::ListOf<Rcpp::List>& maleReleases_,
-        const Rcpp::ListOf<Rcpp::List>& femaleReleases_,
-        const Rcpp::ListOf<Rcpp::List>& larvaeReleases_);
+        const Rcpp::List& maleReleases_,
+        const Rcpp::List& femaleReleases_,
+        const Rcpp::List& larvaeReleases_);
   // destructor
   ~Daisy();
   
@@ -96,9 +96,9 @@ public:
   // constructor
   multiLocus(const int& patchID_,
               const Rcpp::ListOf<Rcpp::List>& aTypes,
-              const Rcpp::ListOf<Rcpp::List>& maleReleases_,
-              const Rcpp::ListOf<Rcpp::List>& femaleReleases_,
-              const Rcpp::ListOf<Rcpp::List>& larvaeReleases_);
+              const Rcpp::List& maleReleases_,
+              const Rcpp::List& femaleReleases_,
+              const Rcpp::List& larvaeReleases_);
   // destructor
   virtual ~multiLocus();
   
@@ -149,7 +149,7 @@ private:
  ****************/
 // for setting up oneLocus patch
 void CreateMosquitoes2Loci(const int& numMos, const int& minAge, const dVec& ageDist,
-                           const Rcpp::ListOf<Rcpp::List>& aTypes, popVec returnPop);
+                           const Rcpp::ListOf<Rcpp::List>& aTypes, popVec& returnPop);
 
 /****************
  * CLASS
@@ -160,9 +160,9 @@ public:
   // constructor
   oneLocus(const int& patchID_,
              const Rcpp::ListOf<Rcpp::List>& aTypes,
-             const Rcpp::ListOf<Rcpp::List>& maleReleases_,
-             const Rcpp::ListOf<Rcpp::List>& femaleReleases_,
-             const Rcpp::ListOf<Rcpp::List>& larvaeReleases_);
+             const Rcpp::List& maleReleases_,
+             const Rcpp::List& femaleReleases_,
+             const Rcpp::List& larvaeReleases_);
   // destructor
   virtual ~oneLocus();
   
