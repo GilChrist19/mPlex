@@ -1,9 +1,14 @@
-# setup functions for reproduction
-
-
-
-
-
+###############################################################################
+#                            ____  __          ______          
+#                 ____ ___  / __ \/ /__  _  __/ ____/___  ____ 
+#                / __ `__ \/ /_/ / / _ \| |/_/ /   / __ \/ __ \
+#               / / / / / / ____/ /  __/>  </ /___/ /_/ / /_/ /
+#              /_/ /_/ /_/_/   /_/\___/_/|_|\____/ .___/ .___/ 
+#                                               /_/   /_/      
+###############################################################################
+###############################################################################
+# DAISY
+###############################################################################
 
 #' Daisy Drive Offspring Reference
 #'
@@ -200,15 +205,9 @@ MakeReference_DaisyDrive <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/
   
 }
 
-
-
-
-
-
-
-
-
-
+###############################################################################
+# MLOCI
+###############################################################################
 
 #' mPlex Multiple Loci Offspring Reference
 #'
@@ -369,11 +368,9 @@ MakeReference_Multiplex_mLoci <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0),
   
   return(list(
     mendelian = mendProbsList,
-    cutting = cutProbsList,
     homing = homProbsList,
     mendelianAlleles = mendAlleleList,
     homingAlleles = homAlleleList,
-    cuttingAlleles = cutAlleleList,
     eta = eta_,
     phi = phi_,
     omega = omega_,
@@ -383,16 +380,9 @@ MakeReference_Multiplex_mLoci <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0),
   
 }
 
-
-
-
-
-
-
-
-
-
-
+###############################################################################
+# OLOCUS
+###############################################################################
 
 #' mPlex One Locus Offspring Reference
 #'
@@ -554,11 +544,9 @@ MakeReference_Multiplex_oLocus <- function(H=c(0.9),R=c(0.0), S=R/3, d=c(0.0001)
   
   return(list(
     mendelian = mendProbsList,
-    cutting = cutProbsList,
     homing = homProbsList,
     mendelianAlleles = mendAlleleList,
     homingAlleles = homAlleleList,
-    cuttingAlleles = cutAlleleList,
     eta = eta_,
     phi = phi_,
     omega = omega_,
@@ -567,31 +555,4 @@ MakeReference_Multiplex_oLocus <- function(H=c(0.9),R=c(0.0), S=R/3, d=c(0.0001)
     s = s_))
   
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

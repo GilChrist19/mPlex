@@ -1,10 +1,11 @@
-//      __  _____________  ____  ______
-//     /  |/  / ____/ __ \/ __ \/ ____/___  ____
-//    / /|_/ / / __/ / / / / / / /   / __ \/ __ \
-//   / /  / / /_/ / /_/ / /_/ / /___/ /_/ / /_/ /
-//  /_/  /_/\____/_____/_____/\____/ .___/ .___/
-//                                /_/   /_/
-
+///////////////////////////////////////////////////////////////////////////////
+//                           ____  __          ______          
+//                ____ ___  / __ \/ /__  _  __/ ____/___  ____ 
+//               / __ `__ \/ /_/ / / _ \| |/_/ /   / __ \/ __ \
+//              / / / / / / ____/ /  __/>  </ /___/ /_/ / /_/ /
+//             /_/ /_/ /_/_/   /_/\___/_/|_|\____/ .___/ .___/ 
+//                                              /_/   /_/      
+///////////////////////////////////////////////////////////////////////////////
 
 #include "2_Patch.hpp"
 
@@ -75,6 +76,9 @@ private:
   
   sVec holdGens;
   dVec holdProbs;
+  
+  // used in reproduction
+  iVec newEggs;
 
 };
 
@@ -134,6 +138,9 @@ private:
   sVec holdGens;
   dVec holdProbs;
   
+  // used in reproduction
+  iVec newEggs;
+  
 };
 
 #endif
@@ -181,7 +188,7 @@ public:
   
 private:
   // these are values that are used in the mating function
-  int numAlleles;
+  int numLoci;
   int index;
   bool fScore;
   bool mScore;
@@ -201,6 +208,9 @@ private:
   std::string holdAllele;
   std::unordered_map<std::string, double>   duplicates;
   std::unordered_map<std::string, double>::iterator value;
+  
+  // used in reproduction
+  iVec newEggs;
   
 };
 

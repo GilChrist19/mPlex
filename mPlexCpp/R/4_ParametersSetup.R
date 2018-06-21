@@ -1,10 +1,10 @@
 ###############################################################################
-#                                    ____  _
-#                          _ __ ___ |  _ \| | _____  __
-#                         | '_ ` _ \| |_) | |/ _ \ \/ /
-#                         | | | | | |  __/| |  __/>  <
-#                         |_| |_| |_|_|   |_|\___/_/\_\
-#
+#                            ____  __          ______          
+#                 ____ ___  / __ \/ /__  _  __/ ____/___  ____ 
+#                / __ `__ \/ /_/ / / _ \| |/_/ /   / __ \/ __ \
+#               / / / / / / ____/ /  __/>  </ /___/ /_/ / /_/ /
+#              /_/ /_/ /_/_/   /_/\___/_/|_|\____/ .___/ .___/ 
+#                                               /_/   /_/      
 ###############################################################################
 ###############################################################################
 # Release Functions
@@ -102,6 +102,56 @@ Release_basicRepeatedReleases <- function(releaseStart, releaseEnd, releaseInter
   }
   
   return(releaseList)
+}
+
+###############################################################################
+# Batch Migration Setup
+###############################################################################
+
+#' Make List of Batch Migration Parameters
+#'
+#' Sets up a list containing the probability of a batch migration, the fractional amount of males/females
+#' that migrate, and the weighted probabilities for where to migrate.
+#'
+#' @param batchProbs Probability of a batch migration, either 1 number or vector of length equal to the number of patches
+#' @param sexProbs Population fraction of males and females that migration. Either vector c(M,F) or matrix of 2 columns
+#' @param numPatches Number of patches in the simulation
+#'
+#' @examples
+#' # to setup for 3 patches
+#' batchMigration = basicBatchMigration(batchProbs = 1e-5, sexProbs = c(0.1, 0.01), numPatches = 3)
+#'
+#' @export
+basicBatchMigration <- function(batchProbs = 1e-5, sexProbs = c(0.01, 0.01),
+                                numPatches = 1){
+  
+  # check length of probs
+  if(!all(batchProbs<1)){
+    stop("Probability of batch migration must be less than 1")
+  }
+  if(length(batchProbs) != numPatches){
+    batchProbs = rep(x = batchProbs, numPatches)
+  }
+  
+  # check length of sexes, make sure less than 1
+  if(!all(sexProbs<1)){
+    stop("Sex specific movement fraction must be less than 1")
+  }
+  if(is.null(dim(sexProbs))){
+    sexProbsMat = matrix(data = sexProbs, nrow = numPatches, ncol = 2,
+                         byrow = TRUE, dimnames = list(NULL, c("M","F")))
+  }
+
+  # setup movement matrix
+  moveMat <- matrix(data = 1L, nrow = numPatches, ncol = numPatches)
+  diag(moveMat) <- 0L
+  moveMat <- moveMat/rowSums(x = moveMat)
+  
+  # return basic batch migration
+  return(list("batchProbs" = batchProbs,
+              "sexProbs" = sexProbsMat,
+              "moveProbs" = moveMat)
+  )
 }
 
 ###############################################################################
@@ -221,51 +271,6 @@ NetworkParameters <- function(
   return(pars)
 }
 
-#' Make List of Batch Migration Parameters
-#'
-#' Sets up a list containing the probability of a batch migration, the fractional amount of males/females
-#' that migrate, and the weighted probabilities for where to migrate.
-#'
-#' @param batchProbs Probability of a batch migration, either 1 number or vector of length equal to the number of patches
-#' @param sexProbs Population fraction of males and females that migration. Either vector c(M,F) or matrix of 2 columns
-#' @param numPatches Number of patches in the simulation
-#'
-#' @examples
-#' # to setup for 3 patches
-#' batchMigration = basicBatchMigration(batchProbs = 1e-5, sexProbs = c(0.1, 0.01), numPatches = 3)
-#'
-#' @export
-basicBatchMigration <- function(batchProbs = 1e-5, sexProbs = c(0.01, 0.01),
-                                numPatches = 1){
-  
-  # check length of probs
-  if(!all(batchProbs<1)){
-    stop("Probability of batch migration must be less than 1")
-  }
-  if(length(batchProbs) != numPatches){
-    batchProbs = rep(x = batchProbs, numPatches)
-  }
-  
-  # check length of sexes, make sure less than 1
-  if(!all(sexProbs<1)){
-    stop("Sex specific movement fraction must be less than 1")
-  }
-  if(is.null(dim(sexProbs))){
-    sexProbsMat = matrix(data = sexProbs, nrow = numPatches, ncol = 2,
-                         byrow = TRUE, dimnames = list(NULL, c("M","F")))
-  }
-
-  # setup movement matrix
-  moveMat <- matrix(data = 1L, nrow = numPatches, ncol = numPatches)
-  diag(moveMat) <- 0L
-  moveMat <- moveMat/rowSums(x = moveMat)
-  
-  # return basic batch migration
-  return(list("batchProbs" = batchProbs,
-              "sexProbs" = sexProbsMat,
-              "moveProbs" = moveMat)
-  )
-}
 ########################################################################
 # Equilibrium Parameters
 ########################################################################
