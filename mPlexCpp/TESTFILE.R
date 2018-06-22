@@ -165,6 +165,107 @@ library(data.table)
 
 
 
+#' Plot mPlex
+#'
+#' Plots the analyzed output of mPlex.
+#'
+#' @usage Plot_mPlex(file, totalPop=TRUE)
+#'
+#' @param file Path to .gzip file from analyze function
+#' @param totalPop Boolean, to plot the total population or not.
+#'
+#' @details This function plots output from the analyze function. Setting totalPop
+#' to FALSE keeps it from plotting the total population.
+#'
+#' @export
+Plot_mPlex <- function(file = NULL, totalPop = TRUE){
+  
+  #keep old plot parameters to reset later
+  oldPar <- par(no.readonly = TRUE)
+  
+  #Get the data to plot
+  Data <- readRDS(file = file)
+  
+  #Get genotypes and number of patches
+  genotypes <- dimnames(Data$maleData)[[2]][-1]
+  patches <- dimnames(Data$maleData)[[3]]
+  numPatches <- length(patches)
+  numGen <- length(genotypes)
+  
+  if(!totalPop){numGen <- numGen-1}
+  
+  col <- ggCol_utility(n = numGen)
+  
+  #setup plot layout
+  lmatrix <- matrix(data = 1:(numPatches*3), nrow = numPatches, ncol = 3, byrow = TRUE)
+  if(numPatches>1){
+    #fill in rest of plot labels
+    lmatrix[2:numPatches, c(1,2)] <- matrix(data = 4:(3+2*(numPatches-1)),
+                                            ncol = 2, byrow = TRUE)
+    #legend gets whole right side
+    lmatrix[,3] <- 3
+  }
+  
+  layout(lmatrix, widths = c(3,3,1))
+  
+  #plot first patch and the legend
+  #male
+  par(mar = c(2,3,3,1), las = 1, font.lab = 2, font.axis = 2, font.main = 2, cex.main = 1.75)
+  matplot(Data$femaleData[,1+(1:numGen), patches[1]], type = "l", lty = 1,
+          main = "Female Mosquitoes", ylab = "", lwd=2,
+          ylim = c(0, max(Data$femaleData[,1+(1:numGen), patches[1]])),
+          xlim = c(0, dim(Data$maleData)[1]), yaxs = "i", xaxs = "i",
+          col = col)
+  title(ylab = "Population", line = 2)
+  box(lwd = 2)
+  grid()
+  
+  #female
+  par(mar = c(2,2,3,1), las = 1)
+  matplot(Data$maleData[,1+(1:numGen),patches[1]], type = "l", lty = 1,
+          main = "Male Mosquitoes", ylab = "", lwd=2,
+          ylim = c(0, max(Data$maleData[,1+(1:numGen), patches[1]])),
+          xlim = c(0, dim(Data$maleData)[1]), yaxs = "i", xaxs = "i",
+          col = col)
+  mtext(patches[1], side = 4, line = 0.5, las = 0, cex = 0.9, font = 2)
+  box(lwd = 2)
+  grid()
+  
+  #legend
+  par(mar = c(0,0,0,0), font=2)
+  plot.new()
+  legend(x = "left", legend = genotypes[1:numGen] , col = col,
+         bty = "n", bg = "transparent",lty = 1, lwd=3,cex = 1)
+  
+  
+  ##rest of the patches
+  if(numPatches>1){
+    for(patch in patches[-1]){
+      par(mar = c(2,3,1,1), las = 1)
+      matplot(Data$femaleData[,1+(1:numGen), patch], type = "l", lty = 1,
+              ylab = "", lwd=2,
+              ylim = c(0, max(Data$femaleData[,1+(1:numGen), patch])),
+              xlim = c(0, dim(Data$maleData)[1]), yaxs = "i", xaxs = "i",
+              col = col)
+      title(ylab = "Population", line = 2)
+      box(lwd = 2)
+      grid()
+      
+      par(mar = c(2,2,1,1))
+      matplot(Data$maleData[,1+(1:numGen),patch], type = "l", lty = 1,
+              ylab = "", lwd=2,
+              ylim = c(0, max(Data$maleData[,1+(1:numGen), patch])),
+              xlim = c(0, dim(Data$maleData)[1]), yaxs = "i", xaxs = "i",
+              col = col)
+      mtext(patch, side = 4, line = 0.5, las = 0, cex = 0.9, font = 2)
+      box(lwd = 2)
+      grid()
+    }#end patch loop
+  }#end if
+  
+  #reset par()
+  par(oldPar)
+}
 
 
 
@@ -174,6 +275,137 @@ library(data.table)
 
 
 
+
+
+
+Plot_mPlex2 <- function(directory = NULL, totalPop = TRUE){
+  
+  #keep old plot parameters to reset later
+  oldPar <- par(no.readonly = TRUE)
+  
+  #Get the data to plot
+  dirFiles = list.files(path = directory, pattern = ".*\\.csv$")
+  
+  #test file to get sizes
+  testFile <- read.csv(file = file.path(directory, dirFiles[1]), header = TRUE, stringsAsFactors = FALSE)
+  
+  # get genotypes, num patches, etc
+  patches = unique(x = regmatches(x = dirFiles, m = regexpr(pattern = "Patch[0-9]+", text = dirFiles)))
+  genotypes <- dimnames(testFile)[[2]][-1]
+  numPatches <- length(patches)
+  numGen <- length(genotypes)
+  
+  # create data list holder, and then fill it
+  Data = list("maleData"=array(data = 0, dim = c(nrow(testFile),numGen+1,numPatches),dimnames = list(NULL, dimnames(testFile)[[2]], patches)),
+              "femaleData"=array(data = 0, dim = c(nrow(testFile),numGen+1,numPatches),dimnames = list(NULL, dimnames(testFile)[[2]], patches)))
+  
+  
+  maleData=array(data = 0, dim = c(nrow(testFile),numGen+1,numPatches),dimnames = list(NULL, dimnames(testFile)[[2]], patches))
+  femaleData=array(data = 0, dim = c(nrow(testFile),numGen+1,numPatches),dimnames = list(NULL, dimnames(testFile)[[2]], patches)) 
+                   
+                   
+  for(patch in patches){
+    names = grep(pattern = patch, x = dirFiles, fixed = TRUE, value = TRUE)
+    femaleData[,,patch] = read.csv(file = file.path(directory, names[1]), header = TRUE, stringsAsFactors = FALSE)
+    maleData[,,patch] = read.csv(file = file.path(directory, names[2]), header = TRUE, stringsAsFactors = FALSE)
+  }
+  
+  
+  
+  
+  
+  
+  
+  Data <- readRDS(file = file)
+  
+  
+  
+  
+  
+  #Get genotypes and number of patches
+  genotypes <- dimnames(Data$maleData)[[2]][-1]
+  #  patches <- dimnames(Data$maleData)[[3]]
+  numPatches <- length(patches)
+  numGen <- length(genotypes)
+  
+  
+  
+  
+  
+  if(!totalPop){numGen <- numGen-1}
+  
+  col <- ggCol_utility(n = numGen)
+  
+  #setup plot layout
+  lmatrix <- matrix(data = 1:(numPatches*3), nrow = numPatches, ncol = 3, byrow = TRUE)
+  if(numPatches>1){
+    #fill in rest of plot labels
+    lmatrix[2:numPatches, c(1,2)] <- matrix(data = 4:(3+2*(numPatches-1)),
+                                            ncol = 2, byrow = TRUE)
+    #legend gets whole right side
+    lmatrix[,3] <- 3
+  }
+  
+  layout(lmatrix, widths = c(3,3,1))
+  
+  #plot first patch and the legend
+  #male
+  par(mar = c(2,3,3,1), las = 1, font.lab = 2, font.axis = 2, font.main = 2, cex.main = 1.75)
+  matplot(Data$femaleData[,1+(1:numGen), patches[1]], type = "l", lty = 1,
+          main = "Female Mosquitoes", ylab = "", lwd=2,
+          ylim = c(0, max(Data$femaleData[,1+(1:numGen), patches[1]])),
+          xlim = c(0, dim(Data$maleData)[1]), yaxs = "i", xaxs = "i",
+          col = col)
+  title(ylab = "Population", line = 2)
+  box(lwd = 2)
+  grid()
+  
+  #female
+  par(mar = c(2,2,3,1), las = 1)
+  matplot(Data$maleData[,1+(1:numGen),patches[1]], type = "l", lty = 1,
+          main = "Male Mosquitoes", ylab = "", lwd=2,
+          ylim = c(0, max(Data$maleData[,1+(1:numGen), patches[1]])),
+          xlim = c(0, dim(Data$maleData)[1]), yaxs = "i", xaxs = "i",
+          col = col)
+  mtext(patches[1], side = 4, line = 0.5, las = 0, cex = 0.9, font = 2)
+  box(lwd = 2)
+  grid()
+  
+  #legend
+  par(mar = c(0,0,0,0), font=2)
+  plot.new()
+  legend(x = "left", legend = genotypes[1:numGen] , col = col,
+         bty = "n", bg = "transparent",lty = 1, lwd=3,cex = 1)
+  
+  
+  ##rest of the patches
+  if(numPatches>1){
+    for(patch in patches[-1]){
+      par(mar = c(2,3,1,1), las = 1)
+      matplot(Data$femaleData[,1+(1:numGen), patch], type = "l", lty = 1,
+              ylab = "", lwd=2,
+              ylim = c(0, max(Data$femaleData[,1+(1:numGen), patch])),
+              xlim = c(0, dim(Data$maleData)[1]), yaxs = "i", xaxs = "i",
+              col = col)
+      title(ylab = "Population", line = 2)
+      box(lwd = 2)
+      grid()
+      
+      par(mar = c(2,2,1,1))
+      matplot(Data$maleData[,1+(1:numGen),patch], type = "l", lty = 1,
+              ylab = "", lwd=2,
+              ylim = c(0, max(Data$maleData[,1+(1:numGen), patch])),
+              xlim = c(0, dim(Data$maleData)[1]), yaxs = "i", xaxs = "i",
+              col = col)
+      mtext(patch, side = 4, line = 0.5, las = 0, cex = 0.9, font = 2)
+      box(lwd = 2)
+      grid()
+    }#end patch loop
+  }#end if
+  
+  #reset par()
+  par(oldPar)
+}
 
 
 
@@ -193,7 +425,7 @@ system.time(AnalyzeOutput_oLocus(readDirectory = "~/Desktop/HOLD/MGDrivE/",
 
 
 Rprof(filename = "~/Desktop/HOLD/profiling.out", interval = 0.01, line.profiling = TRUE)
-AnalyzeOutput_oLocus(readDirectory = "~/Desktop/HOLD/MGDrivE/",
+AnalyzeOutput_oLocus(readDirectory = "~/Desktop/HOLD/MGDrivEHOLD/",
                      saveDirectory = "~/Desktop/HOLD/mPlex/",
                      alleles = list(list(c(NULL)),list(c(NULL))),
                      collapse = list(c(F),c(F)),
