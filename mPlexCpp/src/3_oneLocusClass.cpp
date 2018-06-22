@@ -21,12 +21,8 @@ oneLocus::oneLocus(const int& patchID_,
                    const Rcpp::List& larvaeReleases_) : Patch::Patch()
 {
  
-  Rcpp::Rcout << "I'm in oLocus constructor!"<<std::endl;
-                     
   patchID = patchID_;
                      
-  Rcpp::Rcout << "\tset patchID"<<std::endl;
-  
   /****************
   * SET POPULATIONS
   ****************/
@@ -42,8 +38,6 @@ oneLocus::oneLocus(const int& patchID_,
   CreateMosquitoes2Loci(parameters::instance().get_larva_eq(patchID),
                          minAge, ageDist, aTypes, eggs);
   
-  Rcpp::Rcout << "\tset eggs"<<std::endl;
-  
   // larva
   larva.reserve(2*parameters::instance().get_larva_eq(patchID));
   minAge = parameters::instance().get_stage_time(0)+1;
@@ -56,12 +50,8 @@ oneLocus::oneLocus(const int& patchID_,
   CreateMosquitoes2Loci(parameters::instance().get_larva_eq(patchID),
                          minAge, ageDist, aTypes, larva);
   
-  Rcpp::Rcout << "\tset larva"<<std::endl;
-  
   // pupa
   pupa.reserve(2*parameters::instance().get_adult_pop_eq(patchID));
-  
-  Rcpp::Rcout << "\tset pupa"<<std::endl;
   
   // adults
   adult_male.reserve(2*parameters::instance().get_adult_pop_eq(patchID));
@@ -75,7 +65,6 @@ oneLocus::oneLocus(const int& patchID_,
   CreateMosquitoes2Loci(parameters::instance().get_adult_pop_eq(patchID)/2,
                          minAge, ageDist, aTypes, unmated_female);
   
-  Rcpp::Rcout << "\tset adults"<<std::endl;
   
   /****************
   * RELEASES
@@ -96,8 +85,6 @@ oneLocus::oneLocus(const int& patchID_,
    });
   }
   
-  Rcpp::Rcout << "\n\tset male releases"<<std::endl;
-  
   // female releases
   if(femaleReleases_.size()>0){
    size_t mR = femaleReleases_.size();
@@ -113,9 +100,6 @@ oneLocus::oneLocus(const int& patchID_,
    });
   }
   
-  Rcpp::Rcout << "\tset female releases"<<std::endl;
-  
-  
   // larva releases
   if(larvaeReleases_.size()>0){
    size_t mR = larvaeReleases_.size();
@@ -130,10 +114,6 @@ oneLocus::oneLocus(const int& patchID_,
      return a.release_time > b.release_time;
    });
   }
-  
-  Rcpp::Rcout << "\tset larva releases"<<std::endl;
-  
-  
   
   
   // Things to hold for reset
@@ -220,10 +200,6 @@ void oneLocus::reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes){
  * Lay eggs
  ******************************************************************************/
 void oneLocus::oneDay_layEggs(){
-  
-  
-  Rcpp::Rcout<<"You chose the oneLocus function!"<<std::endl;
-  
   
   for(auto female : adult_female){
     

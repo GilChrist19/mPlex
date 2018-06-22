@@ -29,10 +29,10 @@ library(mPlexCpp)
 # Setup Parameters for Network
 ###############################################################################
 
-numPatch <- 2
+numPatch <- 100
 migration <- matrix(data = runif(numPatch*numPatch), nrow = numPatch, ncol = numPatch)
 migration <- migration/rowSums(migration)
-patchPops = rep(20L,numPatch)
+patchPops = rep(100L,numPatch)
 directory = "~/Desktop/HOLD/MGDrivE/"
 
 #setup alleles to initiate patches
@@ -109,7 +109,7 @@ patchReleases[[1]]$maleReleases <- holdRel
 # Calculate parameters and initialize network
 ###############################################################################
 netPar = NetworkParameters(nPatch = numPatch,
-                           simTime = 100L,
+                           simTime = 500L,
                            alleloTypes = AllAlleles,
                            AdPopEQ = patchPops,
                            runID = 1L,
@@ -137,3 +137,111 @@ mPlex_oneRun(seed = 10,
 
 
 detach("package:mPlexCpp", unload=TRUE)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+###############################################################################
+# write split function
+###############################################################################
+library(data.table)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+system.time(AnalyzeOutput_oLocus(readDirectory = "~/Desktop/HOLD/MGDrivE/",
+                                 saveDirectory = "~/Desktop/HOLD/mPlex/",
+                                 alleles = list(list(c(NULL)),list(c(NULL))),
+                                 collapse = list(c(F),c(F)),
+                                 numCores = 1))
+
+
+
+
+
+Rprof(filename = "~/Desktop/HOLD/profiling.out", interval = 0.01, line.profiling = TRUE)
+AnalyzeOutput_oLocus(readDirectory = "~/Desktop/HOLD/MGDrivE/",
+                     saveDirectory = "~/Desktop/HOLD/mPlex/",
+                     alleles = list(list(c(NULL)),list(c(NULL))),
+                     collapse = list(c(F),c(F)),
+                     numCores = 1)
+
+
+
+summaryRprof(filename = "~/Desktop/HOLD/profiling.out", lines = "both")
+
+
+
+
+
+readRDS(file = "~/Desktop/HOLD/mPlex/20180622_Run000001_MYTEST2.rds")
+
+patches
+
+
+
+
+mName = grep(pattern = paste("ADM", patches[1], sep = ".*"),
+             x = dirFiles,ignore.case = FALSE, perl = TRUE,
+             value = TRUE, useBytes = TRUE)[1]
+
+
+
+names = grep(pattern = patches[1], x = dirFiles, fixed = TRUE, value = TRUE)
+
+
+
+
+
+
+microbenchmark::microbenchmark(grep(pattern = paste("ADM", patches[1], sep = ".*"),
+                                    x = dirFiles,ignore.case = FALSE, perl = TRUE,
+                                    value = TRUE, useBytes = TRUE)[1],
+                               grep(pattern = patches[1], x = dirFiles, fixed = TRUE, value = TRUE),
+                               times = 1000)
+
+
+
+
+
+
+
+
+
+
+
+
+

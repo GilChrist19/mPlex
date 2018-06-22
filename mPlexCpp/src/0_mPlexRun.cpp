@@ -152,12 +152,12 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
   // setup strings
   std::string maleFile(output_directory), femaleFile(output_directory);
   maleFile += "/ADM_Run"
-              + std::string(6 - std::to_string(parameters::instance().get_run_id()).length(), '0')
+              + std::string(3 - std::to_string(parameters::instance().get_run_id()).length(), '0')
               + std::to_string(parameters::instance().get_run_id())
               + ".csv";
               
   femaleFile += "/ADF_Run"
-                + std::string(6 - std::to_string(parameters::instance().get_run_id()).length(), '0')
+                + std::string(3 - std::to_string(parameters::instance().get_run_id()).length(), '0')
                 + std::to_string(parameters::instance().get_run_id())
                 + ".csv";
   
@@ -252,8 +252,6 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
   // BEGIN INITIALIZE OUTPUT
   if(verbose){Rcpp::Rcout <<  "Initializing output ... \n";};
   for(auto& it : patches){
-    Rcpp::Rcout << "Number of adule males: " << it->get_adult_male().size() << std::endl;
-    Rcpp::Rcout << "Number of unmated females: " << it->get_unmated_female().size() << std::endl;
     
     it->init_output(ADM_output, ADF_output);
   }
@@ -283,12 +281,12 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
     for(auto& it : patches){
       it->oneDay_popDynamics();
       
-      Rcpp::Rcout << "Population Info day " << parameters::instance().get_t_now() << std::endl;
-      Rcpp::Rcout <<"\tEggs: " << it->get_eggs().size() << std::endl;
-      Rcpp::Rcout <<"\tLarva: " << it->get_larva().size() << std::endl;
-      Rcpp::Rcout <<"\tPupa: " << it->get_larva().size() << std::endl;
-      Rcpp::Rcout <<"\tMales: " << it->get_adult_male().size() << std::endl;
-      Rcpp::Rcout <<"\tFemales: "<<it->get_adult_female().size() << std::endl;
+      // Rcpp::Rcout << "Population Info day " << parameters::instance().get_t_now() << std::endl;
+      // Rcpp::Rcout <<"\tEggs: " << it->get_eggs().size() << std::endl;
+      // Rcpp::Rcout <<"\tLarva: " << it->get_larva().size() << std::endl;
+      // Rcpp::Rcout <<"\tPupa: " << it->get_larva().size() << std::endl;
+      // Rcpp::Rcout <<"\tMales: " << it->get_adult_male().size() << std::endl;
+      // Rcpp::Rcout <<"\tFemales: "<<it->get_adult_female().size() << std::endl;
       
       
     }

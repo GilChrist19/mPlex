@@ -52,7 +52,7 @@ multiLocus::multiLocus(const int& patchID_,
    
    // pupa
    pupa.reserve(2*parameters::instance().get_adult_pop_eq(patchID));
-   
+
    // adults
    adult_male.reserve(2*parameters::instance().get_adult_pop_eq(patchID));
    adult_female.reserve(2*parameters::instance().get_adult_pop_eq(patchID));
@@ -64,7 +64,7 @@ multiLocus::multiLocus(const int& patchID_,
                            minAge, ageDist, aTypes, adult_male);
    CreateMosquitoes2Allele(parameters::instance().get_adult_pop_eq(patchID)/2,
                            minAge, ageDist, aTypes, unmated_female);
-   
+
    
    /****************
     * RELEASES
@@ -84,7 +84,7 @@ multiLocus::multiLocus(const int& patchID_,
        return a.release_time > b.release_time;
      });
    }
-   
+
    // female releases
    if(femaleReleases_.size()>0){
      size_t mR = femaleReleases_.size();
@@ -99,7 +99,7 @@ multiLocus::multiLocus(const int& patchID_,
        return a.release_time > b.release_time;
      });
    }
-   
+
    // larva releases
    if(larvaeReleases_.size()>0){
      size_t mR = larvaeReleases_.size();
@@ -114,6 +114,7 @@ multiLocus::multiLocus(const int& patchID_,
        return a.release_time > b.release_time;
      });
    }
+   
    
    // Things to hold for reset
    releaseM0 = releaseM;
@@ -201,9 +202,6 @@ void multiLocus::reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes){
  * Lay eggs
  ******************************************************************************/
 void multiLocus::oneDay_layEggs(){
-  
-  
-  Rcpp::Rcout<<"You chose the multiLocus function!"<<std::endl;
   
   for(auto female : adult_female){
     

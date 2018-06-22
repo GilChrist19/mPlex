@@ -19,13 +19,9 @@ Daisy::Daisy(const int& patchID_,
              const Rcpp::List& femaleReleases_,
              const Rcpp::List& larvaeReleases_) : Patch::Patch()
 {
-
-  Rcpp::Rcout << "I'm in Daisy constructor!"<<std::endl;
-               
+             
   patchID = patchID_;
-  
-  Rcpp::Rcout << "\tset patchID"<<std::endl;
-  
+
   /****************
   * SET POPULATIONS
   ****************/
@@ -42,9 +38,7 @@ Daisy::Daisy(const int& patchID_,
   ageDist.assign(parameters::instance().get_stage_time(0)+1,1);
   CreateMosquitoes2Allele(parameters::instance().get_larva_eq(patchID),
                          minAge, ageDist, aTypes, eggs);
-  
-  Rcpp::Rcout << "\tset eggs"<<std::endl;
-  
+
   
   // larva
   larva.reserve(2*parameters::instance().get_larva_eq(patchID));
@@ -57,14 +51,10 @@ Daisy::Daisy(const int& patchID_,
   
   CreateMosquitoes2Allele(parameters::instance().get_larva_eq(patchID),
                          minAge, ageDist, aTypes, larva);
-  
-  Rcpp::Rcout << "\tset larva"<<std::endl;
-  
+
   // pupa
   pupa.reserve(2*parameters::instance().get_adult_pop_eq(patchID));
-  
-  Rcpp::Rcout << "\tset pupa"<<std::endl;
-  
+
   // adults
   adult_male.reserve(2*parameters::instance().get_adult_pop_eq(patchID));
   adult_female.reserve(2*parameters::instance().get_adult_pop_eq(patchID));
@@ -78,9 +68,7 @@ Daisy::Daisy(const int& patchID_,
   CreateMosquitoes2Allele(parameters::instance().get_adult_pop_eq(patchID)/2,
                          minAge, ageDist, aTypes, unmated_female);
   
-  Rcpp::Rcout << "\tset adults"<<std::endl;
-  
-  
+
   /****************
   * RELEASES
   ****************/
@@ -100,8 +88,6 @@ Daisy::Daisy(const int& patchID_,
    });
   }
   
-  Rcpp::Rcout << "\n\tset male releases"<<std::endl;
-  
   // female releases
   if(femaleReleases_.size()>0){
    size_t mR = femaleReleases_.size();
@@ -117,8 +103,6 @@ Daisy::Daisy(const int& patchID_,
    });
   }
   
-  Rcpp::Rcout << "\tset female releases"<<std::endl;
-  
   // larva releases
   if(larvaeReleases_.size()>0){
    size_t mR = larvaeReleases_.size();
@@ -133,8 +117,6 @@ Daisy::Daisy(const int& patchID_,
      return a.release_time > b.release_time;
    });
   }
-  
-  Rcpp::Rcout << "\tset larva releases"<<std::endl;
   
   // Things to hold for reset
   releaseM0 = releaseM;

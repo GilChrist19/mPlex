@@ -29,14 +29,20 @@ splitOutput <- function(directory, numCores=1){
     cat("processing ",file,"\n",sep="")
     fileIn = data.table::fread(input = file.path(directory, file), sep = ",",
                                header = TRUE, verbose = FALSE, showProgress = FALSE,
-                               data.table = TRUE,nThread = numCores, logical01 = TRUE)
+                               data.table = TRUE,nThread = numCores,
+                               logical01 = TRUE, key = "Patch")
     
     # for each file, get all the patches and split into multiple files
     for(patch in unique(fileIn$Patch)){
-      data.table::fwrite(x = fileIn[Patch==patch],
-                         file = file.path(directory, sub(pattern = ".csv",
-                                                         replacement = file.path("_Patch",patch,".csv",fsep = ""),
-                                                         x = file, fixed = TRUE)), 
+      
+      fileName = sub(pattern = ".csv",
+                     replacement = file.path("_Patch",
+                                             formatC(x = patch,width = 6,format = "d",flag = "0"),
+                                             ".csv",fsep = ""),
+                     x = file, fixed = TRUE)
+      
+      data.table::fwrite(x = fileIn[J(patch)][ ,Patch:=NULL],
+                         file = file.path(directory,fileName), 
                          logical01 = TRUE, showProgress = FALSE, verbose = FALSE,
                          nThread = numCores)
     }
@@ -46,16 +52,318 @@ splitOutput <- function(directory, numCores=1){
 } # end function
 
 ###############################################################################
-# PATCH SPLITTER
+# PATCH AGGREGATION
 ###############################################################################
-# NEED ANALYSIS FUNCTIONS FOR 3 DRIVES - 2 FUNCTIONS HERE
 
+#' Analyze output for mPlex-mLoci or DaisyDrive
+#'
+#' This function takes all the files in a directory and analyzes the population by
+#' genotype of interest. It saves output by patch. The files are organzed
+#' by time, then each genotype and total population.Data are analyzed by matching the genotypes of interest.
+#'
+#' @param readDirectory Directory where output was written to; should not end in path seperator
+#' @param saveDirectory Directory to save analyzed data. Don't save to readDirectory
+#' @param genotypes A list of each locus containing the genotypes of interest at that locus. Default is all genotypes
+#' @param collapse A vector of each locus containing TRUE/FALSE. If TRUE, the genotypes of interest at that locus are collapsed and the output is the sum of all of them.
+#' @param numCores How many cores to read file in with
+#'
+#' @export
+AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory,
+                                      genotypes, collapse, numCores){
+  
+  # Check save directory
+  if(saveDirectory == readDirectory){
+    stop("Please create a save directory in a new directory.")
+  }
+  
+  # get list of all files, then unique patches
+  dirFiles = list.files(path = readDirectory, pattern = ".*\\.csv$")
+  patches = unique(x = regmatches(x = dirFiles, m = regexpr(pattern = "Patch[0-9]+", text = dirFiles)))
+  
+  # import one file:get simTime, check genotypes for safety checks
+  testFile <- data.table::fread(input = file.path(readDirectory, dirFiles[1]), sep = ",",
+                                header = TRUE, verbose = FALSE, showProgress = FALSE,
+                                data.table = TRUE, nThread = numCores,
+                                logical01 = TRUE, drop = c("Age","Mate"))
+  
+  simTime <- data.table::uniqueN(testFile$Time)
+  
+  
+  #safety checks
+  #check that the number of loci is equal to the genotype length
+  if(nchar(testFile$Genotype[1])/2 != length(genotypes)){
+    stop("genotypes must be the length of loci in the critters to analyze.
+         list(c(locus_1),c(locus_2),etc)
+         NULL -> all genotypes")
+  }
+  #check that the collapse length is equal to genotype length
+  if(length(genotypes) != length(collapse)){
+    stop("collapse must be specified for each loci.
+         length(collapse) == length(genotypes)")
+  }
+  
+  
+  #do collapse if there is some
+  for(i in 1:length(genotypes)){
+    #if null, look at all possible genotypes at that locus
+    if( is.null(genotypes[[i]]) ){
+      genotypes[[i]] <- c("HH","HR","HS","HW","RR","RS","RW","SS","SW","WW")
+    }
+    #if collapse is true, collapse the genotypes so all are searched for as one
+    if(collapse[i]){
+      genotypes[[i]] <- file.path("(", paste0(genotypes[[i]],collapse = "|"), ")", fsep = "")
+    }
+  }
+  #expand all combinations of alleles at each site
+  gOI <- expand.grid(genotypes, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
+  #bind all combinations into complete genotypes
+  gOI <- do.call(what = paste0, args = gOI)
+  
+  
+  
+  
+  #create matrices to store information, set time
+  mMatrix = fMatrix = matrix(data = 0, nrow = simTime, ncol = length(gOI)+2,
+                             dimnames = list(NULL, c("Time", gOI, "Total Pop.")))
+  
+  mMatrix[ ,1] = fMatrix[ ,1] = 0:(simTime-1)
+  
+  
+  # initialize progress bar
+  pb = txtProgressBar(min = 0,max = length(patches),style = 3)
+  pbVal = 0
+  
+  #loop over each patch
+  for(patch in patches){
+    #read in male/female files for this run and patch
+    # fixed and perl about same speed with PCRE_use_JIT = TRUE, fixed over 
+    #  2x faster if PCRE_use_JIT = FALSE
+    names = grep(pattern = patch, x = dirFiles, fixed = TRUE, value = TRUE)
+    
+    # female file, drop patch number, key the time
+    fFile = data.table::fread(input = file.path(readDirectory, names[1]), sep = ",",
+                              header = TRUE, verbose = FALSE, showProgress = FALSE,
+                              data.table = TRUE, nThread = numCores,
+                              logical01 = TRUE, drop = c("Age","Mate"), key = "Time")
+    
+    # male file, drop patch number, key the time
+    mFile = data.table::fread(input = file.path(readDirectory, names[2]), sep = ",",
+                              header = TRUE, verbose = FALSE, showProgress = FALSE,
+                              data.table = TRUE, nThread = numCores,
+                              logical01 = TRUE, drop = "Age", key = "Time")
+    
+    # at <150,000 rows, subsetting on data frames is faster
+    #  anything above that though, the key in data.table is constant time, and 
+    #  makes a huge difference
+    
+    
+    #loop over simulation time
+    for(loopTime in 1:simTime){
+      # because my output is zero indexed, but R is 1 indexed. 
+      zeroCountTime = loopTime - 1
+      #subset time objects for ease of reading
+      mTimeObj <- mFile[J(zeroCountTime), Genotype]
+      fTimeObj <- fFile[J(zeroCountTime), Genotype]
+      #loop over genotypes of interest
+      for(gen in gOI){
+        #match genotype pattens, store how many were found
+        mMatrix[loopTime, gen] <- sum(grepl(pattern = gen, x = mTimeObj, useBytes = TRUE))
+        fMatrix[loopTime, gen] <- sum(grepl(pattern = gen, x = fTimeObj, useBytes = TRUE))
+      }#end gOI loop
+      
+      
+      # set total population
+      #  fread reads empties as NA values, so if empty, leave zero, else fill with length
+      #  This is becase we3 may not have grabbed the genotypes that exist
+      if(!anyNA(mTimeObj)){
+        mMatrix[loopTime, "Total Pop."] <- length(mTimeObj)
+      }
+      if(!anyNA(fTimeObj)){
+        fMatrix[loopTime, "Total Pop."] <- length(fTimeObj)
+      }
+    } # end time loop
+    
+    
+    # write output for each patch
+    #  female
+    fileName <- sub(pattern = ".csv", replacement = "_Aggregate.csv", x = names[1], fixed = TRUE)
+    write.csv(x = fMatrix, file = file.path(saveDirectory,fileName), row.names = FALSE)
+    
+    
+    # male
+    fileName <- sub(pattern = ".csv", replacement = "_Aggregate.csv", x = names[2], fixed = TRUE)
+    write.csv(x = mMatrix, file = file.path(saveDirectory,fileName), row.names = FALSE)
+    
+    
+    # some indication that it's working
+    pbVal = pbVal +1
+    setTxtProgressBar(pb = pb, value = pbVal)
+    
+    # reset total populations to default value, in case they change
+    mMatrix[loopTime, "Total Pop."] = fMatrix[loopTime, "Total Pop."] = 0
+    
+  } # end patch loop
+} # end function
 
-
-
-
-
-
+#' Analyze output for mPlex-oLocus
+#'
+#' @details This function takes all the files in a directory and analyzes the population by
+#' genotype of interest. It saves output by patch, corresponding to the male and 
+#' female of each patch. Data are analyzed by matching the genotypes of interest.
+#'
+#' @param readDirectory directory where output was written to; should not end in path seperator
+#' @param saveDirectory directory to save analyzed data. Default is readDirectory
+#' @param alleles A list of lists that contain the genotypes of interest at each locus. Default is all genotypes
+#' @param collapse A list of lists containing TRUE/FALSE for each locus. If TRUE, the genotypes of interest at that locus are collapsed and the output is the sum of all of them.
+#' @param numCores How many cores to read files in with, default is 1
+#'
+#' @export
+AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory,
+                                 alleles, collapse, numCores=1){
+  
+  # Check save directory
+  if(saveDirectory == readDirectory){
+    stop("Please create a save directory in a new directory.")
+  }
+  
+  # get list of all files, then unique patches
+  dirFiles = list.files(path = readDirectory, pattern = ".*\\.csv$")
+  patches = unique(x = regmatches(x = dirFiles, m = regexpr(pattern = "Patch[0-9]+", text = dirFiles)))
+  
+  # import one file:get simTime, check genotypes for safety checks
+  testFile <- data.table::fread(input = file.path(readDirectory, dirFiles[1]), sep = ",",
+                                header = TRUE, verbose = FALSE, showProgress = FALSE,
+                                data.table = TRUE, nThread = numCores,
+                                logical01 = TRUE, drop = c("Age","Mate"))
+  
+  simTime <- data.table::uniqueN(testFile$Time)
+  
+  #safety checks
+  #check that the number of loci is equal to the genotype length
+  if(length(alleles)!=2){
+    stop("There are 2 alleles in this simulation
+         list(list(locus_1, locus_2), list(locus_1, locus_2))")
+  }
+  if(any(nchar(testFile$Genotype[1])/2 != lengths(alleles))){
+    stop("Each allele list must be the length of loci in the allele.
+         list(list(locus_1, locus_2), list(locus_1, locus_2))
+         NULL -> all possible alleles")
+  }
+  #check that the collapse length is equal to genotype length
+  if(length(alleles) != length(collapse) || lengths(alleles) != lengths(collapse)){
+    stop("collapse must be specified for each locus in each allele.
+         length(collapse) == length(alleles)
+         lengths(collapse) == lengths(alleles)")
+  }
+  
+  
+  #do collapse if there is some
+  for(outer in 1:2){
+    for(inner in 1:length(collapse[[1]])){
+      #if null, look at all possible genotypes at that locus
+      if( is.null(alleles[[outer]][[inner]]) ){
+        alleles[[outer]][[inner]] <- c("H", "R", "S", "W")
+      }
+      #if collapse is true, collapse the genotypes so all are searched for as one
+      if(collapse[[outer]][inner]){
+        alleles[[outer]][[inner]] <- file.path("(", paste0(alleles[[outer]][[inner]],collapse = "|"), ")", fsep = "")
+      }
+    }#end loop over each loci
+    
+    #expand and paste all possible loci combinations in each allele
+    alleles[[outer]] <- do.call(what = paste0,
+                                args = expand.grid(alleles[[outer]], KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE))
+    
+  }#end loop over each allele
+  #expand all combinations of alleles at each site
+  gOI <- expand.grid(alleles, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
+  #bind all combinations into complete genotypes
+  gOI <- do.call(what = paste0, args = gOI)
+  
+  
+  #create matrices to store information, set time
+  mMatrix = fMatrix = matrix(data = 0, nrow = simTime, ncol = length(gOI)+2,
+                             dimnames = list(NULL, c("Time", gOI, "Total Pop.")))
+  
+  mMatrix[ ,1] = fMatrix[ ,1] = 0:(simTime-1)
+  
+  
+  # initialize progress bar
+  pb = txtProgressBar(min = 0,max = length(patches),style = 3)
+  pbVal = 0
+  
+  
+  #loop over each patch
+  for(patch in patches){
+    #read in male/female files for this run and patch
+    # fixed and perl about same speed with PCRE_use_JIT = TRUE, fixed over 
+    #  2x faster if PCRE_use_JIT = FALSE
+    names = grep(pattern = patch, x = dirFiles, fixed = TRUE, value = TRUE)
+    
+    # female file, drop patch number, key the time
+    fFile = data.table::fread(input = file.path(readDirectory, names[1]), sep = ",",
+                              header = TRUE, verbose = FALSE, showProgress = FALSE,
+                              data.table = TRUE, nThread = numCores,
+                              logical01 = TRUE, drop = c("Age","Mate"), key = "Time")
+    
+    # male file, drop patch number, key the time
+    mFile = data.table::fread(input = file.path(readDirectory, names[2]), sep = ",",
+                              header = TRUE, verbose = FALSE, showProgress = FALSE,
+                              data.table = TRUE, nThread = numCores,
+                              logical01 = TRUE, drop = "Age", key = "Time")
+    
+    # at <150,000 rows, subsetting on data frames is faster
+    #  anything above that though, the key in data.table is constant time, and 
+    #  makes a huge difference
+    
+    
+    #loop over simulation time
+    for(loopTime in 1:simTime){
+      # because my output is zero indexed, but R is 1 indexed. 
+      zeroCountTime = loopTime - 1
+      #subset time objects for ease of reading
+      mTimeObj <- mFile[J(zeroCountTime), Genotype]
+      fTimeObj <- fFile[J(zeroCountTime), Genotype]
+      #loop over genotypes of interest
+      for(gen in gOI){
+        #match genotype pattens, store how many were found
+        mMatrix[loopTime, gen] <- sum(grepl(pattern = gen, x = mTimeObj, useBytes = TRUE))
+        fMatrix[loopTime, gen] <- sum(grepl(pattern = gen, x = fTimeObj, useBytes = TRUE))
+      }#end gOI loop
+      
+      
+      # set total population
+      #  fread reads empties as NA values, so if empty, leave zero, else fill with length
+      #  This is becase we3 may not have grabbed the genotypes that exist
+      if(!anyNA(mTimeObj)){
+        mMatrix[loopTime, "Total Pop."] <- length(mTimeObj)
+      }
+      if(!anyNA(fTimeObj)){
+        fMatrix[loopTime, "Total Pop."] <- length(fTimeObj)
+      }
+    } # end time loop
+    
+    
+    # write output for each patch
+    #  female
+    fileName <- sub(pattern = ".csv", replacement = "_Aggregate.csv", x = names[1], fixed = TRUE)
+    write.csv(x = fMatrix, file = file.path(saveDirectory,fileName), row.names = FALSE)
+    
+    
+    # male
+    fileName <- sub(pattern = ".csv", replacement = "_Aggregate.csv", x = names[2], fixed = TRUE)
+    write.csv(x = mMatrix, file = file.path(saveDirectory,fileName), row.names = FALSE)
+    
+    
+    # some indication that it's working
+    pbVal = pbVal +1
+    setTxtProgressBar(pb = pb, value = pbVal)
+    
+    # reset total populations to default value, in case they change
+    mMatrix[loopTime, "Total Pop."] = fMatrix[loopTime, "Total Pop."] = 0
+    
+  } # end patch loop
+} # end function
 
 ###############################################################################
 # PLOTTING UTILITIES
