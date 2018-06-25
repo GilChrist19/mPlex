@@ -14,13 +14,12 @@ using dMat = std::vector<dVec>;
 using sMat = std::vector<sVec>;
 
 
-
-
 /******************************************************************************
  * Daisy Class
 ******************************************************************************/
 #ifndef DAISY_MPLEX
 #define DAISY_MPLEX
+
 
 /****************
  * SETUP FUNCTION
@@ -150,6 +149,7 @@ private:
 ******************************************************************************/
 #ifndef ONELOCUS_MPLEX
 #define ONELOCUS_MPLEX
+
 
 /****************
  * SETUP FUNCTION

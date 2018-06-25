@@ -10,11 +10,6 @@
 #include "2_Patch.hpp"
 
 
-
-
-
-
-
 /******************************************************************************
 * constructor & destructor
 ******************************************************************************/
@@ -332,18 +327,17 @@ void Patch::oneDay_Releases(){
   /****************
    * LARVA
   ****************/
-  if( (!releaseL.empty()) && (releaseL.back().release_time <= parameters::instance().get_t_now()) ){
+  if( (!releaseE.empty()) && (releaseE.back().release_time <= parameters::instance().get_t_now()) ){
     
     
-    for(size_t it = 0; it < releaseL.back().pop_ages.size(); ++it){
+    for(size_t it = 0; it < releaseE.back().pop_ages.size(); ++it){
       
-      adult_female.push_back(Mosquito(releaseL.back().pop_ages[it],
-                                         releaseL.back().pop_names[it])
-      );
+      eggs.push_back(Mosquito(releaseE.back().pop_ages[it],
+                                         releaseE.back().pop_names[it]));
     } // end loop over releases
     
     // remove release
-    releaseL.pop_back();
+    releaseE.pop_back();
   } // end larva release
   
 }

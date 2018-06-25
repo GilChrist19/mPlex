@@ -10,15 +10,14 @@
 #ifndef PARAMETERS_MPLEX
 #define PARAMETERS_MPLEX
 
+
 #include <tuple>
 #include <vector>
 #include <numeric>
 
 
-
 using dMat = std::vector<std::vector<double> >;
 using dVec = std::vector<double>;
-
 
 
 class parameters final {
@@ -35,10 +34,6 @@ public:
                                        const dMat& male_migration_, const dMat& female_migration_,
                                        // batch parameters
                                        const std::vector<double>& batchProbs_, const dMat& sexProbs_, const dMat& moveMat_);
-  
-  
-  
-  
   
   
   /* accessors */
@@ -67,33 +62,11 @@ public:
   int               get_adult_pop_eq(const size_t patch){return adult_pop_eq[patch];};
   
   
-
-  
-  
-  
   /* batch migration parameters */
   double                get_batchProbs(const size_t patch){return batchProbs[patch];};
   double                get_batchMale(const size_t patch){return sexProbs[patch][0];};
   double                get_batchFemale(const size_t patch){return sexProbs[patch][1];};
   dVec                  get_batchLocation(const size_t patch){return batchLocations[patch];};
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   
   
 private:

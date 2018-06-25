@@ -10,7 +10,6 @@
 #define PATCH_MPLEX
 
 
-
 #include <vector>
 #include <fstream>
 #include <math.h>
@@ -22,36 +21,18 @@
 
 #include <Rcpp.h>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* forward declarations & alias */
+/**************************************
+ * forward declarations & alias
+**************************************/
 using popVec = std::vector<Mosquito>;
 using dVec = std::vector<double>;
 using iVec = std::vector<int>; 
 using sVec = std::vector<std::string>;
 
 
-
-
-
-
-
-// single release event
+/**************************************
+ * single release event struct
+**************************************/
 using release_event = struct release_event {
 
   // three things needed, genotype, age, and release time
@@ -67,20 +48,9 @@ using release_event = struct release_event {
 };
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* patch class declaration */
+/**************************************
+ * patch class declaration
+**************************************/
 class Patch {
 
 public:
@@ -97,11 +67,6 @@ public:
   Patch(Patch&&);
   Patch& operator=(Patch&&);
 
-
-  
-  
-  
-  
   
   // getters
   int       get_patchID(){return patchID;};
@@ -115,11 +80,6 @@ public:
   
   popVec    get_maleMigration(size_t patch){return maleMigration[patch];};
   popVec    get_femaleMigration(size_t patch){return femaleMigration[patch];};
-  
-  
-  
-  
-
   
   
   // Population dynamics
@@ -155,20 +115,12 @@ public:
   void      oneDay_migrationOut();
   void      oneDay_migrationIn(const popVec& male, const popVec& female);
   
-  
-  
   // extras
   virtual void  reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes) = 0;
   
   void      init_output(std::ofstream& ADM_log, std::ofstream& ADF_log);
   void      oneDay_writeOutput(std::ofstream& ADM_log, std::ofstream& ADF_log);
 
-
-
-
-  
-  
-  
   
 protected:
 
@@ -188,32 +140,14 @@ protected:
   std::vector<popVec> femaleMigration;
   
   
-  
-  
-  
-  
-  
-  
   // releases
   std::vector<release_event> releaseM0; //male initial releases
   std::vector<release_event> releaseF0; //female initial releases
-  std::vector<release_event> releaseL0; //larval initial releases
+  std::vector<release_event> releaseE0; //larval initial releases
   
   std::vector<release_event> releaseM; //male releases
   std::vector<release_event> releaseF; //female releases
-  std::vector<release_event> releaseL; //larval releases
-  
-  
-
-  // other things that I'm forgetting???????
-  
-  
-  
-
-  
-  
-  
-  
+  std::vector<release_event> releaseE; //larval releases
   
 };
 

@@ -31,8 +31,6 @@ void reference::set_reference(const Rcpp::NumericVector& eta_, const Rcpp::Numer
   // names vector for all things
   sVec listNames;
   
-  Rcpp::Rcout << "\nMade it into set_reference!\n";
-  
   // set genotype specific mating fitness, eta
   if(eta_.size() !=0 ){
     listNames = Rcpp::as<sVec>(eta_.names());
@@ -41,8 +39,6 @@ void reference::set_reference(const Rcpp::NumericVector& eta_, const Rcpp::Numer
     }
   }
 
-  Rcpp::Rcout << "\tPassed eta\n";
-  
   // set genotype specific sex ratio at emergence, phi
   if(phi_.size() != 0){
     listNames = Rcpp::as<sVec>(phi_.names());
@@ -51,8 +47,6 @@ void reference::set_reference(const Rcpp::NumericVector& eta_, const Rcpp::Numer
     }
   }
 
-  Rcpp::Rcout << "\tPassed phi\n";  
-  
   // set genotype specific multiplicative modifier of adult mortality, omegs
   if(omega_.size() != 0){
     listNames = Rcpp::as<sVec>(omega_.names());
@@ -61,8 +55,6 @@ void reference::set_reference(const Rcpp::NumericVector& eta_, const Rcpp::Numer
     }
   }
   
-  Rcpp::Rcout << "\tPassed omega\n";
-
   // set genotype specific female pupatory success, xiF
   if(xiF_.size() != 0){
     listNames = Rcpp::as<sVec>(xiF_.names());
@@ -71,8 +63,6 @@ void reference::set_reference(const Rcpp::NumericVector& eta_, const Rcpp::Numer
     }
   }
   
-  Rcpp::Rcout << "\tPassed xiF\n";
-
   //set genotype specific male pupatory success, xiM
   if(xiM_.size() != 0){
     listNames = Rcpp::as<sVec>(xiM_.names());
@@ -81,8 +71,6 @@ void reference::set_reference(const Rcpp::NumericVector& eta_, const Rcpp::Numer
     }
   }
   
-  Rcpp::Rcout << "\tPassed xiM\n";
-
   // set fertility fraction, s
   if(s_.size() != 0){
     listNames = Rcpp::as<sVec>(s_.names());
@@ -91,13 +79,11 @@ void reference::set_reference(const Rcpp::NumericVector& eta_, const Rcpp::Numer
     }
   }
   
-  Rcpp::Rcout << "\tPassed s\n";
-
 };
 
 
 // get genotype dependent parameters
-double reference::get_eta(std::string genType){
+double reference::get_eta(const std::string& genType){
   
   double hold = 1.0;
   
@@ -113,7 +99,7 @@ double reference::get_eta(std::string genType){
   return hold;
 }
 
-double reference::get_phi(std::string genType){
+double reference::get_phi(const std::string& genType){
   
   double hold = 0.5;
   
@@ -129,7 +115,7 @@ double reference::get_phi(std::string genType){
   return hold;
 }
 
-double reference::get_omega(std::string genType){
+double reference::get_omega(const std::string& genType){
   
   double hold = 1.0;
   
@@ -145,7 +131,7 @@ double reference::get_omega(std::string genType){
   return hold;
 }
 
-double reference::get_xiF(std::string genType){
+double reference::get_xiF(const std::string& genType){
   
   double hold = 1.0;
   
@@ -161,7 +147,7 @@ double reference::get_xiF(std::string genType){
   return hold;
 }
 
-double reference::get_xiM(std::string genType){
+double reference::get_xiM(const std::string& genType){
   
   double hold = 1.0;
   
@@ -177,7 +163,7 @@ double reference::get_xiM(std::string genType){
   return hold;
 }
 
-double reference::get_s(std::string genType){
+double reference::get_s(const std::string& genType){
   
   double hold = 1.0;
   

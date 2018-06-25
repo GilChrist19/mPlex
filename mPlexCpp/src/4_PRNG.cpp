@@ -9,6 +9,7 @@
 
 #include "4_PRNG.hpp"
 
+
 /* constructor & destructor */
 prng::prng(){};
 prng::~prng(){};
@@ -57,6 +58,15 @@ int prng::get_rbinom(const int& n, const double& p){
 
 std::vector<int> prng::get_rmultinom(const int &size, const std::vector<double> prob){
   std::vector<int>sample(prob.size(),0);
+  
+  // if there is only one thing to draw from, return it
+  if(prob.size()==0){
+    sample[0] = size;
+    return sample;
+  }
+  
+  // Draw from distribution
+  //  Grows with pop size, need to fix? Does not grow with probs size
   std::discrete_distribution<int>rmultinom(prob.begin(),prob.end());
   for(size_t i=0; i<size; i++){
     size_t j = rmultinom(rng);
@@ -68,14 +78,16 @@ std::vector<int> prng::get_rmultinom(const int &size, const std::vector<double> 
 std::vector<double> prng::get_rdirichlet(const std::vector<double>& prob){
   
   std::vector<double> sample(prob);
+  double hold = 0;
   
   for(auto& sampleIt : sample){
     std::gamma_distribution<double> gamma(sampleIt, 1.0);
     sampleIt = gamma(rng);
+    // get total sum of draws
+    hold += sampleIt;
   }
   
-  double hold = std::accumulate(sample.begin(), sample.end(), 0.0);
-  
+  // normalize
   for(auto& sampleIt : sample){
     sampleIt /= hold;
   }

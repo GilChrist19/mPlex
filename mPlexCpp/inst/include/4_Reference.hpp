@@ -45,12 +45,12 @@ public:
                                   const Rcpp::ListOf<Rcpp::ListOf<Rcpp::StringVector> >& alleles_);
   
   // getters
-  double      get_eta(std::string genType);
-  double      get_phi(std::string genType);
-  double      get_omega(std::string genType);
-  double      get_xiF(std::string genType);
-  double      get_xiM(std::string genType);
-  double      get_s(std::string genType);
+  double      get_eta(const std::string& genType);
+  double      get_phi(const std::string& genType);
+  double      get_omega(const std::string& genType);
+  double      get_xiF(const std::string& genType);
+  double      get_xiM(const std::string& genType);
+  double      get_s(const std::string& genType);
 
   dVec::iterator    get_mendelian_probs_begin(size_t locus, size_t allele){return mendelian_probs[locus][allele].begin();};
   dVec::iterator    get_mendelian_probs_end(size_t locus, size_t allele){return mendelian_probs[locus][allele].end();};

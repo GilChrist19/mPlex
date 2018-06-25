@@ -103,14 +103,14 @@ multiLocus::multiLocus(const int& patchID_,
    // larva releases
    if(larvaeReleases_.size()>0){
      size_t mR = larvaeReleases_.size();
-     releaseL.reserve(mR);
+     releaseE.reserve(mR);
      for(size_t i=0; i<mR; i++){
-       releaseL.emplace_back(release_event(Rcpp::as<Rcpp::List>(larvaeReleases_[i])["genVec"],
+       releaseE.emplace_back(release_event(Rcpp::as<Rcpp::List>(larvaeReleases_[i])["genVec"],
                                            Rcpp::as<Rcpp::List>(larvaeReleases_[i])["ageVec"],
                                            Rcpp::as<Rcpp::List>(larvaeReleases_[i])["tRelease"]
        ));
      }
-     std::sort(releaseL.begin(), releaseL.end(), [](release_event a, release_event b){
+     std::sort(releaseE.begin(), releaseE.end(), [](release_event a, release_event b){
        return a.release_time > b.release_time;
      });
    }
@@ -119,7 +119,7 @@ multiLocus::multiLocus(const int& patchID_,
    // Things to hold for reset
    releaseM0 = releaseM;
    releaseF0 = releaseF;
-   releaseL0 = releaseL;
+   releaseE0 = releaseE;
    
    // migration setup
    maleMigration.resize(parameters::instance().get_n_patch());
@@ -195,7 +195,7 @@ void multiLocus::reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes){
    ****************/
   releaseM = releaseM0;
   releaseF = releaseF0;
-  releaseL = releaseL0;
+  releaseE = releaseE0;
 }
 
 /******************************************************************************
@@ -208,10 +208,12 @@ void multiLocus::oneDay_layEggs(){
     // calculate genotypes and probs of offspring
     MultiplexOffspring_mLoci(female.get_genotype(), female.get_mate());
     
+    // get number of new offspring based on genotype and poisson randomness
+    index = prng::instance().get_rpois(parameters::instance().get_beta()
+                                              * reference::instance().get_s(female.get_genotype()));
+
     // pull eggs over offspring probs
-    newEggs = prng::instance().get_rmultinom(parameters::instance().get_beta()
-                                               * reference::instance().get_s(female.get_genotype()),
-                                               finalProbs);
+    newEggs = prng::instance().get_rmultinom(index, finalProbs);
     
     // create new eggs
     for(size_t eggIndex=0; eggIndex<newEggs.size(); ++eggIndex){
