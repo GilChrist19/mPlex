@@ -17,3 +17,19 @@ run_mPlex_Cpp <- function(seed, networkParameters_, reproductionReference_, patc
     invisible(.Call('_mPlexCpp_run_mPlex_Cpp', PACKAGE = 'mPlexCpp', seed, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, output_directory, reproductionType_, verbose))
 }
 
+#' Run Multi-Plex Experiment
+#' 
+#' Run multiple mPlex experiments, choosing the type of inheritance desired.
+#' 
+#' @examples
+#' \dontrun{
+#' nope
+#' none
+#' sorry
+#' }
+#' 
+#' 
+run_mPlex_Cpp_repetitions <- function(seed, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, output_directory, reproductionType_, verbose) {
+    invisible(.Call('_mPlexCpp_run_mPlex_Cpp_repetitions', PACKAGE = 'mPlexCpp', seed, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, output_directory, reproductionType_, verbose))
+}
+

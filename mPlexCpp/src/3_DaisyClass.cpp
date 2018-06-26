@@ -17,7 +17,7 @@ Daisy::Daisy(const int& patchID_,
              const Rcpp::ListOf<Rcpp::List>& aTypes,
              const Rcpp::List& maleReleases_,
              const Rcpp::List& femaleReleases_,
-             const Rcpp::List& larvaeReleases_) : Patch::Patch()
+             const Rcpp::List& eggReleases_) : Patch::Patch()
 {
              
   patchID = patchID_;
@@ -104,13 +104,13 @@ Daisy::Daisy(const int& patchID_,
   }
   
   // larva releases
-  if(larvaeReleases_.size()>0){
-   size_t mR = larvaeReleases_.size();
+  if(eggReleases_.size()>0){
+   size_t mR = eggReleases_.size();
    releaseE.reserve(mR);
    for(size_t i=0; i<mR; i++){
-     releaseE.emplace_back(release_event(Rcpp::as<Rcpp::List>(larvaeReleases_[i])["genVec"],
-                                         Rcpp::as<Rcpp::List>(larvaeReleases_[i])["ageVec"],
-                                         Rcpp::as<Rcpp::List>(larvaeReleases_[i])["tRelease"]
+     releaseE.emplace_back(release_event(Rcpp::as<Rcpp::List>(eggReleases_[i])["genVec"],
+                                         Rcpp::as<Rcpp::List>(eggReleases_[i])["ageVec"],
+                                         Rcpp::as<Rcpp::List>(eggReleases_[i])["tRelease"]
      ));
    }
    std::sort(releaseE.begin(), releaseE.end(), [](release_event a, release_event b){
@@ -205,10 +205,6 @@ void Daisy::reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes){
  * Lay eggs
 ******************************************************************************/
 void Daisy::oneDay_layEggs(){
-  
-  //Rcpp::Rcout<<"You chose the daisy function!"<<std::endl;
-
-  Rcpp::Rcout << "In mating Function" << std::endl;
 
   for(auto female : adult_female){
 
@@ -222,19 +218,9 @@ void Daisy::oneDay_layEggs(){
     // pull eggs over offspring probs
     newEggs = prng::instance().get_rmultinom(index, finalProbs);
 
-    Rcpp::Rcout << "num new eggs: ";
-    
-    for(auto it : newEggs){
-      Rcpp::Rcout << it << ", " ;
-    }
-    Rcpp::Rcout << std::endl;
-    
     
     // create new eggs
     for(size_t eggIndex=0; eggIndex<newEggs.size(); ++eggIndex){
-      
-      Rcpp::Rcout << "New eggs size " << newEggs[eggIndex] << std::endl;
-      
       for(size_t it=0; it<newEggs[eggIndex]; ++it){
         eggs.emplace_back(Mosquito(0, finalGenotypes[eggIndex]));
       } // end loop over number of eggs per genotype
@@ -255,18 +241,7 @@ void CreateMosquitoes2Allele(const int& numMos, const int& minAge, const dVec& a
                              const Rcpp::ListOf<Rcpp::List>& aTypes, popVec& returnPop){
   
   // This only good for things that have 2 alleles per locus
-  Rcpp::Rcout << "Inside create mosquitoes function" << std::endl;
-  Rcpp::Rcout << "Number of mosquitoes to create: " << numMos << std::endl;
-  
-  Rcpp::Rcout << "Minimum age of mosquitoes to create: " << minAge << std::endl;
-  
-  Rcpp::Rcout << "Printing age distribution: ";
-  for(auto it : ageDist){
-    Rcpp::Rcout << it << ", ";
-  }
-  Rcpp::Rcout << "\n";
-  
-  
+
   // number of loci is the number of sublists in aTypes
   size_t numLoci = aTypes.size();
   
@@ -311,8 +286,6 @@ void CreateMosquitoes2Allele(const int& numMos, const int& minAge, const dVec& a
   } // end loop over mosquitoes
   
   
-  Rcpp::Rcout << "Number of mosquitoes created: " << returnPop.size() << std::endl;
-  
 }
 
 /**************************************
@@ -340,10 +313,6 @@ void Daisy::DaisyOffspring(const std::string& fGen, const std::string& mGen){
   // get number of alleles
   // gets redefined every time
   // numAlleles = fGen.size()/2;
-  
-  Rcpp::Rcout << "Num alleles is: " << numAlleles << std::endl;
-  Rcpp::Rcout << "Female gen is: " << fGen << std::endl;
-  Rcpp::Rcout << "male gen is: " << mGen << std::endl;
   
   /*****************************************************************************/
   // Score Each Allele
@@ -646,21 +615,6 @@ void Daisy::DaisyOffspring(const std::string& fGen, const std::string& mGen){
     holdGens.clear();
     holdProbs.clear();
   } // end loop over loci
-  
-  Rcpp::Rcout <<"Final gens and probs"<<std::endl;
-  
-  for(auto it : finalGenotypes){
-    Rcpp::Rcout << it <<",";
-  }
-  Rcpp::Rcout <<std::endl;
-  
-  for(auto it : finalProbs){
-    Rcpp::Rcout << it <<",";
-  }
-  Rcpp::Rcout <<std::endl;
-  
-  
-  
   
   /*****************************************************************************/
   // End Cartesian Product of All Loci

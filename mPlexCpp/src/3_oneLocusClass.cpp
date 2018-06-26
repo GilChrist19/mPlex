@@ -18,7 +18,7 @@ oneLocus::oneLocus(const int& patchID_,
                    const Rcpp::ListOf<Rcpp::List>& aTypes,
                    const Rcpp::List& maleReleases_,
                    const Rcpp::List& femaleReleases_,
-                   const Rcpp::List& larvaeReleases_) : Patch::Patch()
+                   const Rcpp::List& eggReleases_) : Patch::Patch()
 {
  
   patchID = patchID_;
@@ -101,13 +101,13 @@ oneLocus::oneLocus(const int& patchID_,
   }
   
   // larva releases
-  if(larvaeReleases_.size()>0){
-   size_t mR = larvaeReleases_.size();
+  if(eggReleases_.size()>0){
+   size_t mR = eggReleases_.size();
    releaseE.reserve(mR);
    for(size_t i=0; i<mR; i++){
-     releaseE.emplace_back(release_event(Rcpp::as<Rcpp::List>(larvaeReleases_[i])["genVec"],
-                                         Rcpp::as<Rcpp::List>(larvaeReleases_[i])["ageVec"],
-                                         Rcpp::as<Rcpp::List>(larvaeReleases_[i])["tRelease"]
+     releaseE.emplace_back(release_event(Rcpp::as<Rcpp::List>(eggReleases_[i])["genVec"],
+                                         Rcpp::as<Rcpp::List>(eggReleases_[i])["ageVec"],
+                                         Rcpp::as<Rcpp::List>(eggReleases_[i])["tRelease"]
      ));
    }
    std::sort(releaseE.begin(), releaseE.end(), [](release_event a, release_event b){
@@ -200,19 +200,19 @@ void oneLocus::reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes){
  * Lay eggs
  ******************************************************************************/
 void oneLocus::oneDay_layEggs(){
-  
+
   for(auto female : adult_female){
-    
+
     // calculate genotypes and probs of offspring
     MultiplexOffspring_oLocus(female.get_genotype(), female.get_mate());
-    
+
     // get number of new offspring based on genotype and poisson randomness
     index = prng::instance().get_rpois(parameters::instance().get_beta()
                                               * reference::instance().get_s(female.get_genotype()));
 
     // pull eggs over offspring probs
     newEggs = prng::instance().get_rmultinom(index, holdProbs1);
-    
+
     // create new eggs
     for(size_t eggIndex=0; eggIndex<newEggs.size(); ++eggIndex){
       for(size_t it=0; it<newEggs[eggIndex]; ++it){

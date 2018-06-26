@@ -18,7 +18,7 @@ multiLocus::multiLocus(const int& patchID_,
                        const Rcpp::ListOf<Rcpp::List>& aTypes,
                        const Rcpp::List& maleReleases_,
                        const Rcpp::List& femaleReleases_,
-                       const Rcpp::List& larvaeReleases_) : Patch::Patch()
+                       const Rcpp::List& eggReleases_) : Patch::Patch()
 {
   
    patchID = patchID_;
@@ -101,13 +101,13 @@ multiLocus::multiLocus(const int& patchID_,
    }
 
    // larva releases
-   if(larvaeReleases_.size()>0){
-     size_t mR = larvaeReleases_.size();
+   if(eggReleases_.size()>0){
+     size_t mR = eggReleases_.size();
      releaseE.reserve(mR);
      for(size_t i=0; i<mR; i++){
-       releaseE.emplace_back(release_event(Rcpp::as<Rcpp::List>(larvaeReleases_[i])["genVec"],
-                                           Rcpp::as<Rcpp::List>(larvaeReleases_[i])["ageVec"],
-                                           Rcpp::as<Rcpp::List>(larvaeReleases_[i])["tRelease"]
+       releaseE.emplace_back(release_event(Rcpp::as<Rcpp::List>(eggReleases_[i])["genVec"],
+                                           Rcpp::as<Rcpp::List>(eggReleases_[i])["ageVec"],
+                                           Rcpp::as<Rcpp::List>(eggReleases_[i])["tRelease"]
        ));
      }
      std::sort(releaseE.begin(), releaseE.end(), [](release_event a, release_event b){

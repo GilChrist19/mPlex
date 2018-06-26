@@ -29,11 +29,11 @@ library(mPlexCpp)
 # Setup Parameters for Network
 ###############################################################################
 
-numPatch <- 100
+numPatch <- 2
 migration <- matrix(data = runif(numPatch*numPatch), nrow = numPatch, ncol = numPatch)
 migration <- migration/rowSums(migration)
 patchPops = rep(100L,numPatch)
-directory = "~/Desktop/HOLD/MGDrivE (copy 1)/"
+directory = "~/Desktop/HOLD/MGDrivE/"
 
 #setup alleles to initiate patches
 alleloTypes <- vector(mode = "list", length = 1L) #3 loci
@@ -55,7 +55,12 @@ AllAlleles <- replicate(n = numPatch, expr = alleloTypes, simplify = FALSE)
 #                                                   S = c(0.0003, 0.004),
 #                                                   d = c(0, 0), eta = c("TIME"=4))
 
-reproductionReference <- MakeReference_Multiplex_oLocus()
+# reproductionReference <- MakeReference_Multiplex_oLocus(H = c(0.98, 0.5),
+#                                                          R = c(0.0001, 0.0001),
+#                                                          S = c(0.0003, 0.004),
+#                                                          d = c(0, 0))
+reproductionReference <- MakeReference_Multiplex_mLoci()
+
 # reproductionReference$mendelian[[1]]$W <- c(1.0,1.5,2.3)
 # reproductionReference$mendelian[[1]]$H <- c(1.0,1.5,2.3)
 # reproductionReference$mendelian[[1]]$R <- c(1.0,1.5,2.3)
@@ -74,7 +79,7 @@ reproductionReference <- MakeReference_Multiplex_oLocus()
 patchReleases = replicate(n = numPatch,
                           expr = list(maleReleases = NULL,
                                       femaleReleases = NULL,
-                                      larvaeReleases = NULL),
+                                      eggReleases = NULL),
                           simplify = FALSE)
 
 
@@ -109,7 +114,7 @@ patchReleases[[1]]$maleReleases <- holdRel
 # Calculate parameters and initialize network
 ###############################################################################
 netPar = NetworkParameters(nPatch = numPatch,
-                           simTime = 500L,
+                           simTime = 100L,
                            alleloTypes = AllAlleles,
                            AdPopEQ = patchPops,
                            runID = 1L,
@@ -127,7 +132,7 @@ mPlex_oneRun(seed = 10,
              migrationFemale = migration,
              migrationBatch = migrationBatch,
              output_directory = directory,
-             reproductionType = "mPlex_oLocus",
+             reproductionType = "mPlex_mLoci",
              verbose = TRUE)
 
 
@@ -135,6 +140,35 @@ mPlex_oneRun(seed = 10,
 
 
 
+dirVec <- paste0(directory, 1:4)
+
+mPlex_runRepetitions(seed = 10,
+                     networkParameters = netPar,
+                     reproductionReference = reproductionReference,
+                     patchReleases = patchReleases,
+                     migrationMale = migration,
+                     migrationFemale = migration,
+                     migrationBatch = migrationBatch,
+                     output_directory = dirVec,
+                     reproductionType = "mPlex_mLoci",
+                     verbose = TRUE)
+
+
+splitOutput(directory = directory, numCores = 1)
+AnalyzeOutput_oLocus(readDirectory = "~/Desktop/HOLD/MGDrivE/",
+                     saveDirectory = "~/Desktop/HOLD/mPlex/",
+                     alleles = list(list(c(NULL)),list(c(NULL))),
+                     collapse = list(c(F),c(F)),
+                     numCores = 1)
+
+AnalyzeOutput_mLoci_Daisy(readDirectory = "~/Desktop/HOLD/MGDrivE/",
+                          saveDirectory = "~/Desktop/HOLD/mPlex/",
+                          genotypes = list(NULL),
+                          collapse = c(FALSE),
+                          numCores = 1)
+
+
+Plot_mPlex(directory = "~/Desktop/HOLD/mPlex/", whichPatches = NULL, totalPop = TRUE)
 
 detach("package:mPlexCpp", unload=TRUE)
 
@@ -236,9 +270,12 @@ microbenchmark::microbenchmark(grep(pattern = paste("ADM", patches[1], sep = ".*
 
 
 
+###############################################################################
+# When profiling, use this to see it
+###############################################################################
 
-
-
+cat("NumSamp  PercentSamp  CumPercentSamp  NumSampTree  PercentSampTree  Function")
+system(sprintf("google-pprof --text --cum --lines  /bin/ls %sprofile.log", directory_det_c), intern = TRUE)
 
 
 

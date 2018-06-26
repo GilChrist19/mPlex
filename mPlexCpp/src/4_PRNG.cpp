@@ -78,7 +78,7 @@ std::vector<int> prng::get_rmultinom(const int &size, const std::vector<double> 
 std::vector<double> prng::get_rdirichlet(const std::vector<double>& prob){
   
   std::vector<double> sample(prob);
-  double hold = 0;
+  double hold = 0.0;
   
   for(auto& sampleIt : sample){
     std::gamma_distribution<double> gamma(sampleIt, 1.0);
