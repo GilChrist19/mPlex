@@ -43,10 +43,77 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// calc_haversine
+Rcpp::NumericMatrix calc_haversine(const Rcpp::NumericMatrix& latlongs);
+RcppExport SEXP _mPlexCpp_calc_haversine(SEXP latlongsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type latlongs(latlongsSEXP);
+    rcpp_result_gen = Rcpp::wrap(calc_haversine(latlongs));
+    return rcpp_result_gen;
+END_RCPP
+}
+// calc_LognormalKernel
+Rcpp::NumericMatrix calc_LognormalKernel(const Rcpp::NumericMatrix& distMat, const double& meanlog, const double& sdlog);
+RcppExport SEXP _mPlexCpp_calc_LognormalKernel(SEXP distMatSEXP, SEXP meanlogSEXP, SEXP sdlogSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type distMat(distMatSEXP);
+    Rcpp::traits::input_parameter< const double& >::type meanlog(meanlogSEXP);
+    Rcpp::traits::input_parameter< const double& >::type sdlog(sdlogSEXP);
+    rcpp_result_gen = Rcpp::wrap(calc_LognormalKernel(distMat, meanlog, sdlog));
+    return rcpp_result_gen;
+END_RCPP
+}
+// calc_GammaKernel
+Rcpp::NumericMatrix calc_GammaKernel(const Rcpp::NumericMatrix& distMat, const double& shape, const double& rate);
+RcppExport SEXP _mPlexCpp_calc_GammaKernel(SEXP distMatSEXP, SEXP shapeSEXP, SEXP rateSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type distMat(distMatSEXP);
+    Rcpp::traits::input_parameter< const double& >::type shape(shapeSEXP);
+    Rcpp::traits::input_parameter< const double& >::type rate(rateSEXP);
+    rcpp_result_gen = Rcpp::wrap(calc_GammaKernel(distMat, shape, rate));
+    return rcpp_result_gen;
+END_RCPP
+}
+// calc_ExpKernel
+Rcpp::NumericMatrix calc_ExpKernel(const Rcpp::NumericMatrix& distMat, const double& r);
+RcppExport SEXP _mPlexCpp_calc_ExpKernel(SEXP distMatSEXP, SEXP rSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type distMat(distMatSEXP);
+    Rcpp::traits::input_parameter< const double& >::type r(rSEXP);
+    rcpp_result_gen = Rcpp::wrap(calc_ExpKernel(distMat, r));
+    return rcpp_result_gen;
+END_RCPP
+}
+// calc_HurdleExpKernel
+Rcpp::NumericMatrix calc_HurdleExpKernel(const Rcpp::NumericMatrix& distMat, double r, double pi);
+RcppExport SEXP _mPlexCpp_calc_HurdleExpKernel(SEXP distMatSEXP, SEXP rSEXP, SEXP piSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type distMat(distMatSEXP);
+    Rcpp::traits::input_parameter< double >::type r(rSEXP);
+    Rcpp::traits::input_parameter< double >::type pi(piSEXP);
+    rcpp_result_gen = Rcpp::wrap(calc_HurdleExpKernel(distMat, r, pi));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_mPlexCpp_run_mPlex_Cpp", (DL_FUNC) &_mPlexCpp_run_mPlex_Cpp, 10},
     {"_mPlexCpp_run_mPlex_Cpp_repetitions", (DL_FUNC) &_mPlexCpp_run_mPlex_Cpp_repetitions, 10},
+    {"_mPlexCpp_calc_haversine", (DL_FUNC) &_mPlexCpp_calc_haversine, 1},
+    {"_mPlexCpp_calc_LognormalKernel", (DL_FUNC) &_mPlexCpp_calc_LognormalKernel, 3},
+    {"_mPlexCpp_calc_GammaKernel", (DL_FUNC) &_mPlexCpp_calc_GammaKernel, 3},
+    {"_mPlexCpp_calc_ExpKernel", (DL_FUNC) &_mPlexCpp_calc_ExpKernel, 2},
+    {"_mPlexCpp_calc_HurdleExpKernel", (DL_FUNC) &_mPlexCpp_calc_HurdleExpKernel, 3},
     {NULL, NULL, 0}
 };
 

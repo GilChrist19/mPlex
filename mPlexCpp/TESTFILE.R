@@ -29,11 +29,11 @@ library(mPlexCpp)
 # Setup Parameters for Network
 ###############################################################################
 
-numPatch <- 2
+numPatch <- 1
 migration <- matrix(data = runif(numPatch*numPatch), nrow = numPatch, ncol = numPatch)
 migration <- migration/rowSums(migration)
-patchPops = rep(100L,numPatch)
-directory = "~/Desktop/HOLD/MGDrivE/"
+patchPops = rep(1000L,numPatch)
+directory = "~/Desktop/HOLD/MGDrivE (copy 1)/"
 
 #setup alleles to initiate patches
 alleloTypes <- vector(mode = "list", length = 1L) #3 loci
@@ -114,7 +114,7 @@ patchReleases[[1]]$maleReleases <- holdRel
 # Calculate parameters and initialize network
 ###############################################################################
 netPar = NetworkParameters(nPatch = numPatch,
-                           simTime = 100L,
+                           simTime = 500L,
                            alleloTypes = AllAlleles,
                            AdPopEQ = patchPops,
                            runID = 1L,
@@ -132,12 +132,32 @@ mPlex_oneRun(seed = 10,
              migrationFemale = migration,
              migrationBatch = migrationBatch,
              output_directory = directory,
-             reproductionType = "mPlex_mLoci",
+             reproductionType = "mPlex_oLocus",
              verbose = TRUE)
 
 
 
 
+
+
+system.time(mPlex_oneRun(seed = 10,
+             networkParameters = netPar,
+             reproductionReference = reproductionReference,
+             patchReleases = patchReleases,
+             migrationMale = migration,
+             migrationFemale = migration,
+             migrationBatch = migrationBatch,
+             output_directory = directory,
+             reproductionType = "mPlex_oLocus",
+             verbose = TRUE))
+
+
+
+
+
+
+  
+  
 
 
 dirVec <- paste0(directory, 1:4)
@@ -155,8 +175,8 @@ mPlex_runRepetitions(seed = 10,
 
 
 splitOutput(directory = directory, numCores = 1)
-AnalyzeOutput_oLocus(readDirectory = "~/Desktop/HOLD/MGDrivE/",
-                     saveDirectory = "~/Desktop/HOLD/mPlex/",
+AnalyzeOutput_oLocus(readDirectory = "~/Desktop/HOLD/MGDrivE (copy 1)/",
+                     saveDirectory = "~/Desktop/HOLD/MGDrivE (copy 1) (copy 1)/",
                      alleles = list(list(c(NULL)),list(c(NULL))),
                      collapse = list(c(F),c(F)),
                      numCores = 1)
@@ -168,7 +188,7 @@ AnalyzeOutput_mLoci_Daisy(readDirectory = "~/Desktop/HOLD/MGDrivE/",
                           numCores = 1)
 
 
-Plot_mPlex(directory = "~/Desktop/HOLD/mPlex/", whichPatches = NULL, totalPop = TRUE)
+Plot_mPlex(directory = "~/Desktop/HOLD/MGDrivE (copy 1) (copy 1)/", whichPatches = NULL, totalPop = TRUE)
 
 detach("package:mPlexCpp", unload=TRUE)
 

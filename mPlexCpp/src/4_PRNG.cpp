@@ -75,6 +75,60 @@ std::vector<int> prng::get_rmultinom(const int &size, const std::vector<double> 
   return sample;
 };
 
+/* Startek, M. (2016). An asymptotically optimal, online algorithm for weighted random sampling with replacement, 1–11. Retrieved from http://arxiv.org/abs/1611.00532 */
+std::vector<int> prng::get_rmultinom_online(int size, const std::vector<double>& prob, double switchover){
+
+  std::vector<int> sample(prob.size(),0);
+
+  double pprob = 0.0;
+  double cprob = 0.0;
+  unsigned int pidx(0);
+  double p;
+  int nrtaken(0);
+    
+  while(size > 0){
+    
+    pprob += prob[pidx];
+    while(((pprob - cprob) * size / (1.0 - cprob)) < switchover){
+      cprob += get_beta_1_b(size) * (1.0 - cprob);
+      while(pprob < cprob)
+        pprob += prob[++pidx];
+      if(sample.size() == pidx)
+        sample[pidx] = 1;
+      else
+        sample[pidx] += 1;
+      size--;
+      if(size == 0)
+        break;
+    } // end inner while
+    
+    if(size == 0) break;
+    
+    p = (pprob-cprob)/(1.0-cprob);
+    nrtaken = 0;
+    
+    if(p >= 1.0){
+      nrtaken = size;
+    } else {
+      std::binomial_distribution<int> rbinom(size, p);
+      nrtaken = rbinom(rng);
+    }
+    
+    if(nrtaken > 0){
+      if(sample.size() == pidx)
+        sample[pidx] = nrtaken;
+      else
+        sample[pidx] += nrtaken;
+    }
+    
+    size -= nrtaken;
+    pidx++;
+    cprob = pprob;
+  } // end outer while
+
+  return sample;
+};
+
 std::vector<double> prng::get_rdirichlet(const std::vector<double>& prob){
   
   std::vector<double> sample(prob);

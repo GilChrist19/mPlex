@@ -33,3 +33,65 @@ run_mPlex_Cpp_repetitions <- function(seed, networkParameters_, reproductionRefe
     invisible(.Call('_mPlexCpp_run_mPlex_Cpp_repetitions', PACKAGE = 'mPlexCpp', seed, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, output_directory, reproductionType_, verbose))
 }
 
+#' Calculate Haversine Distance
+#'
+#' Calculate the great-circle distance (Haversine distance) between sets of longitude - latitude points, see \url{https://en.wikipedia.org/wiki/Haversine_formula}
+#'
+#' @param latlongs numeric matrix where first column is vector of latitudes and second column is vector of longitudes
+#'
+#' @export
+calc_haversine <- function(latlongs) {
+    .Call('_mPlexCpp_calc_haversine', PACKAGE = 'mPlexCpp', latlongs)
+}
+
+#' Calculate Lognormal Stochastic Matrix
+#'
+#' Given a distance matrix from \code{\link[MGDrivE]{calc_haversine}}, calculate a stochastic matrix where one step movement probabilities follow a lognormal density.
+#'
+#' @param distMat distance matrix from \code{\link[MGDrivE]{calc_haversine}}
+#' @param meanlog log mean of \code{\link[stats]{Lognormal}} distribution
+#' @param sdlog log standard deviation of \code{\link[stats]{Lognormal}} distribution
+#'
+#' @export
+calc_LognormalKernel <- function(distMat, meanlog, sdlog) {
+    .Call('_mPlexCpp_calc_LognormalKernel', PACKAGE = 'mPlexCpp', distMat, meanlog, sdlog)
+}
+
+#' Calculate Gamma Stochastic Matrix
+#'
+#' Given a distance matrix from \code{\link[MGDrivE]{calc_haversine}}, calculate a stochastic matrix where one step movement probabilities follow a gamma density.
+#'
+#' @param distMat distance matrix from \code{\link[MGDrivE]{calc_haversine}}
+#' @param shape shape parameter of \code{\link[stats]{GammaDist}} distribution
+#' @param rate rate parameter of \code{\link[stats]{GammaDist}} distribution
+#'
+#' @export
+calc_GammaKernel <- function(distMat, shape, rate) {
+    .Call('_mPlexCpp_calc_GammaKernel', PACKAGE = 'mPlexCpp', distMat, shape, rate)
+}
+
+#' Calculate Exponential Stochastic Matrix
+#'
+#' Given a distance matrix from \code{\link[MGDrivE]{calc_haversine}}, calculate a stochastic matrix where one step movement probabilities follow an exponential density.
+#'
+#' @param distMat distance matrix from \code{\link[MGDrivE]{calc_haversine}}
+#' @param r rate parameter of \code{\link[stats]{Exponential}} distribution
+#'
+#' @export
+calc_ExpKernel <- function(distMat, r) {
+    .Call('_mPlexCpp_calc_ExpKernel', PACKAGE = 'mPlexCpp', distMat, r)
+}
+
+#' Calculate Hurdle Exponential Stochastic Matrix
+#'
+#' Given a distance matrix from \code{\link[MGDrivE]{calc_haversine}}, calculate a stochastic matrix where one step movement probabilities follow an zero-truncated exponential density with a point mass at zero.
+#'
+#' @param distMat distance matrix from \code{\link[MGDrivE]{calc_haversine}}
+#' @param r rate parameter of \code{\link[stats]{Exponential}} distribution
+#' @param pi point mass at zero
+#'
+#' @export
+calc_HurdleExpKernel <- function(distMat, r, pi) {
+    .Call('_mPlexCpp_calc_HurdleExpKernel', PACKAGE = 'mPlexCpp', distMat, r, pi)
+}
+

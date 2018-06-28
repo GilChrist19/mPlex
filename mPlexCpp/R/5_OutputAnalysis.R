@@ -414,6 +414,10 @@ Plot_mPlex <- function(directory, whichPatches = NULL, totalPop = TRUE){
   patches = unique(x = regmatches(x = dirFiles, m = regexpr(pattern = "Patch[0-9]+", text = dirFiles)))
 
   # check if user chose specific patches
+  if(length(patches)>14){
+    stop("Theere are more than 15 patches in the simulation.
+         Please select less than 15 to plot.")
+  }
   if(!is.null(whichPatches)){
     # make sure not too many. I dont' know what that number is, but at some point
     #  the plotting function breaks down.

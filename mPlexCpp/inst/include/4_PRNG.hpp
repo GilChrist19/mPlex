@@ -13,6 +13,7 @@
 
 #include <random>
 #include <vector>
+#include <math.h>
 
 
 /* threadsafe prng singleton */
@@ -26,6 +27,7 @@ public:
     double                                 get_runif();
     double                                 get_rexp(const double& rate);
     double                                 get_rlnorm(const double& meanlog, const double& sdlog);
+    double                                 get_beta_1_b(const double b){return 1.0 - pow(runif(rng), 1.0/b);};
     std::vector<double>                    get_rdirichlet(const std::vector<double>& prob);
 
     /* discrete random variate sampling */
@@ -33,7 +35,8 @@ public:
     int                                    get_rbinom(const int& n, const double& p);
     size_t                                 get_oneSample(const std::vector<double>& prob);
     std::vector<int>                       get_rmultinom(const int& size, const std::vector<double> prob);
-
+    std::vector<int>                       get_rmultinom_online(int size, const std::vector<double>& prob, double switchover = 1.0);
+    
     /* resample template type T x 'size' times */
     template<typename T>
     T                                      get_resample(const T& x, const int& size);

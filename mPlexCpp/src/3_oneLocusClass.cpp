@@ -211,7 +211,7 @@ void oneLocus::oneDay_layEggs(){
                                               * reference::instance().get_s(female.get_genotype()));
 
     // pull eggs over offspring probs
-    newEggs = prng::instance().get_rmultinom(index, holdProbs1);
+    newEggs = prng::instance().get_rmultinom_online(index, holdProbs1);
 
     // create new eggs
     for(size_t eggIndex=0; eggIndex<newEggs.size(); ++eggIndex){
