@@ -697,6 +697,15 @@ void oneLocus::MultiplexOffspring_oLocus(const std::string& fGen, const std::str
   // End Cartesian Product of male/female loci
   /*****************************************************************************/
 
+  
+    // test normalize
+  double normalizer = std::accumulate(holdProbs1.begin(), holdProbs1.end(),0.0);
+  
+  for(auto& it : holdProbs1){
+    it /= normalizer;
+  }
+  
+
 } // end function
 
 

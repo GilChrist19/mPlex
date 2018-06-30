@@ -213,7 +213,7 @@ void multiLocus::oneDay_layEggs(){
                                               * reference::instance().get_s(female.get_genotype()));
 
     // pull eggs over offspring probs
-    newEggs = prng::instance().get_rmultinom(index, finalProbs);
+    newEggs = prng::instance().get_rmultinom_online(index, finalProbs);
     
     // create new eggs
     for(size_t eggIndex=0; eggIndex<newEggs.size(); ++eggIndex){
@@ -470,7 +470,7 @@ void multiLocus::MultiplexOffspring_mLoci(const std::string& fGen, const std::st
 
   holdGens.clear();
   holdProbs.clear();
-
+  
   // fill first index
   for(index=0; index<fAllele[0].size(); ++index){
     finalGenotypes.push_back(fAllele[0][index]);
@@ -500,6 +500,15 @@ void multiLocus::MultiplexOffspring_mLoci(const std::string& fGen, const std::st
   /*****************************************************************************/
   // End Cartesian Product of All Loci
   /*****************************************************************************/
+
+  
+  
+  // test normalize
+  double normalizer = std::accumulate(finalProbs.begin(), finalProbs.end(),0.0);
+  
+  for(auto& it : finalProbs){
+    it /= normalizer;
+  }
 
 } // end function
 

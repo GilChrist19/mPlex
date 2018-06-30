@@ -216,7 +216,7 @@ void Daisy::oneDay_layEggs(){
                                               * reference::instance().get_s(female.get_genotype()));
 
     // pull eggs over offspring probs
-    newEggs = prng::instance().get_rmultinom(index, finalProbs);
+    newEggs = prng::instance().get_rmultinom_online(index, finalProbs);
 
     
     // create new eggs
@@ -619,6 +619,13 @@ void Daisy::DaisyOffspring(const std::string& fGen, const std::string& mGen){
   /*****************************************************************************/
   // End Cartesian Product of All Loci
   /*****************************************************************************/
+  
+    // test normalize
+  double normalizer = std::accumulate(finalProbs.begin(), finalProbs.end(),0.0);
+  
+  for(auto& it : finalProbs){
+    it /= normalizer;
+  }
   
 } // end function
 

@@ -29,25 +29,22 @@ library(mPlexCpp)
 # Setup Parameters for Network
 ###############################################################################
 
-numPatch <- 1
+numPatch <- 10
+set.seed(10)
 migration <- matrix(data = runif(numPatch*numPatch), nrow = numPatch, ncol = numPatch)
 migration <- migration/rowSums(migration)
-patchPops = rep(1000L,numPatch)
-directory = "~/Desktop/HOLD/MGDrivE (copy 1)/"
+
+patchPops = rep(100L,numPatch)
+
+directory1 = "~/Desktop/HOLD/MGDrivE (copy 1)/"
+directory2 <- "~/Desktop/HOLD/MGDrivE (copy 1) (copy 1)/"
 
 #setup alleles to initiate patches
-alleloTypes <- vector(mode = "list", length = 1L) #3 loci
+alleloTypes <- vector(mode = "list", length = 1L) #1 locus
 alleloTypes[[1]]$alleles <- c("W")
 alleloTypes[[1]]$probs <- c(1L)
-# alleloTypes[[2]]$alleles <- c("W","H")
-# alleloTypes[[2]]$probs <- c(1,0)
-# alleloTypes[[3]]$alleles <- c("W","H")
-# alleloTypes[[3]]$probs <- c(1,0)
 
 AllAlleles <- replicate(n = numPatch, expr = alleloTypes, simplify = FALSE)
-
-
-
 
 
 # reproductionReference <- MakeReference_DaisyDrive(H = c(0.98, 0.5),
@@ -59,17 +56,11 @@ AllAlleles <- replicate(n = numPatch, expr = alleloTypes, simplify = FALSE)
 #                                                          R = c(0.0001, 0.0001),
 #                                                          S = c(0.0003, 0.004),
 #                                                          d = c(0, 0))
-reproductionReference <- MakeReference_Multiplex_mLoci()
 
-# reproductionReference$mendelian[[1]]$W <- c(1.0,1.5,2.3)
-# reproductionReference$mendelian[[1]]$H <- c(1.0,1.5,2.3)
-# reproductionReference$mendelian[[1]]$R <- c(1.0,1.5,2.3)
-# reproductionReference$mendelian[[1]]$S <- c(1.0,1.5,2.3)
-# 
-# reproductionReference$mendelian[[2]]$W <- c(1.0,1.5,2.3)
-# reproductionReference$mendelian[[2]]$H <- c(1.0,1.5,2.3)
-# reproductionReference$mendelian[[2]]$R <- c(1.0,1.5,2.3)
-# reproductionReference$mendelian[[2]]$S <- c(1.0,1.5,2.3)
+# This sets up a basic CRISPR drive, with perfect homing and no resistance or backgorund mutation
+reproductionReference <- MakeReference_Multiplex_mLoci(H = 1.0, R = 0, S = 0, d = 0,
+                                                       eta = c("HH"=0.5))
+
 
 ###############################################################################
 # Release Setup
@@ -84,11 +75,11 @@ patchReleases = replicate(n = numPatch,
 
 
 # Create release object to pass to patches
-holdRel <- Release_basicRepeatedReleases(releaseStart = 10L,
-                                         releaseEnd = 20L,
+holdRel <- Release_basicRepeatedReleases(releaseStart = 100L,
+                                         releaseEnd = 110L,
                                          releaseInterval = 1,
                                          genMos = c("HH"),
-                                         numMos = c(50L),
+                                         numMos = c(25L),
                                          minAge = 16L,
                                          maxAge = 24L,
                                          ageDist = rep(x = 1, times = 24-16+1)/9)
@@ -97,24 +88,21 @@ holdRel <- Release_basicRepeatedReleases(releaseStart = 10L,
 holdRel2 <- Release_basicRepeatedReleases(releaseStart = 600L,
                                           releaseEnd = 610L,
                                           releaseInterval = 2L,
-                                          genMos = c("SS"),
+                                          genMos = c("RR"),
                                           numMos = c(10L),
                                           minAge = 16L,
                                           maxAge = 24L,
                                           ageDist = rep(x = 1, times = 24-16+1)/9)
 
-# for(i in seq(1,numPatch,1)){
-#   patchReleases[[i]]$maleReleases <- holdRel
-# }
 
-patchReleases[[1]]$maleReleases <- holdRel
+patchReleases[[1]]$maleReleases <- c(holdRel, holdRel2)
 
 
 ###############################################################################
 # Calculate parameters and initialize network
 ###############################################################################
 netPar = NetworkParameters(nPatch = numPatch,
-                           simTime = 500L,
+                           simTime = 2000L,
                            alleloTypes = AllAlleles,
                            AdPopEQ = patchPops,
                            runID = 1L,
@@ -131,35 +119,40 @@ mPlex_oneRun(seed = 10,
              migrationMale = migration,
              migrationFemale = migration,
              migrationBatch = migrationBatch,
-             output_directory = directory,
-             reproductionType = "mPlex_oLocus",
+             output_directory = directory1,
+             reproductionType = "mPlex_mLoci",
              verbose = TRUE)
 
 
 
+# split the output by patch
+splitOutput(directory = directory1, numCores = 1)
 
+# aggregate by genotype.
+AnalyzeOutput_mLoci_Daisy(readDirectory = directory1,
+                          saveDirectory = directory2,
+                          genotypes = list(NULL),
+                          collapse = c(FALSE),
+                          numCores = 1)
 
+# plot for example
+Plot_mPlex(directory = directory2, whichPatches = NULL, totalPop = FALSE)
 
-system.time(mPlex_oneRun(seed = 10,
-             networkParameters = netPar,
-             reproductionReference = reproductionReference,
-             patchReleases = patchReleases,
-             migrationMale = migration,
-             migrationFemale = migration,
-             migrationBatch = migrationBatch,
-             output_directory = directory,
-             reproductionType = "mPlex_oLocus",
-             verbose = TRUE))
-
-
-
-
-
-
+detach("package:mPlexCpp", unload=TRUE)
   
   
 
 
+
+
+
+
+###############################################################################
+# DON'T RUN THIS STUFF. SHOULD WORK, ISN'T ORGANIZED, MOSTLY FOR TESTING
+###############################################################################
+
+
+# repetitions wrapper - no reinitializing memory between reps. 
 dirVec <- paste0(directory, 1:4)
 
 mPlex_runRepetitions(seed = 10,
