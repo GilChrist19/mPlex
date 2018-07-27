@@ -33,7 +33,11 @@ public:
     /* discrete random variate sampling */
     int                                    get_rpois(const double& lambda);
     int                                    get_rbinom(const int& n, const double& p);
-    size_t                                 get_oneSample(const std::vector<double>& prob);
+    bool                                   get_rBern(const double& p);
+    void                                   set_cBern(const double& p);
+    bool                                   get_cBern();
+    void                                   set_oneSample(const std::vector<double>& prob);
+    size_t                                 get_oneSample();
     std::vector<int>                       get_rmultinom(const int& size, const std::vector<double> prob);
     std::vector<int>                       get_rmultinom_online(int size, const std::vector<double>& prob, double switchover = 1.0);
     
@@ -54,6 +58,8 @@ private:
 
   std::mt19937                            rng;
   std::uniform_real_distribution<double>  runif;
+  std::bernoulli_distribution             bernoulli;
+  std::discrete_distribution<size_t>      sample;
 };
 
 #endif

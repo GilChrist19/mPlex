@@ -51,9 +51,8 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
   
   
   #ifdef BASE_PROFILER_H_
-    Rcpp::Rcout << "Something is working!" << std::endl;
-    // const char* profile_file
-    // ProfilerStart(profile_file);
+    // make sure to change path!!! But keep file name.
+    ProfilerStart("/home/jared/Desktop/HOLD/profile.log");
   #endif
   
   
@@ -328,11 +327,9 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
   ADM_output.close();
   ADF_output.close();
   
-  // 
+  // close profiler
   #ifdef BASE_PROFILER_H_
-    Rcpp::Rcout << "Something is done working!" << std::endl;
-    
-    // ProfilerStop();
+    ProfilerStop();
   #endif
   
 }

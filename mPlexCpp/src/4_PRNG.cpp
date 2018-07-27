@@ -40,10 +40,14 @@ double prng::get_rlnorm(const double &meanlog, const double &sdlog){
   return rlnorm(rng);
 };
 
-size_t prng::get_oneSample(const std::vector<double>& prob){
-  std::discrete_distribution<size_t> sample(prob.begin(),prob.end());
-  return sample(rng);
+// set one sample probs
+void prng::set_oneSample(const std::vector<double>& prob){
+  sample = std::discrete_distribution<size_t> (prob.begin(),prob.end());
 }
+
+size_t prng::get_oneSample(){
+  return sample(rng);
+};
 
 /* discrete random variate sampling */
 int prng::get_rpois(const double &lambda){
@@ -54,6 +58,20 @@ int prng::get_rpois(const double &lambda){
 int prng::get_rbinom(const int& n, const double& p){
   std::binomial_distribution<int>rbinom(n,p);
   return rbinom(rng);
+};
+
+// bernoulli things
+bool prng::get_rBern(const double& p){
+  std::bernoulli_distribution berni(p);
+  return berni(rng);
+}
+
+void prng::set_cBern(const double& p){
+  bernoulli = std::bernoulli_distribution(p);
+};
+
+bool prng::get_cBern(){
+  return bernoulli(rng);
 };
 
 std::vector<int> prng::get_rmultinom(const int &size, const std::vector<double> prob){
@@ -135,15 +153,19 @@ std::vector<double> prng::get_rdirichlet(const std::vector<double>& prob){
   double hold = 0.0;
   
   for(auto& sampleIt : sample){
+    if(sampleIt==0) continue;
     std::gamma_distribution<double> gamma(sampleIt, 1.0);
     sampleIt = gamma(rng);
     // get total sum of draws
     hold += sampleIt;
   }
   
+  // invert hold
+  hold = 1.0/hold;
+
   // normalize
   for(auto& sampleIt : sample){
-    sampleIt /= hold;
+    sampleIt *= hold;
   }
 
   return sample;

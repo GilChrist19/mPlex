@@ -34,10 +34,10 @@ set.seed(10)
 migration <- matrix(data = runif(numPatch*numPatch), nrow = numPatch, ncol = numPatch)
 migration <- migration/rowSums(migration)
 
-patchPops = rep(100L,numPatch)
+patchPops = rep(1000L,numPatch)
 
-directory1 = "~/Desktop/HOLD/MGDrivE (copy 1)/"
-directory2 <- "~/Desktop/HOLD/MGDrivE (copy 1) (copy 1)/"
+directory1 = "~/Desktop/HOLD/MGDrivE/"
+directory2 <- "~/Desktop/HOLD/MGDrivEHOLD/"
 
 #setup alleles to initiate patches
 alleloTypes <- vector(mode = "list", length = 1L) #1 locus
@@ -112,6 +112,20 @@ netPar = NetworkParameters(nPatch = numPatch,
 migrationBatch <- basicBatchMigration(numPatches = numPatch)
 
 
+
+system.time(mPlex_oneRun(seed = 10,
+                         networkParameters = netPar,
+                         reproductionReference = reproductionReference,
+                         patchReleases = patchReleases,
+                         migrationMale = migration,
+                         migrationFemale = migration,
+                         migrationBatch = migrationBatch,
+                         output_directory = directory1,
+                         reproductionType = "mPlex_mLoci",
+                         verbose = TRUE))
+
+
+
 mPlex_oneRun(seed = 10,
              networkParameters = netPar,
              reproductionReference = reproductionReference,
@@ -137,6 +151,14 @@ AnalyzeOutput_mLoci_Daisy(readDirectory = directory1,
 
 # plot for example
 Plot_mPlex(directory = directory2, whichPatches = NULL, totalPop = FALSE)
+
+# see profiling if done
+
+cat("NumSamp  PercentSamp  CumPercentSamp  NumSampTree  PercentSampTree  Function")
+system(sprintf("google-pprof --text --cum --lines  /bin/ls %sprofile.log", "~/Desktop/HOLD/"), intern = TRUE)
+
+
+
 
 detach("package:mPlexCpp", unload=TRUE)
   

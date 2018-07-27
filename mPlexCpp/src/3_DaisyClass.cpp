@@ -264,8 +264,9 @@ void CreateMosquitoes2Allele(const int& numMos, const int& minAge, const dVec& a
       alleles = Rcpp::as<std::vector<std::string> >( aTypes[loci]["alleles"] );
       
       // generate each allele
+      prng::instance().set_oneSample(probs);
       for(size_t gen=0; gen < 2; gen++){
-        genHold[gen] = alleles[prng::instance().get_oneSample(probs)];
+        genHold[gen] = alleles[prng::instance().get_oneSample()];
       }
       
       // sort alleles
@@ -276,7 +277,8 @@ void CreateMosquitoes2Allele(const int& numMos, const int& minAge, const dVec& a
     }
     
     // set age of mosquito
-    age = minAge + prng::instance().get_oneSample(ageDist);
+    prng::instance().set_oneSample(ageDist);
+    age = minAge + prng::instance().get_oneSample();
     
     // add new mosquito to population
     returnPop.emplace_back(Mosquito(age, genotype));

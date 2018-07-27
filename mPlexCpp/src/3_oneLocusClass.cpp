@@ -257,8 +257,9 @@ void CreateMosquitoes2Loci(const int& numMos, const int& minAge, const dVec& age
       alleles = Rcpp::as<std::vector<std::string> >( aTypes[loci]["alleles"] );
       
       // generate each allele
-      locus1[loci] = alleles[prng::instance().get_oneSample(probs)];
-      locus2[loci] = alleles[prng::instance().get_oneSample(probs)];
+      prng::instance().set_oneSample(probs);
+      locus1[loci] = alleles[prng::instance().get_oneSample()];
+      locus2[loci] = alleles[prng::instance().get_oneSample()];
     }
     
     // combine alleles into final genotype
@@ -267,7 +268,8 @@ void CreateMosquitoes2Loci(const int& numMos, const int& minAge, const dVec& age
     
     
     // set age of mosquito
-    age = minAge + prng::instance().get_oneSample(ageDist);
+    prng::instance().set_oneSample(ageDist);
+    age = minAge + prng::instance().get_oneSample();
     
     // add new mosquito to population
     returnPop.emplace_back(Mosquito(age, genotype));
