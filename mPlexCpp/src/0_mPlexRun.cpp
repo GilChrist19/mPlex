@@ -10,7 +10,7 @@
 #include <progress.hpp>
 #include <progress_bar.hpp>
 
-#include <gperftools/profiler.h>
+//#include <gperftools/profiler.h>
 
 #include <Rcpp.h>
 

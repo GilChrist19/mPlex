@@ -86,16 +86,10 @@ public:
   void      oneDay_popDynamics();
   
   // Death
-  void      oneDay_eggDeath();
-  void      oneDay_larvaDeath();
-  void      oneDay_pupaDeath();
-  void      oneDay_adultDeath();
-  
-  // Aging
-  void      oneDay_eggAge();
-  void      oneDay_larvaeAge();
-  void      oneDay_pupaAge();
-  void      oneDay_adultAge();
+  void      oneDay_eggDeathAge();
+  void      oneDay_larvaDeathAge();
+  void      oneDay_pupaDeathAge();
+  void      oneDay_adultDeathAge();
   
   // Maturation
   void      oneDay_pupaMaturation();
@@ -138,6 +132,11 @@ protected:
   // migration things
   std::vector<popVec> maleMigration;
   std::vector<popVec> femaleMigration;
+  
+  // mating things
+  std::vector<std::string> genNames;
+  std::vector<double> genProbs;
+  std::string mateName;
   
   
   // releases

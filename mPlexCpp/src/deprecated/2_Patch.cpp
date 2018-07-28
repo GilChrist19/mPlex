@@ -29,11 +29,17 @@ Patch& Patch::operator=(Patch&& rhs) = default;
 /* population dynamics */
 void Patch::oneDay_popDynamics(){
 
-  // Death and Age
-  oneDay_eggDeathAge();
-  oneDay_larvaDeathAge();
-  oneDay_pupaDeathAge();
-  oneDay_adultDeathAge();
+  // Death
+  oneDay_eggDeath();
+  oneDay_larvaDeath();
+  oneDay_pupaDeath();
+  oneDay_adultDeath();
+  
+  // Age
+  oneDay_eggAge();
+  oneDay_larvaeAge();
+  oneDay_pupaAge();
+  oneDay_adultAge();
   
   // Mature
   oneDay_pupaMaturation();
@@ -57,12 +63,10 @@ void Patch::oneDay_popDynamics(){
 /******************************************************************************
 * Functions
 ******************************************************************************/
-// cute swap/pop statement came from here
-// https://gamedev.stackexchange.com/questions/33888/what-is-the-most-efficient-container-to-store-dynamic-game-objects-in
 /**************************************
  * Death
 ***************************************/
-void Patch::oneDay_eggDeathAge(){
+void Patch::oneDay_eggDeath(){
 
   // set bernoulli
   prng::instance().set_cBern(parameters::instance().get_mu(0));
@@ -73,14 +77,12 @@ void Patch::oneDay_eggDeathAge(){
     if(prng::instance().get_cBern() ){
       std::swap(*it, eggs.back());
       eggs.pop_back();
-    } else {
-      it->age_one_day();
     }
   } // end loop
   
 }
 
-void Patch::oneDay_larvaDeathAge(){
+void Patch::oneDay_larvaDeath(){
   
   int stage = parameters::instance().get_stage_time(1);
   double alpha = parameters::instance().get_alpha(patchID);
@@ -96,13 +98,12 @@ void Patch::oneDay_larvaDeathAge(){
     if(prng::instance().get_cBern() ){
       std::swap(*it, larva.back());
       larva.pop_back();
-    } else
-      it->age_one_day();
+    }
   } // end loop
 
 }
 
-void Patch::oneDay_pupaDeathAge(){
+void Patch::oneDay_pupaDeath(){
   
   // set bernoulli
   prng::instance().set_cBern(parameters::instance().get_mu(2) );
@@ -113,14 +114,12 @@ void Patch::oneDay_pupaDeathAge(){
     if(prng::instance().get_cBern() ){
       std::swap(*it, pupa.back());
       pupa.pop_back();
-    } else {
-      it->age_one_day();
     }
   } // end loop
   
 }
 
-void Patch::oneDay_adultDeathAge(){
+void Patch::oneDay_adultDeath(){
   
   double probs;
   double minusMu = 1.0 - parameters::instance().get_mu(3);
@@ -133,8 +132,6 @@ void Patch::oneDay_adultDeathAge(){
     if(prng::instance().get_rBern(1.0-probs) ){
       std::swap(*it, adult_male.back());
       adult_male.pop_back();
-    } else {
-      it->age_one_day();
     }
   } // end loop
   
@@ -146,11 +143,44 @@ void Patch::oneDay_adultDeathAge(){
     if(prng::instance().get_rBern(1.0-probs) ){
       std::swap(*it, adult_female.back());
       adult_female.pop_back();
-    } else {
-      it->age_one_day();
     }
   } // end loop
   
+}
+
+/**************************************
+ * Age
+***************************************/
+void Patch::oneDay_eggAge(){
+  // loop over eggs, age them all one day
+  for(auto& it : eggs){
+    it.age_one_day();
+  }
+}
+
+void Patch::oneDay_larvaeAge(){
+  // loop over larva, age them all one day
+  for(auto& it : larva){
+    it.age_one_day();
+  }
+}
+
+void Patch::oneDay_pupaAge(){
+  // loop over pupa, age them all one day
+  for(auto& it : pupa){
+    it.age_one_day();
+  }
+}
+
+void Patch::oneDay_adultAge(){
+  // loop over males
+  for(auto& it : adult_male){
+    it.age_one_day();
+  }
+  // loop over females
+  for(auto& it :  adult_female){
+    it.age_one_day();
+  }
 }
 
 /**************************************

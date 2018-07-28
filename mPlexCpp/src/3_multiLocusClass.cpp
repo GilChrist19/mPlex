@@ -125,6 +125,10 @@ multiLocus::multiLocus(const int& patchID_,
    maleMigration.resize(parameters::instance().get_n_patch());
    femaleMigration.resize(parameters::instance().get_n_patch());
    
+   // mating setup
+   genNames.reserve(2*parameters::instance().get_adult_pop_eq(patchID));
+   genProbs.reserve(2*parameters::instance().get_adult_pop_eq(patchID));
+     
    // Reproduction setup
    numAlleles = aTypes.size();
    fProbs.resize(numAlleles);

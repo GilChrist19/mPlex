@@ -34,7 +34,7 @@ set.seed(10)
 migration <- matrix(data = runif(numPatch*numPatch), nrow = numPatch, ncol = numPatch)
 migration <- migration/rowSums(migration)
 
-patchPops = rep(1000L,numPatch)
+patchPops = rep(10L,numPatch)
 
 directory1 = "~/Desktop/HOLD/MGDrivE/"
 directory2 <- "~/Desktop/HOLD/MGDrivEHOLD/"
@@ -58,8 +58,10 @@ AllAlleles <- replicate(n = numPatch, expr = alleloTypes, simplify = FALSE)
 #                                                          d = c(0, 0))
 
 # This sets up a basic CRISPR drive, with perfect homing and no resistance or backgorund mutation
-reproductionReference <- MakeReference_Multiplex_mLoci(H = 1.0, R = 0, S = 0, d = 0,
-                                                       eta = c("HH"=0.5))
+reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.97),
+                                                       R = c(0.03),
+                                                       S = c(0),
+                                                       d = c(0.00))
 
 
 ###############################################################################
@@ -164,9 +166,33 @@ detach("package:mPlexCpp", unload=TRUE)
   
   
 
+microbenchmark::microbenchmark(mPlex_oneRun(seed = 10,
+                                            networkParameters = netPar,
+                                            reproductionReference = reproductionReference,
+                                            patchReleases = patchReleases,
+                                            migrationMale = migration,
+                                            migrationFemale = migration,
+                                            migrationBatch = migrationBatch,
+                                            output_directory = directory1,
+                                            reproductionType = "mPlex_mLoci",
+                                            verbose = TRUE),
+                               times = 10)
 
+# one loop change
+min       lq     mean   median       uq     max neval
+72.42469 85.76454 129.0348 120.6688 165.8623 216.253    10
+min       lq     mean   median       uq      max neval
+74.80805 85.29373 127.8394 116.4741 163.9229 216.3749    10
 
+# original
+min       lq     mean   median       uq      max neval
+84.19857 97.20727 141.1863 129.5231 180.6934 232.7271    10
+min       lq     mean   median       uq     max neval
+83.19071 96.73017 140.7709 128.9488 179.0246 233.358    10
 
+# all loops changed
+min       lq     mean   median       uq      max neval
+94.65854 123.1821 188.7849 176.4162 249.1496 316.5132    10
 
 
 ###############################################################################
@@ -206,21 +232,6 @@ AnalyzeOutput_mLoci_Daisy(readDirectory = "~/Desktop/HOLD/MGDrivE/",
 Plot_mPlex(directory = "~/Desktop/HOLD/MGDrivE (copy 1) (copy 1)/", whichPatches = NULL, totalPop = TRUE)
 
 detach("package:mPlexCpp", unload=TRUE)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

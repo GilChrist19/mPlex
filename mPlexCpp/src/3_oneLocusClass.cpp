@@ -121,6 +121,10 @@ oneLocus::oneLocus(const int& patchID_,
   releaseF0 = releaseF;
   releaseE0 = releaseE;
   
+  // mating setup
+  genNames.reserve(2*parameters::instance().get_adult_pop_eq(patchID));
+  genProbs.reserve(2*parameters::instance().get_adult_pop_eq(patchID));
+  
   // migration setup
   maleMigration.resize(parameters::instance().get_n_patch());
   femaleMigration.resize(parameters::instance().get_n_patch());
