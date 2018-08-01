@@ -56,8 +56,11 @@ class Patch {
 public:
 
   /* constructor & destructor */
-  Patch(){};
-  ~Patch(){};
+  Patch(const int& patchID_,
+        const Rcpp::List& maleReleases_,
+        const Rcpp::List& femaleReleases_,
+        const Rcpp::List& eggReleases_);
+  ~Patch();
 
   /* delete all copy semantics: ensures we get legible compile-time errors if we do something stupid */
   Patch(const Patch&) = delete;
@@ -132,11 +135,16 @@ protected:
   // migration things
   std::vector<popVec> maleMigration;
   std::vector<popVec> femaleMigration;
+  dVec                probsMigration;
   
   // mating things
   std::vector<std::string> genNames;
   std::vector<double> genProbs;
   std::string mateName;
+  
+  // holder things
+  double holdDbl;
+  int    holdInt;
   
   
   // releases

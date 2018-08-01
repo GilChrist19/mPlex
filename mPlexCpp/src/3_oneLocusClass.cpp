@@ -18,11 +18,12 @@ oneLocus::oneLocus(const int& patchID_,
                    const Rcpp::ListOf<Rcpp::List>& aTypes,
                    const Rcpp::List& maleReleases_,
                    const Rcpp::List& femaleReleases_,
-                   const Rcpp::List& eggReleases_) : Patch::Patch()
+                   const Rcpp::List& eggReleases_) : Patch::Patch(patchID_,
+                                                                   maleReleases_,
+                                                                   femaleReleases_,
+                                                                   eggReleases_)
 {
  
-  patchID = patchID_;
-                     
   /****************
   * SET POPULATIONS
   ****************/
@@ -43,8 +44,9 @@ oneLocus::oneLocus(const int& patchID_,
   minAge = parameters::instance().get_stage_time(0)+1;
   
   ageDist.clear();
-  for(int power = minAge; power <= parameters::instance().get_stage_sum(1); ++power){
-   ageDist.push_back(std::pow(1.0-parameters::instance().get_mu(1), power));
+  int counter(0);
+  for(int power = minAge; power <= parameters::instance().get_stage_sum(1); ++power, counter+=2){
+   ageDist.push_back(std::pow(1.0-parameters::instance().get_mu(1), counter));
   }
   
   CreateMosquitoes2Loci(parameters::instance().get_larva_eq(patchID),
@@ -64,70 +66,6 @@ oneLocus::oneLocus(const int& patchID_,
                          minAge, ageDist, aTypes, adult_male);
   CreateMosquitoes2Loci(parameters::instance().get_adult_pop_eq(patchID)/2,
                          minAge, ageDist, aTypes, unmated_female);
-  
-  
-  /****************
-  * RELEASES
-  ****************/
-  
-  // male releases
-  if(maleReleases_.size()>0){
-   size_t mR = maleReleases_.size();
-   releaseM.reserve(mR);
-   for(size_t i=0; i<mR; i++){
-     releaseM.emplace_back(release_event(Rcpp::as<Rcpp::List>(maleReleases_[i])["genVec"],
-                                         Rcpp::as<Rcpp::List>(maleReleases_[i])["ageVec"],
-                                         Rcpp::as<Rcpp::List>(maleReleases_[i])["tRelease"]
-     ));
-   }
-   std::sort(releaseM.begin(), releaseM.end(), [](release_event a, release_event b){
-     return a.release_time > b.release_time;
-   });
-  }
-  
-  // female releases
-  if(femaleReleases_.size()>0){
-   size_t mR = femaleReleases_.size();
-   releaseF.reserve(mR);
-   for(size_t i=0; i<mR; i++){
-     releaseF.emplace_back(release_event(Rcpp::as<Rcpp::List>(femaleReleases_[i])["genVec"],
-                                         Rcpp::as<Rcpp::List>(femaleReleases_[i])["ageVec"],
-                                         Rcpp::as<Rcpp::List>(femaleReleases_[i])["tRelease"]
-     ));
-   }
-   std::sort(releaseF.begin(), releaseF.end(), [](release_event a, release_event b){
-     return a.release_time > b.release_time;
-   });
-  }
-  
-  // larva releases
-  if(eggReleases_.size()>0){
-   size_t mR = eggReleases_.size();
-   releaseE.reserve(mR);
-   for(size_t i=0; i<mR; i++){
-     releaseE.emplace_back(release_event(Rcpp::as<Rcpp::List>(eggReleases_[i])["genVec"],
-                                         Rcpp::as<Rcpp::List>(eggReleases_[i])["ageVec"],
-                                         Rcpp::as<Rcpp::List>(eggReleases_[i])["tRelease"]
-     ));
-   }
-   std::sort(releaseE.begin(), releaseE.end(), [](release_event a, release_event b){
-     return a.release_time > b.release_time;
-   });
-  }
-  
-  
-  // Things to hold for reset
-  releaseM0 = releaseM;
-  releaseF0 = releaseF;
-  releaseE0 = releaseE;
-  
-  // mating setup
-  genNames.reserve(2*parameters::instance().get_adult_pop_eq(patchID));
-  genProbs.reserve(2*parameters::instance().get_adult_pop_eq(patchID));
-  
-  // migration setup
-  maleMigration.resize(parameters::instance().get_n_patch());
-  femaleMigration.resize(parameters::instance().get_n_patch());
   
   
   // Reproduction setup

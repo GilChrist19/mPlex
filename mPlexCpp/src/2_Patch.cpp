@@ -13,8 +13,83 @@
 /******************************************************************************
 * constructor & destructor
 ******************************************************************************/
-// specific to each child
+Patch::Patch(const int& patchID_,
+             const Rcpp::List& maleReleases_,
+             const Rcpp::List& femaleReleases_,
+             const Rcpp::List& eggReleases_)
+{
+  
+  // patch ID
+  patchID = patchID_;
+  
+  /****************
+   * RELEASES
+   ****************/
+  
+  // male releases
+  if(maleReleases_.size()>0){
+    size_t mR = maleReleases_.size();
+    releaseM.reserve(mR);
+    for(size_t i=0; i<mR; i++){
+      releaseM.emplace_back(release_event(Rcpp::as<Rcpp::List>(maleReleases_[i])["genVec"],
+                                          Rcpp::as<Rcpp::List>(maleReleases_[i])["ageVec"],
+                                          Rcpp::as<Rcpp::List>(maleReleases_[i])["tRelease"]
+      ));
+    }
+    std::sort(releaseM.begin(), releaseM.end(), [](release_event a, release_event b){
+      return a.release_time > b.release_time;
+    });
+  }
+  
+  // female releases
+  if(femaleReleases_.size()>0){
+    size_t mR = femaleReleases_.size();
+    releaseF.reserve(mR);
+    for(size_t i=0; i<mR; i++){
+      releaseF.emplace_back(release_event(Rcpp::as<Rcpp::List>(femaleReleases_[i])["genVec"],
+                                          Rcpp::as<Rcpp::List>(femaleReleases_[i])["ageVec"],
+                                          Rcpp::as<Rcpp::List>(femaleReleases_[i])["tRelease"]
+      ));
+    }
+    std::sort(releaseF.begin(), releaseF.end(), [](release_event a, release_event b){
+      return a.release_time > b.release_time;
+    });
+  }
+  
+  // larva releases
+  if(eggReleases_.size()>0){
+    size_t mR = eggReleases_.size();
+    releaseE.reserve(mR);
+    for(size_t i=0; i<mR; i++){
+      releaseE.emplace_back(release_event(Rcpp::as<Rcpp::List>(eggReleases_[i])["genVec"],
+                                          Rcpp::as<Rcpp::List>(eggReleases_[i])["ageVec"],
+                                          Rcpp::as<Rcpp::List>(eggReleases_[i])["tRelease"]
+      ));
+    }
+    std::sort(releaseE.begin(), releaseE.end(), [](release_event a, release_event b){
+      return a.release_time > b.release_time;
+    });
+  }
+  
+  
+  // Things to hold for reset
+  releaseM0 = releaseM;
+  releaseF0 = releaseF;
+  releaseE0 = releaseE;
+  
+  
+  // set migration size objects
+  maleMigration.resize(parameters::instance().get_n_patch());
+  femaleMigration.resize(parameters::instance().get_n_patch());
+  probsMigration.reserve(parameters::instance().get_n_patch());
+  
+  // set mating objects
+  genNames.reserve(2*parameters::instance().get_adult_pop_eq(patchID));
+  genProbs.reserve(2*parameters::instance().get_adult_pop_eq(patchID));
 
+};
+
+Patch::~Patch(){};
 
 /******************************************************************************
 * default (compiler-generated) move semantics
@@ -82,13 +157,13 @@ void Patch::oneDay_eggDeathAge(){
 
 void Patch::oneDay_larvaDeathAge(){
   
-  int stage = parameters::instance().get_stage_time(1);
-  double alpha = parameters::instance().get_alpha(patchID);
-  alpha = std::pow(alpha/(alpha + larva.size()), 1.0/stage);
-  alpha = 1.0-alpha*(1.0-parameters::instance().get_mu(1));
+  holdInt = parameters::instance().get_stage_time(1);
+  holdDbl = parameters::instance().get_alpha(patchID);
+  holdDbl = std::pow(holdDbl/(holdDbl + larva.size()), 1.0/holdInt);
+  holdDbl = 1.0-holdDbl*(1.0-parameters::instance().get_mu(1));
   
   // set bernoulli
-  prng::instance().set_cBern(alpha);
+  prng::instance().set_cBern(holdDbl);
 
   // Loop over all larva in the vector
   for(auto it = larva.rbegin(); it != larva.rend(); ++it){
@@ -123,12 +198,12 @@ void Patch::oneDay_pupaDeathAge(){
 void Patch::oneDay_adultDeathAge(){
   
   double probs;
-  double minusMu = 1.0 - parameters::instance().get_mu(3);
+  holdDbl = 1.0 - parameters::instance().get_mu(3);
   
   // Loop over all adult males in the vector
   for(auto it = adult_male.rbegin(); it != adult_male.rend(); ++it){
     // get genotype specific chance of death
-    probs = minusMu * reference::instance().get_omega(it->get_genotype());
+    probs = holdDbl * reference::instance().get_omega(it->get_genotype());
     // If it is your time, swap and remove
     if(prng::instance().get_rBern(1.0-probs) ){
       std::swap(*it, adult_male.back());
@@ -141,7 +216,7 @@ void Patch::oneDay_adultDeathAge(){
   // Loop over all adult females in the vector
   for(auto it = adult_female.rbegin(); it != adult_female.rend(); ++it){
     // get genotype specific chance of death
-    probs = minusMu * reference::instance().get_omega(it->get_genotype());
+    probs = holdDbl * reference::instance().get_omega(it->get_genotype());
     // If it is your time, swap and remove
     if(prng::instance().get_rBern(1.0-probs) ){
       std::swap(*it, adult_female.back());
@@ -158,13 +233,13 @@ void Patch::oneDay_adultDeathAge(){
 ***************************************/
 void Patch::oneDay_pupaMaturation(){
   
-  int age = parameters::instance().get_stage_sum(2);
+  holdInt = parameters::instance().get_stage_sum(2);
   
   // Loop over all pupa in the vector
   for(auto it = pupa.rbegin(); it != pupa.rend(); ++it){
     
     // If it is your time, we move in
-    if(it->get_age() > age){
+    if(it->get_age() > holdInt){
       
       // gender mill, mwuahahahaha
       if(prng::instance().get_rBern(reference::instance().get_phi(it->get_genotype())) ){
@@ -198,12 +273,12 @@ void Patch::oneDay_pupaMaturation(){
 
 void Patch::oneDay_larvaMaturation(){
   
-  int age = parameters::instance().get_stage_sum(1);
+  holdInt = parameters::instance().get_stage_sum(1);
   
   // Loop over all larva in the vector
   for(auto it = larva.rbegin(); it != larva.rend(); ++it){
     // If it is your time, swap and remove
-    if(it->get_age() > age){
+    if(it->get_age() > holdInt){
       // put maturing egg into larva
       pupa.push_back(*it);
       // swap position and remove egg
@@ -216,12 +291,12 @@ void Patch::oneDay_larvaMaturation(){
 
 void Patch::oneDay_eggMaturation(){
   
-  int age = parameters::instance().get_stage_time(0);
+  holdInt = parameters::instance().get_stage_time(0);
   
   // Loop over all eggs in the vector
   for(auto it = eggs.rbegin(); it != eggs.rend(); ++it){
     // If it is your time, swap and remove
-    if(it->get_age() > age){
+    if(it->get_age() > holdInt){
       // put maturing egg into larva
       larva.push_back(*it);
       // swap position and remove egg
@@ -334,25 +409,24 @@ void Patch::oneDay_migrationOut(){
   }
 
   
-  // used a lot
-  int patch;
-  dVec Probs = prng::instance().get_rdirichlet(parameters::instance().get_male_migration(patchID)); 
-  
   /****************
    * MALE
   ****************/
+  // get slightly more variance in probability
+  probsMigration = prng::instance().get_rdirichlet(parameters::instance().get_male_migration(patchID)); 
+  
   // set oneSample
-  prng::instance().set_oneSample(Probs);
+  prng::instance().set_oneSample(probsMigration);
   
   // loop over all adult males
   for(auto it = adult_male.rbegin(); it != adult_male.rend(); ++it){
     //get which patch he goes to
-    patch = prng::instance().get_oneSample();
+    holdInt = prng::instance().get_oneSample();
     
     // if not this patch
-    if(patch != patchID){ 
+    if(holdInt != patchID){ 
       // add to new patch it goes to
-      maleMigration[patch].push_back(*it);
+      maleMigration[holdInt].push_back(*it);
       // remove
       std::swap(*it, adult_male.back());
       adult_male.pop_back();
@@ -365,20 +439,20 @@ void Patch::oneDay_migrationOut(){
    * FEMALE
   ****************/
   // get slightly more variance in probability
-  Probs = prng::instance().get_rdirichlet(parameters::instance().get_female_migration(patchID));
+  probsMigration = prng::instance().get_rdirichlet(parameters::instance().get_female_migration(patchID));
   
   // reset oneSample for female probs
-  prng::instance().set_oneSample(Probs);
+  prng::instance().set_oneSample(probsMigration);
   
   // loop over all females
   for(auto it = adult_female.rbegin(); it != adult_female.rend(); ++it){
     // get which patch she goes to
-    patch = prng::instance().get_oneSample();
+    holdInt = prng::instance().get_oneSample();
     
     // if not this patch
-    if(patch != patchID){
+    if(holdInt != patchID){
       // add to new place
-      femaleMigration[patch].push_back(*it);
+      femaleMigration[holdInt].push_back(*it);
       // remove
       std::swap(*it, adult_female.back());
       adult_female.pop_back();
@@ -395,7 +469,7 @@ void Patch::oneDay_migrationOut(){
     // which patch will they migrate to
     // set oneSample, then get it
     prng::instance().set_oneSample(parameters::instance().get_batchLocation(patchID));
-    patch = prng::instance().get_oneSample();
+    holdInt = prng::instance().get_oneSample();
     
     // set binomial for inside loop
     prng::instance().set_cBern(parameters::instance().get_batchMale(patchID));
@@ -405,7 +479,7 @@ void Patch::oneDay_migrationOut(){
       // see if it moves
       if(prng::instance().get_cBern() ){
         // put him in new patch migration set
-        maleMigration[patch].push_back(*mos);
+        maleMigration[holdInt].push_back(*mos);
         // remove him from here
         std::swap(*mos, adult_male.back());
         adult_male.pop_back();
@@ -420,7 +494,7 @@ void Patch::oneDay_migrationOut(){
       // see if she moves
       if(prng::instance().get_cBern() ){
         // put her in the new patch
-        femaleMigration[patch].push_back(*mos);
+        femaleMigration[holdInt].push_back(*mos);
         // remove from current patch
         std::swap(*mos, adult_female.back());
         adult_female.pop_back();
@@ -477,7 +551,6 @@ void Patch::oneDay_writeOutput(std::ofstream& ADM_log, std::ofstream& ADF_log){
     ADF_log << parameters::instance().get_t_now() <<  "," << patchID << ",,,\n";
   }
 
-  
 }
 
 

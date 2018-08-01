@@ -29,12 +29,12 @@ library(mPlexCpp)
 # Setup Parameters for Network
 ###############################################################################
 
-numPatch <- 10
+numPatch <- 1
 set.seed(10)
 migration <- matrix(data = runif(numPatch*numPatch), nrow = numPatch, ncol = numPatch)
 migration <- migration/rowSums(migration)
 
-patchPops = rep(10L,numPatch)
+patchPops = rep(1000L,numPatch)
 
 directory1 = "~/Desktop/HOLD/MGDrivE/"
 directory2 <- "~/Desktop/HOLD/MGDrivEHOLD/"
@@ -152,7 +152,7 @@ AnalyzeOutput_mLoci_Daisy(readDirectory = directory1,
                           numCores = 1)
 
 # plot for example
-Plot_mPlex(directory = directory2, whichPatches = NULL, totalPop = FALSE)
+Plot_mPlex(directory = directory2, whichPatches = NULL, totalPop = TRUE)
 
 # see profiling if done
 
@@ -193,6 +193,10 @@ min       lq     mean   median       uq     max neval
 # all loops changed
 min       lq     mean   median       uq      max neval
 94.65854 123.1821 188.7849 176.4162 249.1496 316.5132    10
+
+
+min       lq    mean   median       uq     max neval
+7.436755 8.735117 13.0829 11.75473 16.80099 22.3612    10
 
 
 ###############################################################################
