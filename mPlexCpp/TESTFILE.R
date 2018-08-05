@@ -34,7 +34,7 @@ set.seed(10)
 migration <- matrix(data = runif(numPatch*numPatch), nrow = numPatch, ncol = numPatch)
 migration <- migration/rowSums(migration)
 
-patchPops = rep(1000L,numPatch)
+patchPops = rep(100L,numPatch)
 
 directory1 = "~/Desktop/HOLD/MGDrivE/"
 directory2 <- "~/Desktop/HOLD/MGDrivEHOLD/"
@@ -104,7 +104,7 @@ patchReleases[[1]]$maleReleases <- c(holdRel, holdRel2)
 # Calculate parameters and initialize network
 ###############################################################################
 netPar = NetworkParameters(nPatch = numPatch,
-                           simTime = 2000L,
+                           simTime = 1000L,
                            alleloTypes = AllAlleles,
                            AdPopEQ = patchPops,
                            runID = 1L,
@@ -112,20 +112,6 @@ netPar = NetworkParameters(nPatch = numPatch,
                            beta = 32L)
 
 migrationBatch <- basicBatchMigration(numPatches = numPatch)
-
-
-
-system.time(mPlex_oneRun(seed = 10,
-                         networkParameters = netPar,
-                         reproductionReference = reproductionReference,
-                         patchReleases = patchReleases,
-                         migrationMale = migration,
-                         migrationFemale = migration,
-                         migrationBatch = migrationBatch,
-                         output_directory = directory1,
-                         reproductionType = "mPlex_mLoci",
-                         verbose = TRUE))
-
 
 
 mPlex_oneRun(seed = 10,
@@ -137,7 +123,8 @@ mPlex_oneRun(seed = 10,
              migrationBatch = migrationBatch,
              output_directory = directory1,
              reproductionType = "mPlex_mLoci",
-             verbose = TRUE)
+             verbose = FALSE)
+
 
 
 
@@ -175,7 +162,7 @@ microbenchmark::microbenchmark(mPlex_oneRun(seed = 10,
                                             migrationBatch = migrationBatch,
                                             output_directory = directory1,
                                             reproductionType = "mPlex_mLoci",
-                                            verbose = TRUE),
+                                            verbose = FALSE),
                                times = 10)
 
 # one loop change

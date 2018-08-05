@@ -86,6 +86,7 @@ private:
   std::unordered_map<std::string, double>   xiF;
   std::unordered_map<std::string, double>   xiM;
   std::unordered_map<std::string, double>   s;
+  std::unordered_map<std::string, double>::iterator itHold;
   
   std::vector<dArVec>                       mendelian_probs;
   std::vector<sArVec>                       mendelian_alleles;

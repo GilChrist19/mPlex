@@ -43,6 +43,8 @@ void parameters::set_parameters(/* simulation fields */
 
   /* biological parameters */
   stage_time = stage_time_;
+  stage_sum.resize(stage_time.size());
+    std::partial_sum(stage_time.begin(), stage_time.end(), stage_sum.begin());
   beta = beta_;
   mu = mu_;
 

@@ -327,15 +327,16 @@ if(!dir.exists(AnalysisDir)){dir.create(AnalysisDir)}else{eraseDirectoryMOD(Anal
 if(!dir.exists(MGDrivEAnalysisDir)){dir.create(MGDrivEAnalysisDir)}else{eraseDirectoryMOD(MGDrivEAnalysisDir)}
 if(!dir.exists(mPlexAnalysisDir)){dir.create(mPlexAnalysisDir)}else{eraseDirectoryMOD(mPlexAnalysisDir)}
 
-# FPop <- c(10,50,100,500)
-# Movement <- list(matrix(data = 1,nrow = 1,ncol = 1),matrix(data = 1/9,nrow = 3,ncol = 3),matrix(data = 1/100,nrow = 10,ncol = 10))
-# numFileAnalysis <- c(10,25,50,100,260)
+FPop <- c(10,50,100,500)
+Movement <- list(matrix(data = 1,nrow = 1,ncol = 1),matrix(data = 1/9,nrow = 3,ncol = 3),matrix(data = 1/100,nrow = 10,ncol = 10))
+numFileAnalysis <- c(10,25,50,100,252)
 
-
-FPop <- c(10, 50)
-Movement <- list(matrix(data = 1,nrow = 1,ncol = 1),matrix(data = 1/9,nrow = 3,ncol = 3))
-numFileAnalysis <- c(10,20)
-
+# setup cluster
+cl=parallel::makePSOCKcluster(names=1, outfile = "~/Desktop/HOLD/error.out")
+parallel::clusterEvalQ(cl=cl,expr={
+  library(MGDrivE)
+  library(MGDrivEv2)
+})
 
 for(Kernel in Movement){
   for(Population in FPop){
@@ -344,11 +345,11 @@ for(Kernel in Movement){
     ###############################################################################
     # set parameters
     simulationTime=1000 # Number of "days" run in the simulation
-    repetitions=20
+    repetitions=252
     numNodes=NROW(Kernel)
     nodeSize=Population
     patchPops=rep(2*nodeSize,numNodes)
-    bioParameters=list(betaK=8,tEgg=6,tLarva=11,tPupa=4,popGrowth=1.096,muAd=.09)
+    bioParameters=list(betaK=8,tEgg=6,tLarva=11,tPupa=4,popGrowth=1.096,muAd=0.09)
     
     # set cube with random interesting things
     driveCube = MGDrivE::Cube_HomingDrive(eM = 0.984, eF = 0.984, rM = 0.01, bM = 0.006, rF = 0.01, bF = 0.006,
@@ -356,7 +357,7 @@ for(Kernel in Movement){
     
     # movement matrix and batch migration
     migration <- Kernel
-    batchMigration <- MGDrivE::basicBatchMigration(batchProbs = c(0.0001), sexProbs = c(.5, .5), numPatches = numNodes)
+    batchMigration <- MGDrivE::basicBatchMigration(batchProbs = c(0.0), sexProbs = c(.5, .5), numPatches = numNodes)
     
     
     # releases, male and female, ignore the egg ones cause I don't care
@@ -393,16 +394,12 @@ for(Kernel in Movement){
     
     
     # setup parallel cluster and run!
-    cl=parallel::makePSOCKcluster(names=numCores)
     parallel::clusterExport(
       cl=cl,
       varlist=c("simulationTime","numNodes","bioParameters","patchPops","patchReleases","migration",
                 "driveCube","batchMigration", "AnalyzeQuantilesMOD", "nodeSize", "DataDir", "MGDrivEAnalysisDir")
     )
-    parallel::clusterEvalQ(cl=cl,expr={
-      library(MGDrivE)
-      library(MGDrivEv2)
-    })
+
     
     
     parallel::parLapply(cl=cl,X=OutputList,fun=function(x){
@@ -452,12 +449,13 @@ for(Kernel in Movement){
       gc()
     })
     
-    # stop cluster
-    parallel::stopCluster(cl)
+    
     
   }# end loop over populations
 }# end loop over kernels
 
+# stop cluster
+parallel::stopCluster(cl)
 
 # detach packages
 # will pull necessary functions directly from packages to keep MGDrive from 
@@ -472,6 +470,12 @@ detach("package:MGDrivEv2", unload=TRUE)
 ###############################################################################
 library(mPlexCpp)
 
+# setup cluster
+cl=parallel::makePSOCKcluster(names=4)
+parallel::clusterEvalQ(cl=cl,expr={
+  library(mPlexCpp)
+})
+
 for(Kernel in Movement){
   for(Population in FPop){
     ###############################################################################
@@ -479,11 +483,11 @@ for(Kernel in Movement){
     ###############################################################################
     # set parameters
     simulationTime=1000 # Number of "days" run in the simulation
-    repetitions=20
+    repetitions=252
     numNodes=NROW(Kernel)
     nodeSize=Population
     patchPops=rep(2*nodeSize,numNodes)
-    bioParameters=list(betaK=8,tEgg=6,tLarva=11,tPupa=4,popGrowth=1.096,muAd=.09)
+    bioParameters=list(betaK=8,tEgg=6,tLarva=11,tPupa=4,popGrowth=1.096,muAd=0.09)
     
     
     #setup alleles to initiate patches
@@ -495,15 +499,15 @@ for(Kernel in Movement){
     
     
     # This sets up a basic CRISPR drive, with perfect homing and no resistance or backgorund mutation
-    reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.984),
-                                                           R = c(0.006),
-                                                           S = c(0.01),
+    reproductionReference <- mPlexCpp::MakeReference_Multiplex_mLoci(H = c(0.992),
+                                                           R = c(0.003),
+                                                           S = c(0.005),
                                                            d = c(0.00),
-                                                           omega = c("HH"=0.6, "HR"=0.6, "HS"=0.8, "RR"=0.6, "WH"=0.8, "WR"=0.8, "RS"=0.8))
+                                                           omega = c("HH"=0.6, "HR"=0.6, "HS"=0.8, "RR"=0.6, "HW"=0.8, "RW"=0.8, "RS"=0.8))
     
     # movement matrix and batch migration
     migration <- Kernel
-    batchMigration <- basicBatchMigration(batchProbs = 0.0001, sexProbs = c(0.5,0.5), numPatches = numNodes)
+    batchMigration <- basicBatchMigration(batchProbs = 0.0, sexProbs = c(0.5,0.5), numPatches = numNodes)
 
     
     
@@ -520,8 +524,8 @@ for(Kernel in Movement){
     
     
     # Create release object to pass to patches
-    holdRel <- Release_basicRepeatedReleases(releaseStart = 100L,
-                                             releaseEnd = 110L,
+    holdRel <- mPlexCpp::Release_basicRepeatedReleases(releaseStart = 100L,
+                                             releaseEnd = 109L,
                                              releaseInterval = 1,
                                              genMos = c("HH"),
                                              numMos = c(nodeSize),
@@ -565,15 +569,11 @@ for(Kernel in Movement){
     # Run
     ###############################################################################
     # setup parallel cluster and run!
-    cl=parallel::makePSOCKcluster(names=numCores)
     parallel::clusterExport(
       cl=cl,
       varlist=c("simulationTime","numNodes","bioParameters","patchPops","patchReleases","migration",
                 "AllAlleles","batchMigration", "reproductionReference", "AnalyzeQuantilesMOD2", "nodeSize", "DataDir2", "mPlexAnalysisDir")
     )
-    parallel::clusterEvalQ(cl=cl,expr={
-      library(mPlexCpp)
-    })
     
     
     parallel::parLapply(cl=cl,X=OutputList,fun=function(x){
@@ -630,13 +630,12 @@ for(Kernel in Movement){
       gc()
     })
     
-    # stop cluster
-    parallel::stopCluster(cl)
     
   }# end loop over populations
 }# end loop over kernels
 
-
+# stop cluster
+parallel::stopCluster(cl)
 
 
 # detach packages
@@ -646,6 +645,276 @@ detach("package:mPlexCpp", unload=TRUE)
 ###############################################################################
 # ANALYSIS
 ###############################################################################
+
+#https://stats.stackexchange.com/questions/184101/comparing-two-histograms-using-chi-square-distance
+#https://www.researchgate.net/post/What_is_chi-squared_distance_I_need_help_with_the_source_code
+# chi-squared distance metric. Compares vectors, will apply over genotypes
+X2_distance <- function(x,y){
+  hold <- (x!=0) | (y!=0) # both are zero protection
+  return(0.5*sum( (x[hold]-y[hold])^2/(x[hold]+y[hold]) ))
+}
+
+# plot function
+Plot_Data <- function(meanData, varianceData, FStatValue, fileName){
+  
+  ## set output
+  png(filename = fileName, width=3840, height=2160, units="px")
+  
+  
+  # things used often later
+  numPatches <- dim(meanData)[2]
+  patches <- 1:numPatches
+  timeLength <- dim(meanData)[1]
+  
+  
+  #setup plot layout
+  lmatrix <- matrix(data = 1:(numPatches*2), nrow = numPatches, ncol = 2, byrow = TRUE)
+  layout(mat = lmatrix)
+  
+  
+  
+  #plot first patch and the legend
+  #mean
+  #  par(mar = c(2,3,3,1), las = 1, font.lab = 2, font.axis = 2, font.main = 2, cex.main = 1.75)
+  
+  par(mar = c(7,5,6,4), mgp = c(5,1.5,0), las = 1, font.lab = 2, font.axis = 2,
+      font.main = 2, cex.main = 5, cex.lab = 3, cex.axis = 3)
+  
+  
+  plot(x = 1:timeLength, y = meanData[,1], type = "l", lty = 1,
+       main = "Chi-Squared Distance of Mean",
+       ylab = "", lwd=4, xlab = "Time (days)",
+       ylim = c(0, max(meanData[,1])),
+       xlim = c(0, timeLength), yaxs = "i", xaxs = "i",
+       col = "black")
+  #title(ylab = "Population", line = 2)
+  box(lwd = 4)
+  grid()
+  
+  #variance
+  par(mar = c(7,5,6,4), las = 1)
+  plot(x = 1:timeLength, y = varianceData[,1], type = "l", lty = 1,
+       main = "Euclidian Norm of Variance", ylab = "", lwd=4, xlab = "Time (days)",
+       ylim = c(0, max(varianceData[,1])),
+       xlim = c(0, timeLength), yaxs = "i", xaxs = "i",
+       col = "black")
+  abline(h = FStatValue, col = "red", lwd = 4)
+  mtext(paste0("Patch ", patches[1]), side = 4, line = 2, las = 0, cex = 3, font = 2)
+  box(lwd = 4)
+  grid()
+  
+  
+  ##rest of the patches
+  if(numPatches>1){
+    for(patch in patches[-1]){
+      par(mar = c(7,5,1,4), las = 1)
+      plot(x = 1:timeLength, y = meanData[,patch], type = "l", lty = 1,
+           ylab = "", lwd=4, xlab = "Time (days)",
+           ylim = c(0, max(meanData[,patch])),
+           xlim = c(0, timeLength), yaxs = "i", xaxs = "i",
+           col = "black")
+      #title(ylab = "Population", line = 2)
+      box(lwd = 4)
+      grid()
+      
+      par(mar = c(7,5,1,4))
+      plot(x = 1:timeLength, y = varianceData[,patch], type = "l", lty = 1,
+           ylab = "", lwd=4, xlab = "Time (days)",
+           ylim = c(0, max(varianceData[,patch])),
+           xlim = c(0, timeLength), yaxs = "i", xaxs = "i",
+           col = "black")
+      abline(h = FStatValue, col = "red", lwd = 4)
+      mtext(paste0("Patch ", patch), side = 4, line = 2, las = 0, cex = 3, font = 2)
+      box(lwd = 4)
+      grid()
+    }#end patch loop
+  }#end if
+  
+  
+  # close output to file
+  dev.off()
+  
+}
+
+
+
+# read in all files
+MGDriveFiles <- list.files(path = MGDrivEAnalysisDir, full.names = TRUE)
+mPlexFiles <- list.files(path = mPlexAnalysisDir, full.names = TRUE)
+
+# holder objects that don't change size
+MGDriveHolder <- matrix(data = 0.0, nrow = simulationTime-1, ncol = 10)
+mPlexHolder <- matrix(data = 0.0, nrow = simulationTime-1, ncol = 10)
+boolHolder <- matrix(data = FALSE, nrow = simulationTime-1, ncol = 10)
+FStatHolder <- matrix(data = 0.0, nrow = simulationTime-1, ncol = 10)
+counter <- 1
+sortOrder <- c(10,4,9,7,1,3,2,8,6,5)
+
+
+#subset files by patch, then pop, then rep
+for(numPatch in c("01","03","10")){
+  
+  # holder objects that don't change size
+  ChiSquaredDistance <- matrix(data = 0, nrow = simulationTime-1, ncol = as.integer(numPatch))
+  FStat <- matrix(data = 0, nrow = simulationTime-1, ncol = as.integer(numPatch))
+  
+  
+  for(femPop in c("010","050","100","500")){
+    for(AnalysisReps in c("010","025","050","100","252")){
+      
+      # set Fstatistic value for this number of reps
+      FStatValue <- qf(p = 0.975, df1 = as.integer(AnalysisReps), df2 = as.integer(AnalysisReps))
+      FStatValue <- sqrt(sum(rep.int(x = FStatValue, times = 10)^2))
+      
+      
+      # set pattern for files to work on
+      PATTERN <- paste0("NumPatches_", numPatch, ":[0-9]{2}_FPop_", femPop, "_NumReps_", AnalysisReps)
+      
+      # get files to work on
+      MGDriveCurrentFiles <- grep(pattern = PATTERN, x = MGDriveFiles, value = TRUE)
+      mPlexCurrentFiles <- grep(pattern = PATTERN, x = mPlexFiles, value = TRUE)
+      
+      
+      # read and calculate female means/variance analysis
+      MGDriveSexFiles <- grep(pattern = "Female", x = MGDriveCurrentFiles, value = TRUE, fixed = TRUE)
+      mPlexSexFiles <- grep(pattern = "Female", x = mPlexCurrentFiles, value = TRUE, fixed = TRUE)
+      
+      counter <- 1
+      for(i in 1:(length(MGDriveSexFiles)/2) ){
+        
+        # read in means
+        MGDriveHolder[] <- matrix(data = scan(file = MGDriveSexFiles[counter], what = numeric(), sep = ",", dec = ".", skip = 1, quiet = TRUE),
+                                  ncol = 11, byrow = TRUE)[,-1]
+        mPlexHolder[] <- matrix(data = scan(file = mPlexSexFiles[counter], what = numeric(), sep = ",", dec = ".", skip = 1, quiet = TRUE),
+                                  ncol = 11, byrow = TRUE)[-1,-1][ ,sortOrder]
+        
+        # calculate X^2 distance
+        for(currentRow in 1:(simulationTime-1)){
+          ChiSquaredDistance[currentRow,i] <- X2_distance(x = MGDriveHolder[currentRow,], y = mPlexHolder[currentRow,])
+        }
+        
+        # read in variance
+        MGDriveHolder[] <- matrix(data = scan(file = MGDriveSexFiles[counter+1], what = numeric(), sep = ",", dec = ".", skip = 1, quiet = TRUE),
+                                  ncol = 11, byrow = TRUE)[,-1]
+        mPlexHolder[] <- matrix(data = scan(file = mPlexSexFiles[counter+1], what = numeric(), sep = ",", dec = ".", skip = 1, quiet = TRUE),
+                                ncol = 11, byrow = TRUE)[-1,-1][ ,sortOrder]
+        
+        # calculate variance ratios and euclidian norm
+          # these calculate variance ratios
+        boolHolder[] <- (MGDriveHolder>mPlexHolder) & (mPlexHolder!=0)
+        FStatHolder[boolHolder] <- MGDriveHolder[boolHolder]/mPlexHolder[boolHolder]
+        
+        boolHolder[] <- (mPlexHolder>MGDriveHolder) & (MGDriveHolder!=0)
+        FStatHolder[boolHolder] <- MGDriveHolder[boolHolder]/mPlexHolder[boolHolder]
+          
+          # euclidian norm of variance ratios
+          # this may be inaccurate for large/small values of x
+        FStat[,i] <- apply(X = FStatHolder, MARGIN = 1, FUN = function(x){sqrt(sum(x^2))})
+
+        # increment counter
+        counter <- counter+2
+      }
+      # clear holders for re-use
+      FStatHolder[] <- 0
+      
+      #build plot name, and place to store it
+      plotName <- paste0(AnalysisDir, "/NPatches_", numPatch, "_FPop_", femPop, "_NumReps_", AnalysisReps, "_Female.png")
+      
+      # plot
+      Plot_Data(meanData = ChiSquaredDistance, varianceData = FStat, FStatValue = FStatValue, fileName = plotName)
+      
+      
+      
+      
+      
+
+      
+      
+      # read and calculate male means/variance analysis
+      MGDriveSexFiles <- grep(pattern = "Male", x = MGDriveCurrentFiles, value = TRUE, fixed = TRUE)
+      mPlexSexFiles <- grep(pattern = "Male", x = mPlexCurrentFiles, value = TRUE, fixed = TRUE)
+      
+      counter <- 1
+      for(i in 1:(length(MGDriveSexFiles)/2) ){
+        
+        # read in means
+        MGDriveHolder[] <- matrix(data = scan(file = MGDriveSexFiles[counter], what = numeric(), sep = ",", dec = ".", skip = 1, quiet = TRUE),
+                                  ncol = 11, byrow = TRUE)[,-1]
+        mPlexHolder[] <- matrix(data = scan(file = mPlexSexFiles[counter], what = numeric(), sep = ",", dec = ".", skip = 1, quiet = TRUE),
+                                ncol = 11, byrow = TRUE)[-1,-1][ ,sortOrder]
+        
+        # calculate X^2 distance
+        for(currentRow in 1:(simulationTime-1)){
+          ChiSquaredDistance[currentRow,i] <- X2_distance(x = MGDriveHolder[currentRow,], y = mPlexHolder[currentRow,])
+        }
+        
+        # read in variance
+        MGDriveHolder[] <- matrix(data = scan(file = MGDriveSexFiles[counter+1], what = numeric(), sep = ",", dec = ".", skip = 1, quiet = TRUE),
+                                  ncol = 11, byrow = TRUE)[,-1]
+        mPlexHolder[] <- matrix(data = scan(file = mPlexSexFiles[counter+1], what = numeric(), sep = ",", dec = ".", skip = 1, quiet = TRUE),
+                                ncol = 11, byrow = TRUE)[-1,-1][ ,sortOrder]
+        
+        # calculate variance ratios
+          # these calculate variance ratios
+        boolHolder[] <- (MGDriveHolder>mPlexHolder) & (mPlexHolder!=0)
+        FStatHolder[boolHolder] <- MGDriveHolder[boolHolder]/mPlexHolder[boolHolder]
+        
+        boolHolder[] <- (mPlexHolder>MGDriveHolder) & (MGDriveHolder!=0)
+        FStatHolder[boolHolder] <- MGDriveHolder[boolHolder]/mPlexHolder[boolHolder]
+        
+          # euclidian norm of variance ratios
+        FStat[,i] <- apply(X = FStatHolder, MARGIN = 1, FUN = function(x){sqrt(sum(x^2))})
+        
+        # increment counter
+        counter <- counter+2
+      }
+      # clear holders for re-use
+      FStatHolder[] <- 0
+      
+      
+      #build plot name, and place to store it
+      plotName <- paste0(AnalysisDir, "/NPatches_", numPatch, "_FPop_", femPop, "_NumReps_", AnalysisReps, "_Male.png")
+      
+      # plot
+      Plot_Data(meanData = ChiSquaredDistance, varianceData = FStat, FStatValue = FStatValue, fileName = plotName)
+
+    }# end loop over number of files used in analysis
+  }# end loop over female population
+}# end loop of number of patches
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

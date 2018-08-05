@@ -84,99 +84,86 @@ void reference::set_reference(const Rcpp::NumericVector& eta_, const Rcpp::Numer
 
 // get genotype dependent parameters
 double reference::get_eta(const std::string& genType){
-  
-  double hold = 1.0;
-  
+
   // iterator to element if it exists in the map
-  std::unordered_map<std::string, double>::iterator it = eta.find(genType);
+  itHold = eta.find(genType);
   
   // if it doesn't exist, it returns the end of the map, so check that
-  if(it != eta.end()){
-    hold = it->second;
+  if(itHold != eta.end()){
+    return itHold->second;
+  } else {
+    return 1.0; // default value
   }
-  
-  // return
-  return hold;
+
 }
 
 double reference::get_phi(const std::string& genType){
   
-  double hold = 0.5;
-  
   // iterator to element if it exists in the map
-  std::unordered_map<std::string, double>::iterator it = phi.find(genType);
+  itHold = phi.find(genType);
   
   // if it doesn't exist, it returns the end of the map, so check that
-  if(it != phi.end()){
-    hold = it->second;
+  if(itHold != phi.end()){
+    return itHold->second;
+  } else {
+    return 0.5; // default value
   }
   
-  // return
-  return hold;
 }
 
 double reference::get_omega(const std::string& genType){
-  
-  double hold = 1.0;
-  
+
   // iterator to element if it exists in the map
-  std::unordered_map<std::string, double>::iterator it = omega.find(genType);
+  itHold = omega.find(genType);
   
   // if it doesn't exist, it returns the end of the map, so check that
-  if(it != omega.end()){
-    hold = it->second;
+  if(itHold != omega.end()){
+    return itHold->second;
+  } else {
+    return 1.0; // default value
   }
   
-  // return
-  return hold;
 }
 
 double reference::get_xiF(const std::string& genType){
   
-  double hold = 1.0;
-  
   // iterator to element if it exists in the map
-  std::unordered_map<std::string, double>::iterator it = xiF.find(genType);
+  itHold = xiF.find(genType);
   
   // if it doesn't exist, it returns the end of the map, so check that
-  if(it != xiF.end()){
-    hold = it->second;
+  if(itHold != xiF.end()){
+    return itHold->second;
+  } else {
+    return 1.0; // default value
   }
   
-  // return
-  return hold;
 }
 
 double reference::get_xiM(const std::string& genType){
   
-  double hold = 1.0;
-  
   // iterator to element if it exists in the map
-  std::unordered_map<std::string, double>::iterator it = xiM.find(genType);
+  itHold = xiM.find(genType);
   
   // if it doesn't exist, it returns the end of the map, so check that
-  if(it != xiM.end()){
-    hold = it->second;
+  if(itHold != xiM.end()){
+    return itHold->second;
+  } else {
+    return 1.0; // default value
   }
   
-  // return
-  return hold;
 }
 
 double reference::get_s(const std::string& genType){
   
-  double hold = 1.0;
-  
   // iterator to element if it exists in the map
-  std::unordered_map<std::string, double>::iterator it = s.find(genType);
+  itHold = s.find(genType);
   
   // if it doesn't exist, it returns the end of the map, so check that
-  if(it != s.end()){
-    hold = it->second;
+  if(itHold != s.end()){
+    return itHold->second;
+  } else {
+    return 1.0; // default value
   }
-  
-  // return
-  return hold;
   
 }
 

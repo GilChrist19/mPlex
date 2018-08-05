@@ -76,27 +76,24 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
   reference::instance().set_reference(reproductionReference_["eta"], reproductionReference_["phi"],
                                       reproductionReference_["omega"], reproductionReference_["xiF"],
                                       reproductionReference_["xiM"], reproductionReference_["s"]);
-  
-  Rcpp::Rcout << "\n\tBasics Done\n";
+  if(verbose) {Rcpp::Rcout << "\n\tBasics Done\n";};
   
   // set mendelian allele reference
   reference::instance().set_mendelian(Rcpp::as<Rcpp::List> (reproductionReference_["mendelian"]),
                                       Rcpp::as<Rcpp::List> (reproductionReference_["mendelianAlleles"]));
-  
-  Rcpp::Rcout << "\tMendelian Done\n";
+  if(verbose) {Rcpp::Rcout << "\tMendelian Done\n";};
   
   // set homing allele reference
   reference::instance().set_homing(Rcpp::as<Rcpp::List> (reproductionReference_["homing"]),
                                     Rcpp::as<Rcpp::List> (reproductionReference_["homingAlleles"]));
-  
-  Rcpp::Rcout << "\tHoming Done\n";
+  if(verbose) {Rcpp::Rcout << "\tHoming Done\n";};
   
 
   // set cutting reference if daisy drive
   if(reproductionType_ == "DaisyDrive"){
     reference::instance().set_cutting(Rcpp::as<Rcpp::List> (reproductionReference_["cutting"]),
                                       Rcpp::as<Rcpp::List> (reproductionReference_["cuttingAlleles"]));
-    Rcpp::Rcout << "\tDaisy set\n";
+    if(verbose) {Rcpp::Rcout << "\tDaisy set\n";};
   }
   
   if(verbose){Rcpp::Rcout <<  " ... done setting reference!\n";};
@@ -256,13 +253,13 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
   // BEGIN INITIALIZE OUTPUT
   if(verbose){Rcpp::Rcout <<  "Initializing output ... ";};
   for(auto& it : patches){
-    
     it->init_output(ADM_output, ADF_output);
   }
   // increment time to begin
   parameters::instance().increment_t_now();
   if(verbose){Rcpp::Rcout <<  " ... done initializing output!\n";};
   // END INITIALIZE OUTPUT
+  
   
   
   
@@ -563,8 +560,7 @@ void run_mPlex_Cpp_repetitions(const uint_least32_t& seed,
     if(verbose){Rcpp::Rcout <<  " ... done initializing output!\n";};
     // END INITIALIZE OUTPUT
     
-    
-    
+
     //Progress::
     Progress pb(tMax-1,verbose);
     
