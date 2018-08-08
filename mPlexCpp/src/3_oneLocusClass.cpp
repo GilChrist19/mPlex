@@ -158,7 +158,7 @@ void oneLocus::oneDay_layEggs(){
     // create new eggs
     for(size_t eggIndex=0; eggIndex<newEggs.size(); ++eggIndex){
       for(size_t it=0; it<newEggs[eggIndex]; ++it){
-        eggs.emplace_back(Mosquito(0, holdGens1[eggIndex]));
+        eggs.emplace_back(Mosquito(1, holdGens1[eggIndex]));
       } // end loop over number of eggs per genotype
     } // end loop over newEggs vector
   } // end loop over females

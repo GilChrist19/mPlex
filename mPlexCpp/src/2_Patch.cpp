@@ -291,7 +291,7 @@ void Patch::oneDay_larvaMaturation(){
 
 void Patch::oneDay_eggMaturation(){
   
-  holdInt = parameters::instance().get_stage_time(0);
+  holdInt = parameters::instance().get_stage_sum(0);
   
   // Loop over all eggs in the vector
   for(auto it = eggs.rbegin(); it != eggs.rend(); ++it){

@@ -209,7 +209,7 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
     // make patches of correct child type
     if(reproductionType_ == "DaisyDrive"){
       
-      Rcpp::Rcout << "\tI'm a Daisy!"<<std::endl;
+      if(verbose && np==0){Rcpp::Rcout << "\tInitializing Daisy Drive"<<std::endl;};
       
       patches.emplace_back(std::make_unique<Daisy>(np,
                                                    Rcpp::as<Rcpp::ListOf<Rcpp::List> >(networkParameters_["alleloTypes"])[np],
@@ -219,7 +219,7 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
       
     } else if(reproductionType_ == "mPlex_oLocus"){
       
-      Rcpp::Rcout << "\tI'm a oLocus!"<<std::endl;
+      if(verbose && np==0){Rcpp::Rcout << "\tInitializing oneLocus Drive"<<std::endl;};
       
       patches.emplace_back(std::make_unique<oneLocus>(np,
                                                    Rcpp::as<Rcpp::ListOf<Rcpp::List> >(networkParameters_["alleloTypes"])[np],
@@ -229,7 +229,7 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
       
     } else if(reproductionType_ == "mPlex_mLoci"){
       
-      Rcpp::Rcout << "\tI'm a mLocus!"<<std::endl;
+      if(verbose && np==0){Rcpp::Rcout << "\tInitializing multiLocus Drive"<<std::endl;};
       
       patches.emplace_back(std::make_unique<multiLocus>(np,
                                                    Rcpp::as<Rcpp::ListOf<Rcpp::List> >(networkParameters_["alleloTypes"])[np],
