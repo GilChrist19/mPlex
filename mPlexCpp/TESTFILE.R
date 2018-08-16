@@ -34,7 +34,7 @@ set.seed(10)
 migration <- matrix(data = runif(numPatch*numPatch), nrow = numPatch, ncol = numPatch)
 migration <- migration/rowSums(migration)
 
-patchPops = rep(100L,numPatch)
+patchPops = rep(500L,numPatch)
 
 directory1 = "~/Desktop/HOLD/MGDrivE/"
 directory2 <- "~/Desktop/HOLD/MGDrivEHOLD/"

@@ -6,6 +6,26 @@
 #              /_/ /_/ /_/_/   /_/\___/_/|_|\____/ .___/ .___/ 
 #                                               /_/   /_/      
 ###############################################################################
+########################################################################
+# Delete files in a directory
+########################################################################
+eraseDirectory <- function(directory){
+  # check directory exists
+  if(!dir.exists(directory)){
+    cat("no such directory exists\n")
+    return(NULL)
+  }
+  dirFiles = list.files(path = directory)
+  # begin deleting contents
+  if(length(dirFiles)>0){
+    for(i in dirFiles){
+      cat("removing file: ",file.path(directory, i),"\n", sep = "")
+      #file.remove(file.path(directory, i))
+      unlink(x = file.path(directory, i), recursive = TRUE)
+    }
+  }
+  # end deleting contents
+}# end function
 ###############################################################################
 # PATCH SPLITTER
 ###############################################################################
@@ -14,10 +34,12 @@
 #'
 #' Split each run output into multiple files by patch.
 #'
-#' @usage splitOutput(directory, numCores)
+#' @usage splitOutput(readDir, writeDir, remFile, numCores)
 #'
-#' @param directory Directory where output was written to; must not end in path seperator
-#' @param numCores How many cores to use for reading/writing files
+#' @param readDir Directory where output was written to
+#' @param writeDir Directory to write output to. Default is readDir
+#' @param remFile Remove original output? Default is TRUE
+#' @param numCores How many cores to use when writing output. Default is 1
 #'
 #' @return *.csv files for each patch
 #' @export
@@ -25,29 +47,52 @@ splitOutput <- function(directory, numCores=1){
   # get all files in directory
   dirFiles = list.files(path = directory, pattern = ".*\\.csv$")
   
+  # check write directory
+  if(is.null(writeDir)){writeDir <- readDir}
+  
+  # initialize text, progress bar below
+  cat("  Splitting", length(dirFiles), "files.\n")
+  if(remFile){
+    cat("  Removing original files.\n")
+  } else {
+    cat("  Not removing original files.\n\n")
+  }
+  
+  # loop over files
   for(file in dirFiles){
-    cat("processing ",file,"\n",sep="")
+    
+    # Read in files
     fileIn = data.table::fread(input = file.path(directory, file), sep = ",",
                                header = TRUE, verbose = FALSE, showProgress = FALSE,
                                data.table = TRUE,nThread = numCores,
-                               logical01 = TRUE, key = "Patch")
+                               logical01 = FALSE, key = "Patch")
+    
+    # progress bar stuff
+    pb = txtProgressBar(min = 0,max = length(unique(fileIn$Patch)),style = 3)
+    pbVal = 0
     
     # for each file, get all the patches and split into multiple files
     for(patch in unique(fileIn$Patch)){
       
       fileName = sub(pattern = ".csv",
                      replacement = file.path("_Patch",
-                                             formatC(x = patch,width = 6,format = "d",flag = "0"),
+                                             formatC(x = patch,width = 4,format = "d",flag = "0"),
                                              ".csv",fsep = ""),
                      x = file, fixed = TRUE)
       
       data.table::fwrite(x = fileIn[J(patch)][ ,Patch:=NULL],
                          file = file.path(directory,fileName), 
-                         logical01 = TRUE, showProgress = FALSE, verbose = FALSE,
+                         logical01 = FALSE, showProgress = FALSE, verbose = FALSE,
                          nThread = numCores)
+      
+      # some indication that it's working
+      pbVal = pbVal+1
+      setTxtProgressBar(pb = pb, value = pbVal)
     }
-    cat("removing ",file,"\n",sep="")
-    file.remove(file.path(directory, file))
+    
+    # check if removing original output
+    if(remFile){file.remove(file.path(readDir, selectFile))}
+    
   } # end file loop
 } # end function
 
@@ -84,7 +129,7 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory,
   testFile <- data.table::fread(input = file.path(readDirectory, dirFiles[1]), sep = ",",
                                 header = TRUE, verbose = FALSE, showProgress = FALSE,
                                 data.table = TRUE, nThread = numCores,
-                                logical01 = TRUE, drop = c("Age","Mate"))
+                                logical01 = FALSE, drop = c("Age","Mate"))
   
   simTime <- data.table::uniqueN(testFile$Time)
   
@@ -144,13 +189,13 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory,
     fFile = data.table::fread(input = file.path(readDirectory, names[1]), sep = ",",
                               header = TRUE, verbose = FALSE, showProgress = FALSE,
                               data.table = TRUE, nThread = numCores,
-                              logical01 = TRUE, drop = c("Age","Mate"), key = "Time")
+                              logical01 = FALSE, drop = c("Age","Mate"), key = "Time")
     
     # male file, drop patch number, key the time
     mFile = data.table::fread(input = file.path(readDirectory, names[2]), sep = ",",
                               header = TRUE, verbose = FALSE, showProgress = FALSE,
                               data.table = TRUE, nThread = numCores,
-                              logical01 = TRUE, drop = "Age", key = "Time")
+                              logical01 = FALSE, drop = "Age", key = "Time")
     
     # at <150,000 rows, subsetting on data frames is faster
     #  anything above that though, the key in data.table is constant time, and 
@@ -234,7 +279,7 @@ AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory,
   testFile <- data.table::fread(input = file.path(readDirectory, dirFiles[1]), sep = ",",
                                 header = TRUE, verbose = FALSE, showProgress = FALSE,
                                 data.table = TRUE, nThread = numCores,
-                                logical01 = TRUE, drop = c("Age","Mate"))
+                                logical01 = FALSE, drop = c("Age","Mate"))
   
   simTime <- data.table::uniqueN(testFile$Time)
   
@@ -304,13 +349,13 @@ AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory,
     fFile = data.table::fread(input = file.path(readDirectory, names[1]), sep = ",",
                               header = TRUE, verbose = FALSE, showProgress = FALSE,
                               data.table = TRUE, nThread = numCores,
-                              logical01 = TRUE, drop = c("Age","Mate"), key = "Time")
+                              logical01 = FALSE, drop = c("Age","Mate"), key = "Time")
     
     # male file, drop patch number, key the time
     mFile = data.table::fread(input = file.path(readDirectory, names[2]), sep = ",",
                               header = TRUE, verbose = FALSE, showProgress = FALSE,
                               data.table = TRUE, nThread = numCores,
-                              logical01 = TRUE, drop = "Age", key = "Time")
+                              logical01 = FALSE, drop = "Age", key = "Time")
     
     # at <150,000 rows, subsetting on data frames is faster
     #  anything above that though, the key in data.table is constant time, and 
