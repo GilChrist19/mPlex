@@ -36,19 +36,19 @@ eraseDirectory <- function(directory){
 #'
 #' @usage splitOutput(readDir, writeDir, remFile, numCores)
 #'
-#' @param readDir Directory where output was written to
-#' @param writeDir Directory to write output to. Default is readDir
+#' @param readDirectory Directory where output was written to
+#' @param saveDirectory Directory to write output to. Default is readDir
 #' @param remFile Remove original output? Default is TRUE
 #' @param numCores How many cores to use when writing output. Default is 1
 #'
 #' @return *.csv files for each patch
 #' @export
-splitOutput <- function(directory, numCores=1){
+splitOutput <- function(readDirectory, saveDirectory=NULL, remFile=TRUE, numCores=1){
   # get all files in directory
-  dirFiles = list.files(path = directory, pattern = ".*\\.csv$")
+  dirFiles = list.files(path = readDirectory, pattern = ".*\\.csv$")
   
   # check write directory
-  if(is.null(writeDir)){writeDir <- readDir}
+  if(is.null(saveDirectory)){saveDirectory <- readDirectory}
   
   # initialize text, progress bar below
   cat("  Splitting", length(dirFiles), "files.\n")
@@ -62,7 +62,7 @@ splitOutput <- function(directory, numCores=1){
   for(file in dirFiles){
     
     # Read in files
-    fileIn = data.table::fread(input = file.path(directory, file), sep = ",",
+    fileIn = data.table::fread(input = file.path(readDirectory, file), sep = ",",
                                header = TRUE, verbose = FALSE, showProgress = FALSE,
                                data.table = TRUE,nThread = numCores,
                                logical01 = FALSE, key = "Patch")
@@ -81,7 +81,7 @@ splitOutput <- function(directory, numCores=1){
                      x = file, fixed = TRUE)
       
       data.table::fwrite(x = fileIn[J(patch)][ ,Patch:=NULL],
-                         file = file.path(directory,fileName), 
+                         file = file.path(saveDirectory,fileName), 
                          logical01 = FALSE, showProgress = FALSE, verbose = FALSE,
                          nThread = numCores)
       
@@ -91,7 +91,7 @@ splitOutput <- function(directory, numCores=1){
     }
     
     # check if removing original output
-    if(remFile){file.remove(file.path(readDir, selectFile))}
+    if(remFile){file.remove(file.path(readDirectory, file))}
     
   } # end file loop
 } # end function

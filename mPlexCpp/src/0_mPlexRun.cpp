@@ -312,7 +312,7 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
     pb.increment();
   }
   
-  if(verbose){Rcpp::Rcout << "... simulation done!";};
+  if(verbose){Rcpp::Rcout << "... simulation done!\n";};
   // END SIMULATION
   
   

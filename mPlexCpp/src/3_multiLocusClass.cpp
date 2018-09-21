@@ -35,9 +35,15 @@ multiLocus::multiLocus(const int& patchID_,
    // eggs
    eggs.reserve(2*parameters::instance().get_larva_eq(patchID));
    minAge = 0;
-   ageDist.assign(parameters::instance().get_stage_time(0)+1,1);
+   ageDist.assign(parameters::instance().get_stage_time(0),1);
    CreateMosquitoes2Allele(parameters::instance().get_larva_eq(patchID),
                            minAge, ageDist, aTypes, eggs);
+   
+   
+   
+   Rcpp::Rcout << "Eggs min: " << minAge << std::endl;
+   Rcpp::Rcout << "Eggs max: " << minAge + ageDist.size() << std::endl;
+   
    
    // larva
    larva.reserve(2*parameters::instance().get_larva_eq(patchID));
@@ -51,6 +57,13 @@ multiLocus::multiLocus(const int& patchID_,
    
    CreateMosquitoes2Allele(parameters::instance().get_larva_eq(patchID),
                            minAge, ageDist, aTypes, larva);
+   
+   
+   Rcpp::Rcout << "Larva min: " << minAge << std::endl;
+   Rcpp::Rcout << "Larva max: " << minAge + ageDist.size() << std::endl;
+   
+   
+   
    
    // pupa
    pupa.reserve(2*parameters::instance().get_adult_pop_eq(patchID));
@@ -66,6 +79,16 @@ multiLocus::multiLocus(const int& patchID_,
                            minAge, ageDist, aTypes, adult_male);
    CreateMosquitoes2Allele(parameters::instance().get_adult_pop_eq(patchID)/2,
                            minAge, ageDist, aTypes, unmated_female);
+   
+   
+   Rcpp::Rcout << "Adult min: " << minAge << std::endl;
+   Rcpp::Rcout << "Adult max: " << minAge + ageDist.size() << std::endl;
+   Rcpp::Rcout << "AgeDist: " << std::endl;
+   for(auto i : ageDist){
+     Rcpp::Rcout << i << std::endl;
+   }
+   
+   
      
    // Reproduction setup
    numAlleles = aTypes.size();
@@ -160,7 +183,7 @@ void multiLocus::oneDay_layEggs(){
     // create new eggs
     for(size_t eggIndex=0; eggIndex<newEggs.size(); ++eggIndex){
       for(size_t it=0; it<newEggs[eggIndex]; ++it){
-        eggs.emplace_back(Mosquito(1, finalGenotypes[eggIndex]));
+        eggs.emplace_back(Mosquito(0, finalGenotypes[eggIndex]));
       } // end loop over number of eggs per genotype
     } // end loop over newEggs vector
   } // end loop over females

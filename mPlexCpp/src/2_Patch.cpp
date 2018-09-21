@@ -336,7 +336,26 @@ void Patch::oneDay_mating(){
       unmated_female.pop_back();
     } // end loop over unmated females
 
-  } // only do if there are unmated females and males to mate with
+    // only do if there are unmated females and males to mate with
+  } else if((adult_male.size() == 0) && (unmated_female.size() !=0) ){
+    
+    double probs;
+    holdDbl = 1.0 - parameters::instance().get_mu(3);
+    
+    // Loop over all unmated females in the vector
+    for(auto it = unmated_female.rbegin(); it != unmated_female.rend(); ++it){
+      // get genotype specific chance of death
+      probs = holdDbl * reference::instance().get_omega(it->get_genotype());
+      // If it is your time, swap and remove
+      if(prng::instance().get_rBern(1.0-probs) ){
+        std::swap(*it, unmated_female.back());
+        unmated_female.pop_back();
+      } else {
+        it->age_one_day();
+      }
+    } // end loop
+    
+  } // age/kill them for being alive, but don't move to full adults, still unmated
   
 }
 

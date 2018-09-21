@@ -36,7 +36,7 @@ Daisy::Daisy(const int& patchID_,
   // eggs
   eggs.reserve(2*parameters::instance().get_larva_eq(patchID));
   minAge = 0;
-  ageDist.assign(parameters::instance().get_stage_time(0)+1,1);
+  ageDist.assign(parameters::instance().get_stage_time(0),1);
   CreateMosquitoes2Allele(parameters::instance().get_larva_eq(patchID),
                          minAge, ageDist, aTypes, eggs);
 
@@ -69,6 +69,7 @@ Daisy::Daisy(const int& patchID_,
                          minAge, ageDist, aTypes, adult_male);
   CreateMosquitoes2Allele(parameters::instance().get_adult_pop_eq(patchID)/2,
                          minAge, ageDist, aTypes, unmated_female);
+
   
   // Reproduction setup
   numAlleles = aTypes.size();
@@ -165,7 +166,7 @@ void Daisy::oneDay_layEggs(){
     // create new eggs
     for(size_t eggIndex=0; eggIndex<newEggs.size(); ++eggIndex){
       for(size_t it=0; it<newEggs[eggIndex]; ++it){
-        eggs.emplace_back(Mosquito(1, finalGenotypes[eggIndex]));
+        eggs.emplace_back(Mosquito(0, finalGenotypes[eggIndex]));
       } // end loop over number of eggs per genotype
     } // end loop over newEggs vector
   } // end loop over females

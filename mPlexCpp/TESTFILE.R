@@ -34,7 +34,7 @@ set.seed(10)
 migration <- matrix(data = runif(numPatch*numPatch), nrow = numPatch, ncol = numPatch)
 migration <- migration/rowSums(migration)
 
-patchPops = rep(500L,numPatch)
+patchPops = rep(6000L,numPatch)
 
 directory1 = "~/Desktop/HOLD/MGDrivE/"
 directory2 <- "~/Desktop/HOLD/MGDrivEHOLD/"
@@ -104,12 +104,12 @@ patchReleases[[1]]$maleReleases <- c(holdRel, holdRel2)
 # Calculate parameters and initialize network
 ###############################################################################
 netPar = NetworkParameters(nPatch = numPatch,
-                           simTime = 1000L,
+                           simTime = 500L,
                            alleloTypes = AllAlleles,
                            AdPopEQ = patchPops,
                            runID = 1L,
                            dayGrowthRate = 1.1,
-                           beta = 32L)
+                           beta = 32L, tEgg = 1, tLarva = 10, tPupa = 1)
 
 migrationBatch <- basicBatchMigration(numPatches = numPatch)
 
@@ -123,13 +123,13 @@ mPlex_oneRun(seed = 10,
              migrationBatch = migrationBatch,
              output_directory = directory1,
              reproductionType = "mPlex_mLoci",
-             verbose = FALSE)
+             verbose = TRUE)
 
 
 
 
 # split the output by patch
-splitOutput(directory = directory1, numCores = 1)
+splitOutput(readDirectory = directory1, numCores = 1)
 
 # aggregate by genotype.
 AnalyzeOutput_mLoci_Daisy(readDirectory = directory1,
@@ -151,39 +151,6 @@ system(sprintf("google-pprof --text --cum --lines  /bin/ls %sprofile.log", "~/De
 
 detach("package:mPlexCpp", unload=TRUE)
   
-  
-
-microbenchmark::microbenchmark(mPlex_oneRun(seed = 10,
-                                            networkParameters = netPar,
-                                            reproductionReference = reproductionReference,
-                                            patchReleases = patchReleases,
-                                            migrationMale = migration,
-                                            migrationFemale = migration,
-                                            migrationBatch = migrationBatch,
-                                            output_directory = directory1,
-                                            reproductionType = "mPlex_mLoci",
-                                            verbose = FALSE),
-                               times = 10)
-
-# one loop change
-min       lq     mean   median       uq     max neval
-72.42469 85.76454 129.0348 120.6688 165.8623 216.253    10
-min       lq     mean   median       uq      max neval
-74.80805 85.29373 127.8394 116.4741 163.9229 216.3749    10
-
-# original
-min       lq     mean   median       uq      max neval
-84.19857 97.20727 141.1863 129.5231 180.6934 232.7271    10
-min       lq     mean   median       uq     max neval
-83.19071 96.73017 140.7709 128.9488 179.0246 233.358    10
-
-# all loops changed
-min       lq     mean   median       uq      max neval
-94.65854 123.1821 188.7849 176.4162 249.1496 316.5132    10
-
-
-min       lq    mean   median       uq     max neval
-7.436755 8.735117 13.0829 11.75473 16.80099 22.3612    10
 
 
 ###############################################################################
