@@ -7,10 +7,14 @@
 //                                              /_/   /_/      
 ///////////////////////////////////////////////////////////////////////////////
 
+#include <string>
+
+/******************************************************************************
+ * Mosquito Class
+******************************************************************************/
+
 #ifndef MOSQUITO_MPLEX
 #define MOSQUITO_MPLEX
-
-#include <string>
 
 class Mosquito {
 public:
@@ -49,5 +53,33 @@ protected:
   std::string           mate;
 
 };
+
+#endif
+
+/******************************************************************************
+ * Mosquito Familial Class
+******************************************************************************/
+#ifndef MOSFAM_MPLEX
+#define MOSFAM_MPLEX
+
+class MosFam: public Mosquito{
+public:
+  
+  // constructor & destructor
+  MosFam(const int& _age, const std::string& _genotype, const std::string& _momID,
+         const std::string& _dadID);
+  virtual ~MosFam();
+  
+  // functions
+  std::string       print_male();
+  std::string       print_female();
+  
+  
+private:
+  std::string momID;
+  std::string dadID;
+  
+};
+
 
 #endif

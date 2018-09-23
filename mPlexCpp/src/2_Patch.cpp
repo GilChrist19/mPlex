@@ -26,9 +26,11 @@ Patch::Patch(const int& patchID_,
    * RELEASES
    ****************/
   
+  size_t mR;
+  
   // male releases
   if(maleReleases_.size()>0){
-    size_t mR = maleReleases_.size();
+    mR = maleReleases_.size();
     releaseM.reserve(mR);
     for(size_t i=0; i<mR; i++){
       releaseM.emplace_back(release_event(Rcpp::as<Rcpp::List>(maleReleases_[i])["genVec"],
@@ -43,7 +45,7 @@ Patch::Patch(const int& patchID_,
   
   // female releases
   if(femaleReleases_.size()>0){
-    size_t mR = femaleReleases_.size();
+    mR = femaleReleases_.size();
     releaseF.reserve(mR);
     for(size_t i=0; i<mR; i++){
       releaseF.emplace_back(release_event(Rcpp::as<Rcpp::List>(femaleReleases_[i])["genVec"],
@@ -58,7 +60,7 @@ Patch::Patch(const int& patchID_,
   
   // larva releases
   if(eggReleases_.size()>0){
-    size_t mR = eggReleases_.size();
+    mR = eggReleases_.size();
     releaseE.reserve(mR);
     for(size_t i=0; i<mR; i++){
       releaseE.emplace_back(release_event(Rcpp::as<Rcpp::List>(eggReleases_[i])["genVec"],

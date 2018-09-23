@@ -42,7 +42,7 @@ public:
         const Rcpp::List& femaleReleases_,
         const Rcpp::List& larvaeReleases_);
   // destructor
-  ~Daisy();
+  virtual ~Daisy();
   
   // delete copy constructor and assignment operator
   Daisy(const Daisy&) = delete;
@@ -215,3 +215,57 @@ private:
 };
 
 #endif
+
+/******************************************************************************
+ * Familial class Class
+******************************************************************************/
+#ifndef FAMILY_MPLEX
+#define FAMILY_MPLEX
+
+/****************
+ * SETUP FUNCTION
+ ****************/
+// only works for setting up family relations
+void CreateMosquitoesFamily(const int& numMos, const int& minAge,
+                            const dVec& ageDist, popVec& returnPop);
+
+/****************
+ * CLASS
+ ****************/
+class Family : public Patch{
+public:
+  
+  //Constructor and destructor
+  Family(const int& patchID_,
+        const Rcpp::List& maleReleases_,
+        const Rcpp::List& femaleReleases_,
+        const Rcpp::List& larvaeReleases_);
+  virtual ~Family();
+  
+  // delete copy constructor and assignment operator
+  Family(const Family&) = delete;
+  Family& operator=(const Family&&) = delete;
+  
+  // default move semantics
+  Family(Family&&);
+  Family& operator=(Family&&);
+  
+  // functions for this class
+  void oneDay_layEggs();
+  void FamilyOffspring(const std::string momID, const std::string& dadID);
+  void reset_Patch();
+  
+private:
+  
+  // used in reproduction
+  iVec newEggs;
+  
+};
+
+#endif
+
+
+
+
+
+

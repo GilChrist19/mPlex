@@ -273,6 +273,8 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
   Progress pb(tMax-1,verbose);
   
   
+  double males(0), eggs(0);
+  
   while(parameters::instance().get_t_now() < tMax){
     
     // test for user interrupt
@@ -307,6 +309,11 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
       it->oneDay_writeOutput(ADM_output, ADF_output);
     }
     
+    
+    // test shit for fun
+    males += patches[0]->get_adult_male().size();
+    eggs += patches[0]->get_eggs().size();
+    
     // increment time and progress
     parameters::instance().increment_t_now();
     pb.increment();
@@ -318,6 +325,8 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
   
   
 
+  Rcpp::Rcout << "Total number of adult males: " << males << std::endl;
+  Rcpp::Rcout << "Total number of eggs laid: " << eggs << std::endl;
   
   
   // close files
