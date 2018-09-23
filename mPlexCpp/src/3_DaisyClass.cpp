@@ -104,7 +104,7 @@ void Daisy::reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes){
   // eggs
   eggs.clear();
   minAge = 0;
-  ageDist.assign(parameters::instance().get_stage_time(0)+1,1);
+  ageDist.assign(parameters::instance().get_stage_time(0),1);
   CreateMosquitoes2Allele(parameters::instance().get_larva_eq(patchID),
                           minAge, ageDist, aTypes, eggs);
   
@@ -113,8 +113,9 @@ void Daisy::reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes){
   minAge = parameters::instance().get_stage_time(0)+1;
   
   ageDist.clear();
-  for(int power = minAge; power <= parameters::instance().get_stage_sum(1); ++power){
-    ageDist.push_back(std::pow(1.0-parameters::instance().get_mu(1), power));
+  int counter(0);
+  for(int power = minAge; power <= parameters::instance().get_stage_sum(1); ++power, counter+=2){
+    ageDist.push_back(std::pow(1.0-parameters::instance().get_mu(1), counter));
   }
   
   CreateMosquitoes2Allele(parameters::instance().get_larva_eq(patchID),

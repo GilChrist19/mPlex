@@ -401,7 +401,7 @@ void Patch::oneDay_Releases(){
   } // end female release
   
   /****************
-   * LARVA
+   * Egg release
   ****************/
   if( (!releaseE.empty()) && (releaseE.back().release_time <= parameters::instance().get_t_now()) ){
     
@@ -537,6 +537,12 @@ void Patch::oneDay_migrationIn(const popVec& male, const popVec& female){
  * Print Functions
 ***************************************/
 void Patch::init_output(std::ofstream& ADM_log, std::ofstream& ADF_log){
+  
+  // write headers
+  if(patchID == 0){
+    ADM_log << "Time,Patch,Age,Genotype\n";
+    ADF_log << "Time,Patch,Age,Genotype,Mate\n";
+  }
   
   // write males
   for(auto& mos : adult_male){

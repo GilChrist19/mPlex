@@ -40,11 +40,6 @@ multiLocus::multiLocus(const int& patchID_,
                            minAge, ageDist, aTypes, eggs);
    
    
-   
-   Rcpp::Rcout << "Eggs min: " << minAge << std::endl;
-   Rcpp::Rcout << "Eggs max: " << minAge + ageDist.size() << std::endl;
-   
-   
    // larva
    larva.reserve(2*parameters::instance().get_larva_eq(patchID));
    minAge = parameters::instance().get_stage_time(0)+1;
@@ -57,13 +52,7 @@ multiLocus::multiLocus(const int& patchID_,
    
    CreateMosquitoes2Allele(parameters::instance().get_larva_eq(patchID),
                            minAge, ageDist, aTypes, larva);
-   
-   
-   Rcpp::Rcout << "Larva min: " << minAge << std::endl;
-   Rcpp::Rcout << "Larva max: " << minAge + ageDist.size() << std::endl;
-   
-   
-   
+  
    
    // pupa
    pupa.reserve(2*parameters::instance().get_adult_pop_eq(patchID));
@@ -79,15 +68,6 @@ multiLocus::multiLocus(const int& patchID_,
                            minAge, ageDist, aTypes, adult_male);
    CreateMosquitoes2Allele(parameters::instance().get_adult_pop_eq(patchID)/2,
                            minAge, ageDist, aTypes, unmated_female);
-   
-   
-   Rcpp::Rcout << "Adult min: " << minAge << std::endl;
-   Rcpp::Rcout << "Adult max: " << minAge + ageDist.size() << std::endl;
-   Rcpp::Rcout << "AgeDist: " << std::endl;
-   for(auto i : ageDist){
-     Rcpp::Rcout << i << std::endl;
-   }
-   
    
      
    // Reproduction setup
@@ -123,7 +103,7 @@ void multiLocus::reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes){
   // eggs
   eggs.clear();
   minAge = 0;
-  ageDist.assign(parameters::instance().get_stage_time(0)+1,1);
+  ageDist.assign(parameters::instance().get_stage_time(0),1);
   CreateMosquitoes2Allele(parameters::instance().get_larva_eq(patchID),
                           minAge, ageDist, aTypes, eggs);
   
@@ -131,10 +111,10 @@ void multiLocus::reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes){
   larva.clear();
   minAge = parameters::instance().get_stage_time(0)+1;
   
-  ageDist.clear();
-  for(int power = minAge; power <= parameters::instance().get_stage_sum(1); ++power){
-    ageDist.push_back(std::pow(1.0-parameters::instance().get_mu(1), power));
-  }
+  int counter(0);
+   for(int power = minAge; power <= parameters::instance().get_stage_sum(1); ++power, counter+=2){
+     ageDist.push_back(std::pow(1.0-parameters::instance().get_mu(1), counter));
+   }
   
   CreateMosquitoes2Allele(parameters::instance().get_larva_eq(patchID),
                           minAge, ageDist, aTypes, larva);

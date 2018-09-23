@@ -217,7 +217,7 @@ private:
 #endif
 
 /******************************************************************************
- * Familial class Class
+ * Familial Class
 ******************************************************************************/
 #ifndef FAMILY_MPLEX
 #define FAMILY_MPLEX
@@ -251,15 +251,16 @@ public:
   Family& operator=(Family&&);
   
   // functions for this class
-  void oneDay_layEggs();
-  void FamilyOffspring(const std::string momID, const std::string& dadID);
-  void reset_Patch();
+  void  oneDay_layEggs();
+  void  reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes);
+  void  init_output(std::ofstream& ADM_log, std::ofstream& ADF_log);
+  void  oneDay_writeOutput(std::ofstream& ADM_log, std::ofstream& ADF_log);
   
 private:
   
   // used in reproduction
-  iVec newEggs;
-  
+  int index;
+
 };
 
 #endif

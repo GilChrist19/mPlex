@@ -67,8 +67,9 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
   
   // BEGIN SET REFERENCE
   // check reproduction type
-  if((reproductionType_ != "DaisyDrive") && (reproductionType_ != "mPlex_oLocus") && (reproductionType_ != "mPlex_mLoci")){
-    Rcpp::stop("\nreproductionType must match one of these choices:\n DaisyDrive\n mPlex_oLocus\n mPlex_mLoci\n");
+  if((reproductionType_ != "DaisyDrive") && (reproductionType_ != "mPlex_oLocus")
+       && (reproductionType_ != "mPlex_mLoci") && (reproductionType_ != "Family")){
+    Rcpp::stop("\nreproductionType must match one of these choices:\n DaisyDrive\n mPlex_oLocus\n mPlex_mLoci\n Family\n");
   }
     
   if(verbose) {Rcpp::Rcout << "Setting reference ... ";};
@@ -78,16 +79,17 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
                                       reproductionReference_["xiM"], reproductionReference_["s"]);
   if(verbose) {Rcpp::Rcout << "\n\tBasics Done\n";};
   
-  // set mendelian allele reference
-  reference::instance().set_mendelian(Rcpp::as<Rcpp::List> (reproductionReference_["mendelian"]),
-                                      Rcpp::as<Rcpp::List> (reproductionReference_["mendelianAlleles"]));
-  if(verbose) {Rcpp::Rcout << "\tMendelian Done\n";};
-  
-  // set homing allele reference
-  reference::instance().set_homing(Rcpp::as<Rcpp::List> (reproductionReference_["homing"]),
-                                    Rcpp::as<Rcpp::List> (reproductionReference_["homingAlleles"]));
-  if(verbose) {Rcpp::Rcout << "\tHoming Done\n";};
-  
+  if(reproductionType_ != "Family"){
+    // set mendelian allele reference
+    reference::instance().set_mendelian(Rcpp::as<Rcpp::List> (reproductionReference_["mendelian"]),
+                                        Rcpp::as<Rcpp::List> (reproductionReference_["mendelianAlleles"]));
+    if(verbose) {Rcpp::Rcout << "\tMendelian Done\n";};
+    
+    // set homing allele reference
+    reference::instance().set_homing(Rcpp::as<Rcpp::List> (reproductionReference_["homing"]),
+                                      Rcpp::as<Rcpp::List> (reproductionReference_["homingAlleles"]));
+    if(verbose) {Rcpp::Rcout << "\tHoming Done\n";};
+  }
 
   // set cutting reference if daisy drive
   if(reproductionType_ == "DaisyDrive"){
@@ -169,10 +171,6 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
   // open them
   ADM_output.open(maleFile);
   ADF_output.open(femaleFile);
-  
-  // write headers
-  ADM_output << "Time,Patch,Age,Genotype\n";
-  ADF_output << "Time,Patch,Age,Genotype,Mate\n";
 
   if(verbose){Rcpp::Rcout <<  " ... done initializing logging!\n";};
   // END INITIALIZE LOGGER
@@ -237,9 +235,18 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
                                                    patchRelease["femaleReleases"],
                                                    patchRelease["eggReleases"]));
       
+    } else if(reproductionType_ == "Family"){
+      
+      if(verbose && np==0){Rcpp::Rcout << "\tBigBrother is watching"<<std::endl;};
+      
+      patches.emplace_back(std::make_unique<Family>(np,
+                                                    patchRelease["maleReleases"],
+                                                    patchRelease["femaleReleases"],
+                                                    patchRelease["eggReleases"]));
+      
     }
     
-  }
+  } // end network loop
   
   if(verbose){Rcpp::Rcout <<  " ... done initializing network!\n";};
   // END INITIALIZE NETWORK

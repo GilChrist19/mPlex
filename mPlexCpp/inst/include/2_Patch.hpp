@@ -115,8 +115,8 @@ public:
   // extras
   virtual void  reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes) = 0;
   
-  void      init_output(std::ofstream& ADM_log, std::ofstream& ADF_log);
-  void      oneDay_writeOutput(std::ofstream& ADM_log, std::ofstream& ADF_log);
+  virtual void  init_output(std::ofstream& ADM_log, std::ofstream& ADF_log);
+  virtual void  oneDay_writeOutput(std::ofstream& ADM_log, std::ofstream& ADF_log);
 
   
 protected:

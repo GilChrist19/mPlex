@@ -26,26 +26,12 @@ std::string Mosquito::print_female(){
   return std::to_string(age) + "," + genotype + "," + mate + "\n";
 }
 
-
-/******************************************************************************
- * Mosquito Familial Class
-******************************************************************************/
-
-// constructor and destructor
-MosFam::MosFam(const int& _age,
-               const std::string& _genotype,
-               const std::string& _momID,
-               const std::string& _dadID) : Mosquito::Mosquito(_age, _genotype), momID(_momID), dadID(_dadID){};
-MosFam::~MosFam(){};
-
 // print functions
-std::string MosFam::print_male(){
+std::string Mosquito::print_maleFam(){
   return std::to_string(age) + "," + genotype + "," + momID + "," + dadID + "\n";
 }
 
-std::string MosFam::print_female(){
+std::string Mosquito::print_femaleFam(){
   return std::to_string(age) + "," + genotype + "," + momID + "," + dadID + "," + 
     mate + "\n";
 }
-
-

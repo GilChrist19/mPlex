@@ -40,46 +40,23 @@ public:
   // setter
   void                  age_one_day(){age++;};
   void                  set_mate(std::string newMate){mate = newMate;};
-  
+  void                  set_parents(std::string mom_, std::string dad_)
+                                    {momID = mom_; dadID = dad_;};
   
   // print
   std::string           print_male();
   std::string           print_female();
+  std::string           print_maleFam();
+  std::string           print_femaleFam();
   
 protected:
 
   int                   age;
   std::string           genotype;
   std::string           mate;
+  std::string           momID;
+  std::string           dadID;
 
 };
-
-#endif
-
-/******************************************************************************
- * Mosquito Familial Class
-******************************************************************************/
-#ifndef MOSFAM_MPLEX
-#define MOSFAM_MPLEX
-
-class MosFam: public Mosquito{
-public:
-  
-  // constructor & destructor
-  MosFam(const int& _age, const std::string& _genotype, const std::string& _momID,
-         const std::string& _dadID);
-  virtual ~MosFam();
-  
-  // functions
-  std::string       print_male();
-  std::string       print_female();
-  
-  
-private:
-  std::string momID;
-  std::string dadID;
-  
-};
-
 
 #endif
