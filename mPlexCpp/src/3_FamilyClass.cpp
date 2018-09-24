@@ -82,7 +82,7 @@ Family& Family::operator=(Family&& d) = default;
 /******************************************************************************
  * Reset
 ******************************************************************************/
-void Family::reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes){
+void Family::reset_Patch(){
   
   /****************
    * RESET POPULATIONS

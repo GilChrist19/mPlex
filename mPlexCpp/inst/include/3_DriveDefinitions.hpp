@@ -37,7 +37,6 @@ public:
   
   // constructor
   Daisy(const int& patchID_,
-        const Rcpp::ListOf<Rcpp::List>& aTypes,
         const Rcpp::List& maleReleases_,
         const Rcpp::List& femaleReleases_,
         const Rcpp::List& larvaeReleases_);
@@ -55,7 +54,7 @@ public:
   // functions specific to this class
   void oneDay_layEggs();
   void DaisyOffspring(const std::string& fGen, const std::string& mGen);
-  void reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes); 
+  void reset_Patch(); 
   
 private:
   // these are values that are used in the mating function
@@ -98,7 +97,6 @@ public:
   
   // constructor
   multiLocus(const int& patchID_,
-              const Rcpp::ListOf<Rcpp::List>& aTypes,
               const Rcpp::List& maleReleases_,
               const Rcpp::List& femaleReleases_,
               const Rcpp::List& larvaeReleases_);
@@ -116,7 +114,7 @@ public:
   // functions specific to this class
   void oneDay_layEggs();
   void MultiplexOffspring_mLoci(const std::string& fGen, const std::string& mGen);
-  void reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes);
+  void reset_Patch();
   
 private:
   // these are values that are used in the mating function
@@ -166,7 +164,6 @@ public:
   
   // constructor
   oneLocus(const int& patchID_,
-             const Rcpp::ListOf<Rcpp::List>& aTypes,
              const Rcpp::List& maleReleases_,
              const Rcpp::List& femaleReleases_,
              const Rcpp::List& larvaeReleases_);
@@ -184,7 +181,7 @@ public:
   // functions specific to this class
   void oneDay_layEggs();
   void MultiplexOffspring_oLocus(const std::string& fGen, const std::string& mGen);
-  void reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes);
+  void reset_Patch();
   
 private:
   // these are values that are used in the mating function
@@ -252,7 +249,7 @@ public:
   
   // functions for this class
   void  oneDay_layEggs();
-  void  reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes);
+  void  reset_Patch();
   void  init_output(std::ofstream& ADM_log, std::ofstream& ADF_log);
   void  oneDay_writeOutput(std::ofstream& ADM_log, std::ofstream& ADF_log);
   

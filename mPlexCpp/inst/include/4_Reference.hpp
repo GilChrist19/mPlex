@@ -43,6 +43,8 @@ public:
                                  const Rcpp::ListOf<Rcpp::ListOf<Rcpp::StringVector> >& alleles_);
   void                set_cutting(const Rcpp::ListOf<Rcpp::ListOf<Rcpp::NumericVector> >& probs_,
                                   const Rcpp::ListOf<Rcpp::ListOf<Rcpp::StringVector> >& alleles_);
+  void                set_alleleTypes(const Rcpp::ListOf<Rcpp::List>& alleleList_){alleleTypes = alleleList_;};
+
   
   // getters
   double      get_eta(const std::string& genType);
@@ -66,6 +68,8 @@ public:
   dVec::iterator    get_cutting_probs_end(size_t locus, size_t allele){return cutting_probs[locus][allele].end();};
   sVec::iterator    get_cutting_allele_begin(size_t locus, size_t allele){return cutting_alleles[locus][allele].begin();};
   sVec::iterator    get_cutting_allele_end(size_t locus, size_t allele){return cutting_alleles[locus][allele].end();};
+  
+  Rcpp::List        get_alleloTypes(size_t patch){return alleleTypes[patch];};
   
   
 private:
@@ -94,6 +98,8 @@ private:
   std::vector<sArVec>                       homing_alleles;
   std::vector<dArVec>                       cutting_probs;
   std::vector<sArVec>                       cutting_alleles;
+  
+  Rcpp::ListOf<Rcpp::List>                  alleleTypes;
 
 };
 

@@ -4,12 +4,16 @@
 \alias{splitOutput}
 \title{Split Output by Patch}
 \usage{
-splitOutput(directory, numCores)
+splitOutput(readDir, writeDir, remFile, numCores)
 }
 \arguments{
-\item{directory}{Directory where output was written to; must not end in path seperator}
+\item{readDirectory}{Directory where output was written to}
 
-\item{numCores}{How many cores to use for reading/writing files}
+\item{saveDirectory}{Directory to write output to. Default is readDir}
+
+\item{remFile}{Remove original output? Default is TRUE}
+
+\item{numCores}{How many cores to use when writing output. Default is 1}
 }
 \value{
 *.csv files for each patch

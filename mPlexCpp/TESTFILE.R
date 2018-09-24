@@ -34,7 +34,7 @@ set.seed(10)
 migration <- matrix(data = runif(numPatch*numPatch), nrow = numPatch, ncol = numPatch)
 migration <- migration/rowSums(migration)
 
-patchPops = rep(10000L,numPatch)
+patchPops = rep(100L,numPatch)
 
 directory1 = "~/Desktop/HOLD/MGDrivE/"
 directory2 <- "~/Desktop/HOLD/MGDrivEHOLD/"
@@ -122,7 +122,7 @@ mPlex_oneRun(seed = 10,
              migrationFemale = migration,
              migrationBatch = migrationBatch,
              output_directory = directory1,
-             reproductionType = "mPlex_mLoci",
+             reproductionType = "Family",
              verbose = TRUE)
 
 

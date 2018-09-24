@@ -113,7 +113,7 @@ public:
   void      oneDay_migrationIn(const popVec& male, const popVec& female);
   
   // extras
-  virtual void  reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes) = 0;
+  virtual void  reset_Patch() = 0;
   
   virtual void  init_output(std::ofstream& ADM_log, std::ofstream& ADF_log);
   virtual void  oneDay_writeOutput(std::ofstream& ADM_log, std::ofstream& ADF_log);

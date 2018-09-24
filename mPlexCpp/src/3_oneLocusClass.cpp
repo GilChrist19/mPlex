@@ -15,7 +15,6 @@
  * Constructor & Destructor
  ******************************************************************************/
 oneLocus::oneLocus(const int& patchID_,
-                   const Rcpp::ListOf<Rcpp::List>& aTypes,
                    const Rcpp::List& maleReleases_,
                    const Rcpp::List& femaleReleases_,
                    const Rcpp::List& eggReleases_) : Patch::Patch(patchID_,
@@ -37,7 +36,7 @@ oneLocus::oneLocus(const int& patchID_,
   minAge = 0;
   ageDist.assign(parameters::instance().get_stage_time(0),1);
   CreateMosquitoes2Loci(parameters::instance().get_larva_eq(patchID),
-                         minAge, ageDist, aTypes, eggs);
+                         minAge, ageDist, reference::instance().get_alleloTypes(patchID), eggs);
   
   // larva
   larva.reserve(2*parameters::instance().get_larva_eq(patchID));
@@ -50,7 +49,7 @@ oneLocus::oneLocus(const int& patchID_,
   }
   
   CreateMosquitoes2Loci(parameters::instance().get_larva_eq(patchID),
-                         minAge, ageDist, aTypes, larva);
+                         minAge, ageDist, reference::instance().get_alleloTypes(patchID), larva);
   
   // pupa
   pupa.reserve(2*parameters::instance().get_adult_pop_eq(patchID));
@@ -63,13 +62,13 @@ oneLocus::oneLocus(const int& patchID_,
   minAge = parameters::instance().get_stage_sum(2)+1;
   ageDist.assign(parameters::instance().get_stage_sum(3) - minAge +1,1);
   CreateMosquitoes2Loci(parameters::instance().get_adult_pop_eq(patchID)/2,
-                         minAge, ageDist, aTypes, adult_male);
+                         minAge, ageDist, reference::instance().get_alleloTypes(patchID), adult_male);
   CreateMosquitoes2Loci(parameters::instance().get_adult_pop_eq(patchID)/2,
-                         minAge, ageDist, aTypes, unmated_female);
+                         minAge, ageDist, reference::instance().get_alleloTypes(patchID), unmated_female);
   
   
   // Reproduction setup
-  numLoci =  aTypes.size();
+  numLoci =  reference::instance().get_alleloTypes(patchID).size();
  
 };
 
@@ -85,7 +84,7 @@ oneLocus& oneLocus::operator=(oneLocus&& d) = default;
 /******************************************************************************
  * Reset
  ******************************************************************************/
-void oneLocus::reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes){
+void oneLocus::reset_Patch(){
   
   /****************
    * RESET POPULATIONS
@@ -100,7 +99,7 @@ void oneLocus::reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes){
   minAge = 0;
   ageDist.assign(parameters::instance().get_stage_time(0),1);
   CreateMosquitoes2Loci(parameters::instance().get_larva_eq(patchID),
-                          minAge, ageDist, aTypes, eggs);
+                          minAge, ageDist, reference::instance().get_alleloTypes(patchID), eggs);
   
   // larva
   larva.clear();
@@ -113,7 +112,7 @@ void oneLocus::reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes){
   }
   
   CreateMosquitoes2Loci(parameters::instance().get_larva_eq(patchID),
-                          minAge, ageDist, aTypes, larva);
+                          minAge, ageDist, reference::instance().get_alleloTypes(patchID), larva);
   
   // pupa
   pupa.clear();
@@ -126,9 +125,9 @@ void oneLocus::reset_Patch(const Rcpp::ListOf<Rcpp::List>& aTypes){
   minAge = parameters::instance().get_stage_sum(2)+1;
   ageDist.assign(parameters::instance().get_stage_sum(3) - minAge +1,1);
   CreateMosquitoes2Loci(parameters::instance().get_adult_pop_eq(patchID)/2,
-                          minAge, ageDist, aTypes, adult_male);
+                          minAge, ageDist, reference::instance().get_alleloTypes(patchID), adult_male);
   CreateMosquitoes2Loci(parameters::instance().get_adult_pop_eq(patchID)/2,
-                          minAge, ageDist, aTypes, unmated_female);
+                          minAge, ageDist, reference::instance().get_alleloTypes(patchID), unmated_female);
   
   
   /****************

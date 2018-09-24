@@ -26,7 +26,6 @@ std::string BigBrother::get_ID(){
   idMem++;
   
   return std::to_string(holder);
-  
 };
 
 
