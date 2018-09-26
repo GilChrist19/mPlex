@@ -32,8 +32,8 @@ private:
   BigBrother& operator=(BigBrother&&) = delete;
   
   // only member?
-  double idMem;
-  double holder;
+  unsigned long long int idMem;
+  std::string holder;
   
 };
 

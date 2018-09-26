@@ -52,7 +52,7 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
   
   #ifdef BASE_PROFILER_H_
     // make sure to change path!!! But keep file name.
-    ProfilerStart("/home/gilchrist/Desktop/HOLD/profile.log");
+    ProfilerStart("/home/jared/Desktop/HOLD/profile.log");
   #endif
   
   

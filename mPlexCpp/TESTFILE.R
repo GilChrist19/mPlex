@@ -34,7 +34,7 @@ set.seed(10)
 migration <- matrix(data = runif(numPatch*numPatch), nrow = numPatch, ncol = numPatch)
 migration <- migration/rowSums(migration)
 
-patchPops = rep(100L,numPatch)
+patchPops = rep(600L,numPatch)
 
 directory1 = "~/Desktop/HOLD/MGDrivE/"
 directory2 <- "~/Desktop/HOLD/MGDrivEHOLD/"
@@ -104,7 +104,7 @@ patchReleases[[1]]$maleReleases <- c(holdRel, holdRel2)
 # Calculate parameters and initialize network
 ###############################################################################
 netPar = NetworkParameters(nPatch = numPatch,
-                           simTime = 10000L,
+                           simTime = 10000,
                            alleloTypes = AllAlleles,
                            AdPopEQ = patchPops,
                            runID = 1L,
@@ -113,7 +113,7 @@ netPar = NetworkParameters(nPatch = numPatch,
 
 migrationBatch <- basicBatchMigration(numPatches = numPatch)
 
-
+system.time(
 mPlex_oneRun(seed = 10,
              networkParameters = netPar,
              reproductionReference = reproductionReference,
@@ -124,7 +124,7 @@ mPlex_oneRun(seed = 10,
              output_directory = directory1,
              reproductionType = "Family",
              verbose = TRUE)
-
+)
 
 
 

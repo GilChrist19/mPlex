@@ -10,7 +10,9 @@
 #include "4_BigBrother.hpp"
 
 // constructor & destructor
-BigBrother::BigBrother(){idMem=0;};
+BigBrother::BigBrother(){
+  idMem=0;
+};
 BigBrother::~BigBrother(){};
 
 // utility method
@@ -22,10 +24,10 @@ BigBrother& BigBrother::instance(){
 // getters/setters
 std::string BigBrother::get_ID(){
   
-  holder=idMem;
+  holder = std::to_string(idMem);
   idMem++;
   
-  return std::to_string(holder);
+  return holder;
 };
 
 
