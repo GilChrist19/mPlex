@@ -180,7 +180,7 @@ void Family::init_output(std::ofstream& ADM_log, std::ofstream& ADF_log){
 void  Family::oneDay_writeOutput(std::ofstream& ADM_log, std::ofstream& ADF_log){
   
   // write males
-  if(adult_male.size() > 0){
+  if(!adult_male.empty()){
     for(auto& mos : adult_male){
       ADM_log << parameters::instance().get_t_now() <<  "," << patchID << "," << mos.print_maleFam();
     }
@@ -190,7 +190,7 @@ void  Family::oneDay_writeOutput(std::ofstream& ADM_log, std::ofstream& ADF_log)
 
   
   // write adult females
-  if(adult_female.size() > 0){
+  if(!adult_female.empty()){
     for(auto& mos : adult_female){
       ADF_log << parameters::instance().get_t_now() <<  "," << patchID << "," << mos.print_femaleFam();
     }

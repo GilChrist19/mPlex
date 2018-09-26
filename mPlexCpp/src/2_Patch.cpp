@@ -314,7 +314,7 @@ void Patch::oneDay_eggMaturation(){
 ***************************************/
 void Patch::oneDay_mating(){
   
-  if((adult_male.size() != 0) && (unmated_female.size() !=0) ){
+  if(!adult_male.empty() && !unmated_female.empty() ){
     
     // clear holder objects for reuse
     genNames.clear();
@@ -339,7 +339,7 @@ void Patch::oneDay_mating(){
     } // end loop over unmated females
 
     // only do if there are unmated females and males to mate with
-  } else if((adult_male.size() == 0) && (unmated_female.size() !=0) ){
+  } else if(adult_male.empty() && !unmated_female.empty() ){
     
     double probs;
     holdDbl = 1.0 - parameters::instance().get_mu(3);
@@ -560,7 +560,7 @@ void Patch::init_output(std::ofstream& ADM_log, std::ofstream& ADF_log){
 void Patch::oneDay_writeOutput(std::ofstream& ADM_log, std::ofstream& ADF_log){
   
   // write males
-  if(adult_male.size() > 0){
+  if(!adult_male.empty()){
     for(auto& mos : adult_male){
       ADM_log << parameters::instance().get_t_now() <<  "," << patchID << "," << mos.print_male();
     }
@@ -570,7 +570,7 @@ void Patch::oneDay_writeOutput(std::ofstream& ADM_log, std::ofstream& ADF_log){
 
   
   // write adult females
-  if(adult_female.size() > 0){
+  if(!adult_female.empty()){
     for(auto& mos : adult_female){
       ADF_log << parameters::instance().get_t_now() <<  "," << patchID << "," << mos.print_female();
     }
