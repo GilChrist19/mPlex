@@ -46,7 +46,7 @@ AnalyzeQuantilesMOD <- function(readDirectory, writeDirectory, numFiles, numPatc
   #read in a file initially to get variables and setup return array
   testFile <- data.table::fread(input = file.path(repFiles[1], patchFiles[[1]][1]),
                                 header = TRUE, verbose = FALSE, showProgress = FALSE,
-                                logical01 = FALSE, sep = ",", drop = c("Time", "Patch"))
+                                logical01 = FALSE, sep = ",", drop = "Time")
   
   #bunch of constants that get used several times
   numReps <- length(repFiles)
@@ -83,10 +83,10 @@ AnalyzeQuantilesMOD <- function(readDirectory, writeDirectory, numFiles, numPatc
     for(repetition in 1:numReps){
       popDataMale[ ,repetition, ] <- as.matrix(data.table::fread(input = file.path(repFiles[repetition], maleFiles[repetition]),
                                                                  header = TRUE, verbose = FALSE, showProgress = FALSE,
-                                                                 logical01 = FALSE, sep = ",", drop = c("Time", "Patch")))
+                                                                 logical01 = FALSE, sep = ",", drop = "Time"))
       popDataFemale[ ,repetition, ] <- as.matrix(data.table::fread(input = file.path(repFiles[repetition], femaleFiles[repetition]),
                                                                    header = TRUE, verbose = FALSE, showProgress = FALSE,
-                                                                   logical01 = FALSE, sep = ",", drop = c("Time", "Patch")))
+                                                                   logical01 = FALSE, sep = ",", drop = "Time"))
     }
     
     
@@ -314,11 +314,11 @@ eraseDirectoryMOD <- function(directory){
 ###############################################################################
 # Setup folder structure and loop values
 ###############################################################################
-DataDir = "/home/jared/Desktop/HOLD/ComparisonData"
-DataDir2 = "/home/jared/Desktop/HOLD/ComparisonData2"
-AnalysisDir = "/home/jared/Desktop/HOLD/ComparisonAnalysis"
-MGDrivEAnalysisDir = "/home/jared/Desktop/HOLD/ComparisonAnalysis/MGDrivE"
-mPlexAnalysisDir = "/home/jared/Desktop/HOLD/ComparisonAnalysis/mPlex"
+DataDir = "~/Desktop/HOLD/ComparisonData"
+DataDir2 = "~/Desktop/HOLD/ComparisonData2"
+AnalysisDir = "~/Desktop/HOLD/ComparisonAnalysis"
+MGDrivEAnalysisDir = "~/Desktop/HOLD/ComparisonAnalysis/MGDrivE"
+mPlexAnalysisDir = "~/Desktop/HOLD/ComparisonAnalysis/mPlex"
 
 
 if(!dir.exists(DataDir)){dir.create(DataDir)}else{eraseDirectoryMOD(DataDir)}
@@ -331,8 +331,19 @@ FPop <- c(10,50,100,500)
 Movement <- list(matrix(data = 1,nrow = 1,ncol = 1),matrix(data = 1/9,nrow = 3,ncol = 3),matrix(data = 1/100,nrow = 10,ncol = 10))
 numFileAnalysis <- c(10,25,50,100,252)
 
+
+
+
+FPop <- c(10,20)
+Movement <- list(matrix(data = 1,nrow = 1,ncol = 1))
+numFileAnalysis <- c(10)
+
+simulationTime=1000 # Number of "days" run in the simulation
+repetitions=numFileAnalysis[length(numFileAnalysis)] #252
+numCores <- 1#detectCores()/2 #should give number of real cpu cores
+
 # setup cluster
-cl=parallel::makePSOCKcluster(names=1, outfile = "~/Desktop/HOLD/error.out")
+cl=parallel::makePSOCKcluster(names=numCores, outfile = "~/Desktop/HOLD/error.out")
 parallel::clusterEvalQ(cl=cl,expr={
   library(MGDrivE)
   library(MGDrivEv2)
@@ -344,16 +355,19 @@ for(Kernel in Movement){
     # Setup Parameters for Network
     ###############################################################################
     # set parameters
-    simulationTime=1000 # Number of "days" run in the simulation
-    repetitions=252
     numNodes=NROW(Kernel)
-    nodeSize=Population
-    patchPops=rep(2*nodeSize,numNodes)
+    patchPops=rep(2*Population,numNodes)
     bioParameters=list(betaK=8,tEgg=6,tLarva=11,tPupa=4,popGrowth=1.096,muAd=0.09)
     
     # set cube with random interesting things
-    driveCube = MGDrivE::Cube_HomingDrive(eM = 0.984, eF = 0.984, rM = 0.01, bM = 0.006, rF = 0.01, bF = 0.006,
-                                 omega = c("HH"=0.6, "HB"=0.6, "HR"=0.8, "BB"=0.6, "WH"=0.8, "WB"=0.8, "RB"=0.8))
+    #eM = 0.984, eF = 0.984, rM = 0.01, bM = 0.006, rF = 0.01, bF = 0.006
+    driveCube = MGDrivE::Cube_HomingDrive(cM = 0.9, cF = 0.9, dF = 0,
+                                          chM = 0.9, crM = 0.9, chF = 0.9, crF = 0.9,
+                                          dhF = 0, drF = 0,
+                                          omega = c("HH"=0.6, "HB"=0.6,
+                                                    "HR"=0.8, "BB"=0.6, "WH"=0.8,
+                                                    "WB"=0.8, "RB"=0.8)
+                                          )
     
     # movement matrix and batch migration
     migration <- Kernel
@@ -364,7 +378,7 @@ for(Kernel in Movement){
     patchReleases=replicate(n=numNodes,expr={list(maleReleases=NULL,femaleReleases=NULL,eggReleases = NULL)},simplify=FALSE)
     releasesParameters=list(
       releasesStart=100,releasesNumber=10,releasesInterval=1,
-      releaseProportion=nodeSize
+      releaseProportion=Population
     )
     maleReleasesVector1=generateReleaseVector(driveCube=driveCube,releasesParameters=releasesParameters,sex="M")
     
@@ -373,7 +387,6 @@ for(Kernel in Movement){
     
     #numCores and repsPerCore have to divide to whole numbers. Basically, pay attention
     # and balance runs so they make sense?
-    numCores <- 4
     repsPerCore <- repetitions/numCores
     repStart <- seq(1, repetitions, repetitions/numCores)
     OutputList <- vector(mode = "list", length = numCores)
@@ -397,7 +410,7 @@ for(Kernel in Movement){
     parallel::clusterExport(
       cl=cl,
       varlist=c("simulationTime","numNodes","bioParameters","patchPops","patchReleases","migration",
-                "driveCube","batchMigration", "AnalyzeQuantilesMOD", "nodeSize", "DataDir", "MGDrivEAnalysisDir")
+                "driveCube","batchMigration", "AnalyzeQuantilesMOD", "Population", "DataDir", "MGDrivEAnalysisDir")
     )
 
     
@@ -434,8 +447,8 @@ for(Kernel in Movement){
     
     # split output and aggregate females. seems to work in one loop, may have to split
     parallel::parLapply(cl=cl,X=FolderVec,fun=function(x){
-      MGDrivE::splitOutput(readDir=x, writeDir = NULL, remFile = TRUE,multiCore = FALSE)
-      MGDrivE::aggregateFemales(readDir=x, writeDir = NULL, genotypes = driveCube$genotypesID, remFile = TRUE, multiCore = FALSE)
+      MGDrivE::splitOutput(readDir=x, writeDir = NULL, remFile = TRUE, numCores = 1)
+      MGDrivE::aggregateFemales(readDir=x, writeDir = NULL, genotypes = driveCube$genotypesID, remFile = TRUE, numCores = 1)
       gc()
     })
     
@@ -445,7 +458,7 @@ for(Kernel in Movement){
                           writeDirectory = MGDrivEAnalysisDir,
                           numFiles = x,
                           numPatches = numNodes,
-                          FPop = nodeSize)
+                          FPop = Population)
       gc()
     })
     
@@ -471,7 +484,7 @@ detach("package:MGDrivEv2", unload=TRUE)
 library(mPlexCpp)
 
 # setup cluster
-cl=parallel::makePSOCKcluster(names=4)
+cl=parallel::makePSOCKcluster(names=numCores)
 parallel::clusterEvalQ(cl=cl,expr={
   library(mPlexCpp)
 })
@@ -482,11 +495,8 @@ for(Kernel in Movement){
     # Setup Parameters for Network
     ###############################################################################
     # set parameters
-    simulationTime=1000 # Number of "days" run in the simulation
-    repetitions=252
     numNodes=NROW(Kernel)
-    nodeSize=Population
-    patchPops=rep(2*nodeSize,numNodes)
+    patchPops=rep(2*Population,numNodes)
     bioParameters=list(betaK=8,tEgg=6,tLarva=11,tPupa=4,popGrowth=1.096,muAd=0.09)
     
     
@@ -528,7 +538,7 @@ for(Kernel in Movement){
                                              releaseEnd = 109L,
                                              releaseInterval = 1,
                                              genMos = c("HH"),
-                                             numMos = c(nodeSize),
+                                             numMos = c(Population),
                                              minAge = 16L,
                                              maxAge = 24L,
                                              ageDist = rep(x = 1, times = 24-16+1)/9)
@@ -540,7 +550,6 @@ for(Kernel in Movement){
     ###############################################################################
     #numCores and repsPerCore have to divide to whole numbers. Basically, pay attention
     # and balance runs so they make sense?
-    numCores <- 4
     repsPerCore <- repetitions/numCores
     repStart <- seq(1, repetitions, repetitions/numCores)
     OutputList <- vector(mode = "list", length = numCores)
@@ -572,7 +581,7 @@ for(Kernel in Movement){
     parallel::clusterExport(
       cl=cl,
       varlist=c("simulationTime","numNodes","bioParameters","patchPops","patchReleases","migration",
-                "AllAlleles","batchMigration", "reproductionReference", "AnalyzeQuantilesMOD2", "nodeSize", "DataDir2", "mPlexAnalysisDir")
+                "AllAlleles","batchMigration", "reproductionReference", "AnalyzeQuantilesMOD2", "Population", "DataDir2", "mPlexAnalysisDir")
     )
     
     
@@ -613,7 +622,7 @@ for(Kernel in Movement){
     
     # split output and aggregate females. seems to work in one loop, may have to split
     parallel::parLapply(cl=cl,X=FolderList,fun=function(x){
-      mPlexCpp::splitOutput(directory = x[1], numCores = 1)
+      mPlexCpp::splitOutput(readDirectory = x[1], numCores = 1)
       mPlexCpp::AnalyzeOutput_mLoci_Daisy(readDirectory = x[1],saveDirectory = x[2],
                                           genotypes = list(NULL),collapse = c(FALSE),
                                           numCores = 1)
@@ -626,7 +635,7 @@ for(Kernel in Movement){
                            writeDirectory = mPlexAnalysisDir,
                            numFiles = x,
                            numPatches = numNodes,
-                           FPop = nodeSize)
+                           FPop = Population)
       gc()
     })
     
@@ -752,15 +761,19 @@ sortOrder <- c(10,4,9,7,1,3,2,8,6,5)
 
 
 #subset files by patch, then pop, then rep
-for(numPatch in c("01","03","10")){
+pNames <- formatC(x = unlist(lapply(X = Movement, FUN = NROW)), width = 2, format = "d", flag = "0")
+fNames <- formatC(x = FPop, width = 3, format = "d", flag = "0")
+aNames <- formatC(x = numFileAnalysis, width = 3, format = "d", flag = "0")
+
+for(numPatch in pNames){
   
   # holder objects that don't change size
   ChiSquaredDistance <- matrix(data = 0, nrow = simulationTime-1, ncol = as.integer(numPatch))
   FStat <- matrix(data = 0, nrow = simulationTime-1, ncol = as.integer(numPatch))
   
   
-  for(femPop in c("010","050","100","500")){
-    for(AnalysisReps in c("010","025","050","100","252")){
+  for(femPop in fNames){
+    for(AnalysisReps in aNames){
       
       # set Fstatistic value for this number of reps
       FStatValue <- qf(p = 0.975, df1 = as.integer(AnalysisReps), df2 = as.integer(AnalysisReps))
