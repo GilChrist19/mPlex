@@ -36,7 +36,7 @@ migration <- migration/rowSums(migration)
 
 patchPops = rep(600L,numPatch)
 
-directory1 = "~/Desktop/HOLD/MGDrivE/"
+directory1 = "~/Desktop/HOLD/mPlex/"
 directory2 <- "~/Desktop/HOLD/MGDrivEHOLD/"
 
 #setup alleles to initiate patches
@@ -122,7 +122,7 @@ mPlex_oneRun(seed = 10,
              migrationFemale = migration,
              migrationBatch = migrationBatch,
              output_directory = directory1,
-             reproductionType = "Family",
+             reproductionType = "mPlex_mLoci",
              verbose = TRUE)
 )
 

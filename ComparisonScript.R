@@ -311,359 +311,16 @@ eraseDirectoryMOD <- function(directory){
   # end deleting contents
 }# end function
 
-###############################################################################
-# Setup folder structure and loop values
-###############################################################################
-DataDir = "~/Desktop/HOLD/ComparisonData"
-DataDir2 = "~/Desktop/HOLD/ComparisonData2"
-AnalysisDir = "~/Desktop/HOLD/ComparisonAnalysis"
-MGDrivEAnalysisDir = "~/Desktop/HOLD/ComparisonAnalysis/MGDrivE"
-mPlexAnalysisDir = "~/Desktop/HOLD/ComparisonAnalysis/mPlex"
-
-
-if(!dir.exists(DataDir)){dir.create(DataDir)}else{eraseDirectoryMOD(DataDir)}
-if(!dir.exists(DataDir2)){dir.create(DataDir2)}else{eraseDirectoryMOD(DataDir2)}
-if(!dir.exists(AnalysisDir)){dir.create(AnalysisDir)}else{eraseDirectoryMOD(AnalysisDir)}
-if(!dir.exists(MGDrivEAnalysisDir)){dir.create(MGDrivEAnalysisDir)}else{eraseDirectoryMOD(MGDrivEAnalysisDir)}
-if(!dir.exists(mPlexAnalysisDir)){dir.create(mPlexAnalysisDir)}else{eraseDirectoryMOD(mPlexAnalysisDir)}
-
-FPop <- c(10,50,100,500)
-Movement <- list(matrix(data = 1,nrow = 1,ncol = 1),matrix(data = 1/9,nrow = 3,ncol = 3),matrix(data = 1/100,nrow = 10,ncol = 10))
-numFileAnalysis <- c(10,25,50,100,252)
-
-
-
-
-FPop <- c(10,20)
-Movement <- list(matrix(data = 1,nrow = 1,ncol = 1))
-numFileAnalysis <- c(10)
-
-simulationTime=1000 # Number of "days" run in the simulation
-repetitions=numFileAnalysis[length(numFileAnalysis)] #252
-numCores <- 1#detectCores()/2 #should give number of real cpu cores
-
-# setup cluster
-cl=parallel::makePSOCKcluster(names=numCores, outfile = "~/Desktop/HOLD/error.out")
-parallel::clusterEvalQ(cl=cl,expr={
-  library(MGDrivE)
-  library(MGDrivEv2)
-})
-
-for(Kernel in Movement){
-  for(Population in FPop){
-    ###############################################################################
-    # Setup Parameters for Network
-    ###############################################################################
-    # set parameters
-    numNodes=NROW(Kernel)
-    patchPops=rep(2*Population,numNodes)
-    bioParameters=list(betaK=8,tEgg=6,tLarva=11,tPupa=4,popGrowth=1.096,muAd=0.09)
-    
-    # set cube with random interesting things
-    #eM = 0.984, eF = 0.984, rM = 0.01, bM = 0.006, rF = 0.01, bF = 0.006
-    driveCube = MGDrivE::Cube_HomingDrive(cM = 0.9, cF = 0.9, dF = 0,
-                                          chM = 0.9, crM = 0.9, chF = 0.9, crF = 0.9,
-                                          dhF = 0, drF = 0,
-                                          omega = c("HH"=0.6, "HB"=0.6,
-                                                    "HR"=0.8, "BB"=0.6, "WH"=0.8,
-                                                    "WB"=0.8, "RB"=0.8)
-                                          )
-    
-    # movement matrix and batch migration
-    migration <- Kernel
-    batchMigration <- MGDrivE::basicBatchMigration(batchProbs = c(0.0), sexProbs = c(.5, .5), numPatches = numNodes)
-    
-    
-    # releases, male and female, ignore the egg ones cause I don't care
-    patchReleases=replicate(n=numNodes,expr={list(maleReleases=NULL,femaleReleases=NULL,eggReleases = NULL)},simplify=FALSE)
-    releasesParameters=list(
-      releasesStart=100,releasesNumber=10,releasesInterval=1,
-      releaseProportion=Population
-    )
-    maleReleasesVector1=generateReleaseVector(driveCube=driveCube,releasesParameters=releasesParameters,sex="M")
-    
-    patchReleases[[1]]$maleReleases=maleReleasesVector1
-    
-    
-    #numCores and repsPerCore have to divide to whole numbers. Basically, pay attention
-    # and balance runs so they make sense?
-    repsPerCore <- repetitions/numCores
-    repStart <- seq(1, repetitions, repetitions/numCores)
-    OutputList <- vector(mode = "list", length = numCores)
-    
-    # loop over number of cores
-    for(i in 1:numCores){
-      # vector of folder names for each core to output to
-      folderName=paste0(DataDir,"/Rep_", formatC(x = repStart[i]:(repStart[i]+repsPerCore-1), width = 4, format = "d", flag = "0"), sep = "")
-      # create the folders if they don't exist, clear them if they do
-      for(j in 1:repsPerCore){
-        if(!dir.exists(folderName[j])){dir.create(folderName[j])}else{eraseDirectoryMOD(folderName[j])}
-      }
-      # store in list, the vector of folder names and the number of which rep to start on
-      OutputList[[i]]$folder=folderName
-      OutputList[[i]]$i=repStart[i]
-    } # end loop
-    
-    
-    
-    # setup parallel cluster and run!
-    parallel::clusterExport(
-      cl=cl,
-      varlist=c("simulationTime","numNodes","bioParameters","patchPops","patchReleases","migration",
-                "driveCube","batchMigration", "AnalyzeQuantilesMOD", "Population", "DataDir", "MGDrivEAnalysisDir")
-    )
-
-    
-    
-    parallel::parLapply(cl=cl,X=OutputList,fun=function(x){
-      # set up network parameters
-      netPar=Network.Parameters(
-        runID=x$i,simTime=simulationTime,nPatch=numNodes,
-        beta=bioParameters$betaK,muAd=bioParameters$muAd,popGrowth=bioParameters$popGrowth,
-        tEgg=bioParameters$tEgg,tLarva=bioParameters$tLarva,tPupa=bioParameters$tPupa,
-        AdPopEQ=patchPops
-      )
-      # set seed
-      randomSeed=as.integer((as.double(Sys.time())*1000+Sys.getpid()) %% 2^31)
-      # pass parameters and run
-      MGDrivEv2::stochastic_multiple(seed = randomSeed,
-                                     cubeR = driveCube,
-                                     parametersR = netPar,
-                                     migrationFemaleR = migration,
-                                     migrationMaleR = migration,
-                                     migrationBatchR = batchMigration,
-                                     releasesR = patchReleases,
-                                     output = x$folder,
-                                     verbose = FALSE)
-      gc()
-    })
-    
-    
-    
-    ###############################################################################################################
-    ############################### POST-ANALYSIS #################################################################
-    # create vector of just folder names from the outputList above
-    FolderVec <- c(vapply(X = OutputList, FUN = "[[", 1, FUN.VALUE = character(repsPerCore)))
-    
-    # split output and aggregate females. seems to work in one loop, may have to split
-    parallel::parLapply(cl=cl,X=FolderVec,fun=function(x){
-      MGDrivE::splitOutput(readDir=x, writeDir = NULL, remFile = TRUE, numCores = 1)
-      MGDrivE::aggregateFemales(readDir=x, writeDir = NULL, genotypes = driveCube$genotypesID, remFile = TRUE, numCores = 1)
-      gc()
-    })
-    
-    # do analysis in parallel, over number of files to use
-    parallel::parLapply(cl=cl, X=numFileAnalysis, fun=function(x){
-      AnalyzeQuantilesMOD(readDirectory = DataDir,
-                          writeDirectory = MGDrivEAnalysisDir,
-                          numFiles = x,
-                          numPatches = numNodes,
-                          FPop = Population)
-      gc()
-    })
-    
-    
-    
-  }# end loop over populations
-}# end loop over kernels
-
-# stop cluster
-parallel::stopCluster(cl)
-
-# detach packages
-# will pull necessary functions directly from packages to keep MGDrive from 
-#  covering things in mPlex
-detach("package:MGDrivE", unload=TRUE)
-detach("package:MGDrivEv2", unload=TRUE)
-
-###############################################################################
-###############################################################################
-###############################################################################
-# mPLEX
-###############################################################################
-library(mPlexCpp)
-
-# setup cluster
-cl=parallel::makePSOCKcluster(names=numCores)
-parallel::clusterEvalQ(cl=cl,expr={
-  library(mPlexCpp)
-})
-
-for(Kernel in Movement){
-  for(Population in FPop){
-    ###############################################################################
-    # Setup Parameters for Network
-    ###############################################################################
-    # set parameters
-    numNodes=NROW(Kernel)
-    patchPops=rep(2*Population,numNodes)
-    bioParameters=list(betaK=8,tEgg=6,tLarva=11,tPupa=4,popGrowth=1.096,muAd=0.09)
-    
-    
-    #setup alleles to initiate patches
-    alleloTypes <- vector(mode = "list", length = 1L) #1 locus
-    alleloTypes[[1]]$alleles <- c("W")
-    alleloTypes[[1]]$probs <- c(1L)
-    
-    AllAlleles <- replicate(n = numNodes, expr = alleloTypes, simplify = FALSE)
-    
-    
-    # This sets up a basic CRISPR drive, with perfect homing and no resistance or backgorund mutation
-    reproductionReference <- mPlexCpp::MakeReference_Multiplex_mLoci(H = c(0.992),
-                                                           R = c(0.003),
-                                                           S = c(0.005),
-                                                           d = c(0.00),
-                                                           omega = c("HH"=0.6, "HR"=0.6, "HS"=0.8, "RR"=0.6, "HW"=0.8, "RW"=0.8, "RS"=0.8))
-    
-    # movement matrix and batch migration
-    migration <- Kernel
-    batchMigration <- basicBatchMigration(batchProbs = 0.0, sexProbs = c(0.5,0.5), numPatches = numNodes)
-
-    
-    
-    ###############################################################################
-    # Release Setup
-    ###############################################################################
-    
-    # create Release List
-    patchReleases = replicate(n = numNodes,
-                              expr = list(maleReleases = NULL,
-                                          femaleReleases = NULL,
-                                          eggReleases = NULL),
-                              simplify = FALSE)
-    
-    
-    # Create release object to pass to patches
-    holdRel <- mPlexCpp::Release_basicRepeatedReleases(releaseStart = 100L,
-                                             releaseEnd = 109L,
-                                             releaseInterval = 1,
-                                             genMos = c("HH"),
-                                             numMos = c(Population),
-                                             minAge = 16L,
-                                             maxAge = 24L,
-                                             ageDist = rep(x = 1, times = 24-16+1)/9)
-    
-    patchReleases[[1]]$maleReleases <- holdRel
-    
-    ###############################################################################
-    # Folder Setup
-    ###############################################################################
-    #numCores and repsPerCore have to divide to whole numbers. Basically, pay attention
-    # and balance runs so they make sense?
-    repsPerCore <- repetitions/numCores
-    repStart <- seq(1, repetitions, repetitions/numCores)
-    OutputList <- vector(mode = "list", length = numCores)
-    
-    # loop over number of cores
-    for(i in 1:numCores){
-      # vector of folder names for each core to output to
-      folderName=paste0(DataDir,"/Rep_", formatC(x = repStart[i]:(repStart[i]+repsPerCore-1), width = 4, format = "d", flag = "0"), sep = "")
-      # create the folders if they don't exist, clear them if they do
-      for(j in 1:repsPerCore){
-        if(!dir.exists(folderName[j])){dir.create(folderName[j])}else{eraseDirectoryMOD(folderName[j])}
-      }
-      # store in list, the vector of folder names and the number of which rep to start on
-      OutputList[[i]]$folder=folderName
-      OutputList[[i]]$i=repStart[i]
-    } # end loop
-    
-    
-    
-    OutputList2=paste0(DataDir2,"/Rep_", formatC(x = 1:repetitions, width = 4, format = "d", flag = "0"), sep = "")
-    for(j in 1:repetitions){
-      if(!dir.exists(OutputList2[j])){dir.create(OutputList2[j])}else{eraseDirectoryMOD(OutputList2[j])}
-    }
-
-    ###############################################################################
-    # Run
-    ###############################################################################
-    # setup parallel cluster and run!
-    parallel::clusterExport(
-      cl=cl,
-      varlist=c("simulationTime","numNodes","bioParameters","patchPops","patchReleases","migration",
-                "AllAlleles","batchMigration", "reproductionReference", "AnalyzeQuantilesMOD2", "Population", "DataDir2", "mPlexAnalysisDir")
-    )
-    
-    
-    parallel::parLapply(cl=cl,X=OutputList,fun=function(x){
-      # set up network parameters
-      netPar = NetworkParameters(nPatch = numNodes,
-                                 simTime = simulationTime,
-                                 alleloTypes = AllAlleles,
-                                 AdPopEQ = patchPops,
-                                 runID = x$i,
-                                 dayGrowthRate = bioParameters$popGrowth,tEgg = bioParameters$tEgg,
-                                 tLarva = bioParameters$tLarva,tPupa = bioParameters$tPupa,muAd = bioParameters$muAd,
-                                 beta = bioParameters$betaK)
-      # set seed
-      randomSeed=as.integer((as.double(Sys.time())*1000+Sys.getpid()) %% 2^31)
-      # pass parameters and run
-      mPlexCpp::mPlex_runRepetitions(seed = randomSeed,networkParameters = netPar,
-                                     reproductionReference = reproductionReference,
-                                     patchReleases = patchReleases,
-                                     migrationMale = migration,
-                                     migrationFemale = migration,
-                                     migrationBatch = batchMigration,
-                                     output_directory = x$folder,
-                                     reproductionType = "mPlex_mLoci",
-                                     verbose = FALSE)
-      
-      gc()
-    })
-    
-    
-    
-    ###############################################################################################################
-    ############################### POST-ANALYSIS #################################################################
-    # create vector of just folder names from the outputList above
-    FolderVec <- c(vapply(X = OutputList, FUN = "[[", 1, FUN.VALUE = character(repsPerCore)))
-    
-    FolderList <- as.list(data.frame(rbind(FolderVec, OutputList2), stringsAsFactors = FALSE)) # combine with second list, put into nice format. Weird command
-    
-    # split output and aggregate females. seems to work in one loop, may have to split
-    parallel::parLapply(cl=cl,X=FolderList,fun=function(x){
-      mPlexCpp::splitOutput(readDirectory = x[1], numCores = 1)
-      mPlexCpp::AnalyzeOutput_mLoci_Daisy(readDirectory = x[1],saveDirectory = x[2],
-                                          genotypes = list(NULL),collapse = c(FALSE),
-                                          numCores = 1)
-      gc()
-    })
-    
-    # do analysis in parallel, over number of files to use
-    parallel::parLapply(cl=cl, X=numFileAnalysis, fun=function(x){
-      AnalyzeQuantilesMOD2(readDirectory = DataDir2,
-                           writeDirectory = mPlexAnalysisDir,
-                           numFiles = x,
-                           numPatches = numNodes,
-                           FPop = Population)
-      gc()
-    })
-    
-    
-  }# end loop over populations
-}# end loop over kernels
-
-# stop cluster
-parallel::stopCluster(cl)
-
-
-# detach packages
-detach("package:mPlexCpp", unload=TRUE)
-
-###############################################################################
-###############################################################################
-# ANALYSIS
-###############################################################################
-
-#https://stats.stackexchange.com/questions/184101/comparing-two-histograms-using-chi-square-distance
-#https://www.researchgate.net/post/What_is_chi-squared_distance_I_need_help_with_the_source_code
-# chi-squared distance metric. Compares vectors, will apply over genotypes
 X2_distance <- function(x,y){
+  # chi-squared distance metric. Compares vectors, will apply over genotypes
+  
+  #https://stats.stackexchange.com/questions/184101/comparing-two-histograms-using-chi-square-distance
+  #https://www.researchgate.net/post/What_is_chi-squared_distance_I_need_help_with_the_source_code
+  
   hold <- (x!=0) | (y!=0) # both are zero protection
   return(0.5*sum( (x[hold]-y[hold])^2/(x[hold]+y[hold]) ))
-}
+}#end function
 
-# plot function
 Plot_Data <- function(meanData, varianceData, FStatValue, fileName){
   
   ## set output
@@ -743,7 +400,373 @@ Plot_Data <- function(meanData, varianceData, FStatValue, fileName){
   # close output to file
   dev.off()
   
-}
+}#end function
+
+###############################################################################
+# Setup folder structure and shared values
+###############################################################################
+DataDir = "~/Desktop/HOLD/ComparisonData"
+DataDir2 = "~/Desktop/HOLD/ComparisonData2"
+AnalysisDir = "~/Desktop/HOLD/ComparisonAnalysis"
+MGDrivEAnalysisDir = "~/Desktop/HOLD/ComparisonAnalysis/MGDrivE"
+mPlexAnalysisDir = "~/Desktop/HOLD/ComparisonAnalysis/mPlex"
+
+
+if(!dir.exists(DataDir)){dir.create(DataDir)}else{eraseDirectoryMOD(DataDir)}
+if(!dir.exists(DataDir2)){dir.create(DataDir2)}else{eraseDirectoryMOD(DataDir2)}
+if(!dir.exists(AnalysisDir)){dir.create(AnalysisDir)}else{eraseDirectoryMOD(AnalysisDir)}
+if(!dir.exists(MGDrivEAnalysisDir)){dir.create(MGDrivEAnalysisDir)}else{eraseDirectoryMOD(MGDrivEAnalysisDir)}
+if(!dir.exists(mPlexAnalysisDir)){dir.create(mPlexAnalysisDir)}else{eraseDirectoryMOD(mPlexAnalysisDir)}
+
+
+
+
+# shared values
+FPop <- c(10,50,100,500)
+Movement <- list(matrix(data = 1,nrow = 1,ncol = 1),matrix(data = 1/9,nrow = 3,ncol = 3),matrix(data = 1/100,nrow = 10,ncol = 10))
+numFileAnalysis <- c(10,25,50,100,252)
+
+simulationTime=1000 # Number of "days" run in the simulation
+repetitions=numFileAnalysis[length(numFileAnalysis)] #252
+numCores <- 1#detectCores()/2 #should give number of real cpu cores
+
+# drive parameters, need to be shared by both
+cutting <- 0.9
+homing <- 0.9
+resistance <- 0.9
+bioParameters=list(betaK=8,tEgg=6,tLarva=11,tPupa=4,popGrowth=1.096,muAd=0.09)
+
+
+
+
+
+
+#######################################
+# Run MGDrivE
+#######################################
+
+# setup cluster
+cl=parallel::makePSOCKcluster(names=numCores, outfile = "~/Desktop/HOLD/error.out")
+parallel::clusterEvalQ(cl=cl,expr={
+  library(MGDrivE)
+  library(MGDrivEv2)
+})
+
+for(Kernel in Movement){
+  for(Population in FPop){
+    ########################################
+    # Setup Parameters for Network
+    ########################################
+    # set parameters
+    numNodes=NROW(Kernel)
+    patchPops=rep(2*Population,numNodes)
+    
+    # set cube with random interesting things
+    #eM = 0.984, eF = 0.984, rM = 0.01, bM = 0.006, rF = 0.01, bF = 0.006
+    driveCube = MGDrivE::Cube_HomingDrive(cM = cutting, cF = cutting, dF = 0,
+                                          chM = homing, crM = resistance,
+                                          chF = homing, crF = resistance,
+                                          dhF = 0, drF = 0,
+                                          omega = c("HH"=0.6, "HB"=0.6,
+                                                    "HR"=0.8, "BB"=0.6, "WH"=0.8,
+                                                    "WB"=0.8, "RB"=0.8)
+                                          )
+    
+    # movement matrix and batch migration
+    migration <- Kernel
+    batchMigration <- MGDrivE::basicBatchMigration(batchProbs = c(0.0), sexProbs = c(.5, .5), numPatches = numNodes)
+    
+    
+    # releases, male and female, ignore the egg ones cause I don't care
+    patchReleases=replicate(n=numNodes,expr={list(maleReleases=NULL,femaleReleases=NULL,eggReleases = NULL)},simplify=FALSE)
+    releasesParameters=list(
+      releasesStart=100,releasesNumber=10,releasesInterval=1,
+      releaseProportion=Population
+    )
+    maleReleasesVector1=generateReleaseVector(driveCube=driveCube,releasesParameters=releasesParameters,sex="M")
+    
+    patchReleases[[1]]$maleReleases=maleReleasesVector1
+    
+    
+    #numCores and repsPerCore have to divide to whole numbers. Basically, pay attention
+    # and balance runs so they make sense?
+    repsPerCore <- repetitions/numCores
+    repStart <- seq(1, repetitions, repetitions/numCores)
+    OutputList <- vector(mode = "list", length = numCores)
+    
+    # loop over number of cores
+    for(i in 1:numCores){
+      # vector of folder names for each core to output to
+      folderName=paste0(DataDir,"/Rep_",
+                        formatC(x = repStart[i]:(repStart[i]+repsPerCore-1), width = 4, format = "d", flag = "0"),
+                        sep = "")
+      # create the folders if they don't exist, clear them if they do
+      for(j in 1:repsPerCore){
+        if(!dir.exists(folderName[j])){dir.create(folderName[j])}else{eraseDirectoryMOD(folderName[j])}
+      }
+      # store in list, the vector of folder names and the number of which rep to start on
+      OutputList[[i]]$folder=folderName
+      OutputList[[i]]$i=repStart[i]
+    } # end loop
+    
+    
+    
+    # setup parallel cluster and run!
+    parallel::clusterExport(
+      cl=cl,
+      varlist=c("simulationTime","numNodes","bioParameters","patchPops","patchReleases",
+                "migration","driveCube","batchMigration","AnalyzeQuantilesMOD",
+                "Population","DataDir","MGDrivEAnalysisDir")
+    )
+
+    
+    
+    parallel::parLapply(cl=cl,X=OutputList,fun=function(x){
+      # set up network parameters
+      netPar=Network.Parameters(
+        runID=x$i,simTime=simulationTime,nPatch=numNodes,
+        beta=bioParameters$betaK,muAd=bioParameters$muAd,popGrowth=bioParameters$popGrowth,
+        tEgg=bioParameters$tEgg,tLarva=bioParameters$tLarva,tPupa=bioParameters$tPupa,
+        AdPopEQ=patchPops
+      )
+      # set seed
+      randomSeed=as.integer((as.double(Sys.time())*1000+Sys.getpid()) %% 2^31)
+      # pass parameters and run
+      MGDrivEv2::stochastic_multiple(seed = randomSeed,
+                                     cubeR = driveCube,
+                                     parametersR = netPar,
+                                     migrationFemaleR = migration,
+                                     migrationMaleR = migration,
+                                     migrationBatchR = batchMigration,
+                                     releasesR = patchReleases,
+                                     output = x$folder,
+                                     verbose = FALSE)
+      gc()
+    })
+    
+    
+    
+    ###############################################################################################################
+    ############################### POST-ANALYSIS #################################################################
+    # create vector of just folder names from the outputList above
+    FolderVec <- c(vapply(X = OutputList, FUN = "[[", 1, FUN.VALUE = character(repsPerCore)))
+    
+    # split output and aggregate females. seems to work in one loop, may have to split
+    parallel::parLapply(cl=cl,X=FolderVec,fun=function(x){
+      MGDrivE::splitOutput(readDir=x, writeDir = NULL, remFile = TRUE, numCores = 1)
+      MGDrivE::aggregateFemales(readDir=x, writeDir = NULL, genotypes = driveCube$genotypesID, remFile = TRUE, numCores = 1)
+      gc()
+    })
+    
+    # do analysis in parallel, over number of files to use
+    parallel::parLapply(cl=cl, X=numFileAnalysis, fun=function(x){
+      AnalyzeQuantilesMOD(readDirectory = DataDir,
+                          writeDirectory = MGDrivEAnalysisDir,
+                          numFiles = x,
+                          numPatches = numNodes,
+                          FPop = Population)
+      gc()
+    })
+    
+    
+    
+  }# end loop over populations
+}# end loop over kernels
+
+# stop cluster
+parallel::stopCluster(cl)
+
+# detach packages
+# will pull necessary functions directly from packages to keep MGDrive from 
+#  covering things in mPlex
+detach("package:MGDrivE", unload=TRUE)
+detach("package:MGDrivEv2", unload=TRUE)
+
+#######################################
+#######################################
+#######################################
+# mPLEX
+#######################################
+library(mPlexCpp)
+
+# setup cluster
+cl=parallel::makePSOCKcluster(names=numCores)
+parallel::clusterEvalQ(cl=cl,expr={
+  library(mPlexCpp)
+})
+
+for(Kernel in Movement){
+  for(Population in FPop){
+    ########################################
+    # Setup Parameters for Network
+    ########################################
+    # set parameters
+    numNodes=NROW(Kernel)
+    patchPops=rep(2*Population,numNodes)
+    
+    
+    #setup alleles to initiate patches
+    alleloTypes <- vector(mode = "list", length = 1L) #1 locus
+    alleloTypes[[1]]$alleles <- c("W")
+    alleloTypes[[1]]$probs <- c(1L)
+    
+    AllAlleles <- replicate(n = numNodes, expr = alleloTypes, simplify = FALSE)
+    
+    
+    # This sets up a basic CRISPR drive, with perfect homing and no resistance or backgorund mutation
+    reproductionReference <- mPlexCpp::MakeReference_Multiplex_mLoci(H = c(cutting),
+                                                           R = c(cutting*(1-homing)*resistance),
+                                                           S = c(cutting*(1-homing)*(1-resistance)),
+                                                           d = c(0.00),
+                                                           omega = c("HH"=0.6, "HR"=0.6,
+                                                                     "HS"=0.8, "RR"=0.6,
+                                                                     "HW"=0.8, "RW"=0.8,
+                                                                     "RS"=0.8))
+    
+    # movement matrix and batch migration
+    migration <- Kernel
+    batchMigration <- basicBatchMigration(batchProbs = 0.0, sexProbs = c(0.5,0.5), numPatches = numNodes)
+
+    
+    
+    ########################################
+    # Release Setup
+    ########################################
+    
+    # create Release List
+    patchReleases = replicate(n = numNodes,
+                              expr = list(maleReleases = NULL,
+                                          femaleReleases = NULL,
+                                          eggReleases = NULL),
+                              simplify = FALSE)
+    
+    
+    # Create release object to pass to patches
+    holdRel <- mPlexCpp::Release_basicRepeatedReleases(releaseStart = 100L,
+                                             releaseEnd = 109L,
+                                             releaseInterval = 1,
+                                             genMos = c("HH"),
+                                             numMos = c(Population),
+                                             minAge = 16L,
+                                             maxAge = 24L,
+                                             ageDist = rep(x = 1, times = 24-16+1)/9)
+    
+    patchReleases[[1]]$maleReleases <- holdRel
+    
+    ########################################
+    # Folder Setup
+    ########################################
+    #numCores and repsPerCore have to divide to whole numbers. Basically, pay attention
+    # and balance runs so they make sense?
+    repsPerCore <- repetitions/numCores
+    repStart <- seq(1, repetitions, repetitions/numCores)
+    OutputList <- vector(mode = "list", length = numCores)
+    
+    # loop over number of cores
+    for(i in 1:numCores){
+      # vector of folder names for each core to output to
+      folderName=paste0(DataDir,"/Rep_",
+                        formatC(x = repStart[i]:(repStart[i]+repsPerCore-1), width = 4, format = "d", flag = "0"),
+                        sep = "")
+      # create the folders if they don't exist, clear them if they do
+      for(j in 1:repsPerCore){
+        if(!dir.exists(folderName[j])){dir.create(folderName[j])}else{eraseDirectoryMOD(folderName[j])}
+      }
+      # store in list, the vector of folder names and the number of which rep to start on
+      OutputList[[i]]$folder=folderName
+      OutputList[[i]]$i=repStart[i]
+    } # end loop
+    
+    
+    
+    OutputList2=paste0(DataDir2,"/Rep_", formatC(x = 1:repetitions, width = 4, format = "d", flag = "0"), sep = "")
+    for(j in 1:repetitions){
+      if(!dir.exists(OutputList2[j])){dir.create(OutputList2[j])}else{eraseDirectoryMOD(OutputList2[j])}
+    }
+
+    ########################################
+    # Run
+    ########################################
+    # setup parallel cluster and run!
+    parallel::clusterExport(
+      cl=cl,
+      varlist=c("simulationTime","numNodes","bioParameters","patchPops","patchReleases",
+                "migration","AllAlleles","batchMigration","reproductionReference",
+                "AnalyzeQuantilesMOD2","Population","DataDir2","mPlexAnalysisDir")
+    )
+    
+    
+    parallel::parLapply(cl=cl,X=OutputList,fun=function(x){
+      # set up network parameters
+      netPar = NetworkParameters(nPatch = numNodes,
+                                 simTime = simulationTime,
+                                 alleloTypes = AllAlleles,
+                                 AdPopEQ = patchPops,
+                                 runID = x$i,
+                                 dayGrowthRate = bioParameters$popGrowth,tEgg = bioParameters$tEgg,
+                                 tLarva = bioParameters$tLarva,tPupa = bioParameters$tPupa,muAd = bioParameters$muAd,
+                                 beta = bioParameters$betaK)
+      # set seed
+      randomSeed=as.integer((as.double(Sys.time())*1000+Sys.getpid()) %% 2^31)
+      # pass parameters and run
+      mPlexCpp::mPlex_runRepetitions(seed = randomSeed,networkParameters = netPar,
+                                     reproductionReference = reproductionReference,
+                                     patchReleases = patchReleases,
+                                     migrationMale = migration,
+                                     migrationFemale = migration,
+                                     migrationBatch = batchMigration,
+                                     output_directory = x$folder,
+                                     reproductionType = "mPlex_mLoci",
+                                     verbose = FALSE)
+      
+      gc()
+    })
+    
+    
+    
+    ###############################################################################################################
+    ############################### POST-ANALYSIS #################################################################
+    # create vector of just folder names from the outputList above
+    FolderVec <- c(vapply(X = OutputList, FUN = "[[", 1, FUN.VALUE = character(repsPerCore)))
+    
+    FolderList <- as.list(data.frame(rbind(FolderVec, OutputList2), stringsAsFactors = FALSE)) # combine with second list, put into nice format. Weird command
+    
+    # split output and aggregate females. seems to work in one loop, may have to split
+    parallel::parLapply(cl=cl,X=FolderList,fun=function(x){
+      mPlexCpp::splitOutput(readDirectory = x[1], numCores = 1)
+      mPlexCpp::AnalyzeOutput_mLoci_Daisy(readDirectory = x[1],saveDirectory = x[2],
+                                          genotypes = list(NULL),collapse = c(FALSE),
+                                          numCores = 1)
+      gc()
+    })
+    
+    # do analysis in parallel, over number of files to use
+    parallel::parLapply(cl=cl, X=numFileAnalysis, fun=function(x){
+      AnalyzeQuantilesMOD2(readDirectory = DataDir2,
+                           writeDirectory = mPlexAnalysisDir,
+                           numFiles = x,
+                           numPatches = numNodes,
+                           FPop = Population)
+      gc()
+    })
+    
+    
+  }# end loop over populations
+}# end loop over kernels
+
+# stop cluster
+parallel::stopCluster(cl)
+
+
+# detach packages
+detach("package:mPlexCpp", unload=TRUE)
+
+
+
+###############################################################################
+###############################################################################
+# ANALYSIS
+###############################################################################
 
 
 
