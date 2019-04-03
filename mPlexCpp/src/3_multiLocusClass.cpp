@@ -110,6 +110,7 @@ void multiLocus::reset_Patch(){
   larva.clear();
   minAge = parameters::instance().get_stage_time(0)+1;
   
+  ageDist.clear();
   int counter(0);
    for(int power = minAge; power <= parameters::instance().get_stage_sum(1); ++power, counter+=2){
      ageDist.push_back(std::pow(1.0-parameters::instance().get_mu(1), counter));
