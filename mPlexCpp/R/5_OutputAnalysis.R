@@ -44,6 +44,11 @@ eraseDirectory <- function(directory){
 #' @return *.csv files for each patch
 #' @export
 splitOutput <- function(readDirectory, saveDirectory=NULL, remFile=TRUE, numCores=1){
+  
+  # set cores for data.table
+  #  There is lots of internal multithreading now, tis a problem.
+  oCores <- data.table::setDTthreads(threads = numCores, restore_after_fork = FALSE)
+  
   # get all files in directory
   dirFiles = list.files(path = readDirectory, pattern = ".*\\.csv$")
   
@@ -64,7 +69,7 @@ splitOutput <- function(readDirectory, saveDirectory=NULL, remFile=TRUE, numCore
     # Read in files
     fileIn = data.table::fread(input = file.path(readDirectory, file), sep = ",",
                                header = TRUE, verbose = FALSE, showProgress = FALSE,
-                               data.table = TRUE,nThread = numCores,
+                               data.table = TRUE, stringsAsFactors = FALSE,
                                logical01 = FALSE, key = "Patch")
     
     # progress bar stuff
@@ -82,8 +87,8 @@ splitOutput <- function(readDirectory, saveDirectory=NULL, remFile=TRUE, numCore
       
       data.table::fwrite(x = fileIn[J(patch)][ ,Patch:=NULL],
                          file = file.path(saveDirectory,fileName), 
-                         logical01 = FALSE, showProgress = FALSE, verbose = FALSE,
-                         nThread = numCores)
+                         logical01 = FALSE, showProgress = FALSE,
+                         verbose = FALSE)
       
       # some indication that it's working
       pbVal = pbVal+1
@@ -94,6 +99,10 @@ splitOutput <- function(readDirectory, saveDirectory=NULL, remFile=TRUE, numCore
     if(remFile){file.remove(file.path(readDirectory, file))}
     
   } # end file loop
+  
+  # reset number of cores (if set for some other reason)
+  setDTthreads(threads = oCores)
+  
 } # end function
 
 ###############################################################################
@@ -116,6 +125,10 @@ splitOutput <- function(readDirectory, saveDirectory=NULL, remFile=TRUE, numCore
 AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory,
                                       genotypes, collapse, numCores){
   
+  # set cores for data.table
+  #  There is lots of internal multithreading now, tis a problem.
+  oCores <- data.table::setDTthreads(threads = numCores, restore_after_fork = FALSE)
+  
   # Check save directory
   if(saveDirectory == readDirectory){
     stop("Please create a save directory in a new directory.")
@@ -128,7 +141,7 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory,
   # import one file:get simTime, check genotypes for safety checks
   testFile <- data.table::fread(input = file.path(readDirectory, dirFiles[1]), sep = ",",
                                 header = TRUE, verbose = FALSE, showProgress = FALSE,
-                                data.table = TRUE, nThread = numCores,
+                                data.table = TRUE, stringsAsFactors = FALSE,
                                 logical01 = FALSE, drop = c("Age","Mate"))
   
   simTime <- data.table::uniqueN(testFile$Time)
@@ -188,13 +201,13 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory,
     # female file, drop patch number, key the time
     fFile = data.table::fread(input = file.path(readDirectory, names[1]), sep = ",",
                               header = TRUE, verbose = FALSE, showProgress = FALSE,
-                              data.table = TRUE, nThread = numCores,
+                              data.table = TRUE, stringsAsFactors = FALSE,
                               logical01 = FALSE, drop = c("Age","Mate"), key = "Time")
     
     # male file, drop patch number, key the time
     mFile = data.table::fread(input = file.path(readDirectory, names[2]), sep = ",",
                               header = TRUE, verbose = FALSE, showProgress = FALSE,
-                              data.table = TRUE, nThread = numCores,
+                              data.table = TRUE, stringsAsFactors = FALSE,
                               logical01 = FALSE, drop = "Age", key = "Time")
     
     # at <150,000 rows, subsetting on data frames is faster
@@ -248,6 +261,10 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory,
     mMatrix[loopTime, "Total Pop."] = fMatrix[loopTime, "Total Pop."] = 0
     
   } # end patch loop
+  
+  # reset number of cores (if set for some other reason)
+  setDTthreads(threads = oCores)
+  
 } # end function
 
 #' Analyze output for mPlex-oLocus
@@ -266,6 +283,10 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory,
 AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory,
                                  alleles, collapse, numCores=1){
   
+  # set cores for data.table
+  #  There is lots of internal multithreading now, tis a problem.
+  oCores <- data.table::setDTthreads(threads = numCores, restore_after_fork = FALSE)
+  
   # Check save directory
   if(saveDirectory == readDirectory){
     stop("Please create a save directory in a new directory.")
@@ -278,7 +299,7 @@ AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory,
   # import one file:get simTime, check genotypes for safety checks
   testFile <- data.table::fread(input = file.path(readDirectory, dirFiles[1]), sep = ",",
                                 header = TRUE, verbose = FALSE, showProgress = FALSE,
-                                data.table = TRUE, nThread = numCores,
+                                data.table = TRUE, stringsAsFactors = FALSE,
                                 logical01 = FALSE, drop = c("Age","Mate"))
   
   simTime <- data.table::uniqueN(testFile$Time)
@@ -348,13 +369,13 @@ AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory,
     # female file, drop patch number, key the time
     fFile = data.table::fread(input = file.path(readDirectory, names[1]), sep = ",",
                               header = TRUE, verbose = FALSE, showProgress = FALSE,
-                              data.table = TRUE, nThread = numCores,
+                              data.table = TRUE, stringsAsFactors = FALSE,
                               logical01 = FALSE, drop = c("Age","Mate"), key = "Time")
     
     # male file, drop patch number, key the time
     mFile = data.table::fread(input = file.path(readDirectory, names[2]), sep = ",",
                               header = TRUE, verbose = FALSE, showProgress = FALSE,
-                              data.table = TRUE, nThread = numCores,
+                              data.table = TRUE, stringsAsFactors = FALSE,
                               logical01 = FALSE, drop = "Age", key = "Time")
     
     # at <150,000 rows, subsetting on data frames is faster
@@ -408,6 +429,10 @@ AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory,
     mMatrix[loopTime, "Total Pop."] = fMatrix[loopTime, "Total Pop."] = 0
     
   } # end patch loop
+  
+  # reset number of cores (if set for some other reason)
+  setDTthreads(threads = oCores)
+  
 } # end function
 
 ###############################################################################
@@ -459,14 +484,14 @@ Plot_mPlex <- function(directory, whichPatches = NULL, totalPop = TRUE){
   patches = unique(x = regmatches(x = dirFiles, m = regexpr(pattern = "Patch[0-9]+", text = dirFiles)))
 
   # check if user chose specific patches
-  if(length(patches)>14){
-    stop("Theere are more than 15 patches in the simulation.
+  if(length(patches)>15 && is.null(whichPatches)){
+    stop("There are more than 15 patches in the simulation.
          Please select less than 15 to plot.")
   }
   if(!is.null(whichPatches)){
     # make sure not too many. I dont' know what that number is, but at some point
     #  the plotting function breaks down.
-    if(length(whichPatches)>14){
+    if(length(whichPatches)>15){
       stop("Please select less than 15 patches.")
     }
     # select the patches, if they select less than the total number of patches.

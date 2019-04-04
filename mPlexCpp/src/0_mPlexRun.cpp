@@ -10,7 +10,7 @@
 #include <progress.hpp>
 #include <progress_bar.hpp>
 
-#include <gperftools/profiler.h>
+//#include <gperftools/profiler.h>
 
 #include <Rcpp.h>
 
@@ -52,7 +52,7 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
   
   #ifdef BASE_PROFILER_H_
     // make sure to change path!!! But keep file name.
-    ProfilerStart("/home/jared/Desktop/HOLD/profile.log");
+    ProfilerStart("/home/jared/Desktop/OUTPUT/profile.log");
   #endif
   
   
@@ -280,8 +280,6 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
   Progress pb(tMax-1,verbose);
   
   
-  double males(0), eggs(0);
-  
   while(parameters::instance().get_t_now() < tMax){
     
     // test for user interrupt
@@ -290,15 +288,6 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
     // Independent daily operations
     for(auto& it : patches){
       it->oneDay_popDynamics();
-      
-      // Rcpp::Rcout << "Population Info day " << parameters::instance().get_t_now() << std::endl;
-      // Rcpp::Rcout <<"\tEggs: " << it->get_eggs().size() << std::endl;
-      // Rcpp::Rcout <<"\tLarva: " << it->get_larva().size() << std::endl;
-      // Rcpp::Rcout <<"\tPupa: " << it->get_larva().size() << std::endl;
-      // Rcpp::Rcout <<"\tMales: " << it->get_adult_male().size() << std::endl;
-      // Rcpp::Rcout <<"\tFemales: "<<it->get_adult_female().size() << std::endl;
-      
-      
     }
     
     
@@ -316,10 +305,6 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
       it->oneDay_writeOutput(ADM_output, ADF_output);
     }
     
-    
-    // test shit for fun
-    males += patches[0]->get_adult_male().size();
-    eggs += patches[0]->get_eggs().size();
     
     // increment time and progress
     parameters::instance().increment_t_now();

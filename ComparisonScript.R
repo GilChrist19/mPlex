@@ -405,11 +405,11 @@ Plot_Data <- function(meanData, varianceData, FStatValue, fileName){
 ###############################################################################
 # Setup folder structure and shared values
 ###############################################################################
-DataDir = "~/Desktop/HOLD/ComparisonData"
-DataDir2 = "~/Desktop/HOLD/ComparisonData2"
-AnalysisDir = "~/Desktop/HOLD/ComparisonAnalysis"
-MGDrivEAnalysisDir = "~/Desktop/HOLD/ComparisonAnalysis/MGDrivE"
-mPlexAnalysisDir = "~/Desktop/HOLD/ComparisonAnalysis/mPlex"
+DataDir = "~/Desktop/OUTPUT/ComparisonData"
+DataDir2 = "~/Desktop/OUTPUT/ComparisonData2"
+AnalysisDir = "~/Desktop/OUTPUT/ComparisonAnalysis"
+MGDrivEAnalysisDir = "~/Desktop/OUTPUT/ComparisonAnalysis/MGDrivE"
+mPlexAnalysisDir = "~/Desktop/OUTPUT/ComparisonAnalysis/mPlex"
 
 
 if(!dir.exists(DataDir)){dir.create(DataDir)}else{eraseDirectoryMOD(DataDir)}
@@ -426,7 +426,7 @@ FPop <- c(10,50,100,500)
 Movement <- list(matrix(data = 1,nrow = 1,ncol = 1),matrix(data = 1/9,nrow = 3,ncol = 3),matrix(data = 1/100,nrow = 10,ncol = 10))
 numFileAnalysis <- c(10,25,50,100,252)
 
-simulationTime=1000 # Number of "days" run in the simulation
+simulationTime=200 # Number of "days" run in the simulation
 repetitions=numFileAnalysis[length(numFileAnalysis)] #252
 numCores <- 1#detectCores()/2 #should give number of real cpu cores
 
@@ -434,7 +434,7 @@ numCores <- 1#detectCores()/2 #should give number of real cpu cores
 cutting <- 0.9
 homing <- 0.9
 resistance <- 0.9
-bioParameters=list(betaK=8,tEgg=6,tLarva=11,tPupa=4,popGrowth=1.096,muAd=0.09)
+bioParameters=list(betaK=20,tEgg=6,tLarva=11,tPupa=4,popGrowth=1.096,muAd=0.09)
 
 
 
@@ -446,7 +446,7 @@ bioParameters=list(betaK=8,tEgg=6,tLarva=11,tPupa=4,popGrowth=1.096,muAd=0.09)
 #######################################
 
 # setup cluster
-cl=parallel::makePSOCKcluster(names=numCores, outfile = "~/Desktop/HOLD/error.out")
+cl=parallel::makePSOCKcluster(names=numCores, outfile = "~/Desktop/OUTPUT/error.out")
 parallel::clusterEvalQ(cl=cl,expr={
   library(MGDrivE)
   library(MGDrivEv2)

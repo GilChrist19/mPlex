@@ -112,7 +112,7 @@ void oneLocus::reset_Patch(){
   }
   
   CreateMosquitoes2Loci(parameters::instance().get_larva_eq(patchID),
-                          minAge, ageDist, reference::instance().get_alleloTypes(patchID), larva);
+                        minAge, ageDist, reference::instance().get_alleloTypes(patchID), larva);
   
   // pupa
   pupa.clear();

@@ -24,19 +24,19 @@ library(mPlexRCpp)
 # Setup Parameters for Network
 ###############################################################################
 
-migration = diag(5) #matrix(data = c(0.99, 0, 0.05, 0.05, 0, 0.99, 0.05, 0.5, 0.03,0.03,0.99,0.04, 0.02,0.04,0.04,0.99), nrow = 4, ncol = 4, byrow = TRUE) #migration matrix
+migration = diag(3) #matrix(data = c(0.99, 0, 0.05, 0.05, 0, 0.99, 0.05, 0.5, 0.03,0.03,0.99,0.04, 0.02,0.04,0.04,0.99), nrow = 4, ncol = 4, byrow = TRUE) #migration matrix
 N = nrow(migration) #number of patches
 patchPops = rep(50L,N) #population of eachpatch
-directory <- "~/Desktop/HOLD/mPlex/"
+directory <- "~/Desktop/OUTPUT/mPlex/"
 
     #setup alleles to initiate patches
-alleloTypes <- vector(mode = "list", length = 3L) #3 loci
+alleloTypes <- vector(mode = "list", length = 2L) #3 loci
 alleloTypes[[1]]$alleles <- c("W")
 alleloTypes[[1]]$probs <- c(1L)
 alleloTypes[[2]]$alleles <- c("W","H")
 alleloTypes[[2]]$probs <- c(1,0)
-alleloTypes[[3]]$alleles <- c("W","H")
-alleloTypes[[3]]$probs <- c(1,0)
+# alleloTypes[[3]]$alleles <- c("W","H")
+# alleloTypes[[3]]$probs <- c(1,0)
 
 AllAlleles <- replicate(n = N, expr = alleloTypes, simplify = FALSE)
 
@@ -52,7 +52,7 @@ AllAlleles <- replicate(n = N, expr = alleloTypes, simplify = FALSE)
 #these numbers are made up. Just need them all the same length, and that length
 # must match the length of AlleloTypes
 s_frac <- vector(mode = "list", length = length(alleloTypes))
-s_frac[[1]] <- list("HHHH"=0)
+s_frac[[1]] <- list("HHHH"=1)
 reproductionReference <- MakeReference_DaisyDrive(H = c(0.98, 0.5),
                                                   R = c(0.0001, 0.0001),
                                                   S = c(0.0003, 0.004),
@@ -75,7 +75,7 @@ patchReleases = replicate(n = N,
 holdRel <- Release_basicRepeatedReleases(releaseStart = 500L,
                                                                  releaseEnd = 510L,
                                                                  releaseInterval = 2L,
-                                                                 genMos = c("HH"),
+                                                                 genMos = c("HHHH"),
                                                                  numMos = c(50L),
                                                                  minAge = 16L,
                                                                  maxAge = 24L,
@@ -85,7 +85,7 @@ holdRel <- Release_basicRepeatedReleases(releaseStart = 500L,
 holdRel2 <- Release_basicRepeatedReleases(releaseStart = 600L,
                                          releaseEnd = 610L,
                                          releaseInterval = 2L,
-                                         genMos = c("SS"),
+                                         genMos = c("SSSS"),
                                          numMos = c(10L),
                                          minAge = 16L,
                                          maxAge = 24L,
@@ -145,12 +145,12 @@ network$reset()
 ###############################################################################
 splitOutput(directory = directory)
 AnalyzeOutput_mLoci_Daisy(readDirectory = directory,
-                          saveDirectory = "~/Desktop/HOLD/mPlex/",
+                          saveDirectory = "~/Desktop/OUTPUT/mPlex/",
                           fileName = "ProfileTest",
-                          genotypes = list(NULL),
-                          collapse = c(F))
+                          genotypes = list(c(NULL),c(NULL)),
+                          collapse = c(F,T))
 
-Plot_mPlex(file = "/home/jared/Desktop/HOLD/mPlex/20180530_Run1_ProfileTest.rds", totalPop = F)
+Plot_mPlex(file = "/home/jared/Desktop/OUTPUT/mPlex/20190404_Run1_ProfileTest.rds", totalPop = T)
 
 
 

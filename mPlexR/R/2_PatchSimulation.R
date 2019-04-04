@@ -209,7 +209,7 @@ oneDay_EggMature_Patch <- function(){
     private$matured <- vapply(X = private$eggs, FUN = '[[', "age", FUN.VALUE = integer(length = 1L))
 
     #see who does mature
-    private$matured <- private$matured > private$ages
+    private$matured <- private$matured >= private$ages
 
     #put matured eggs into larva
     private$larva <- c(private$larva, private$eggs[private$matured])
@@ -242,7 +242,7 @@ oneDay_LarvaMature_Patch <- function(){
     private$matured <- vapply(X = private$larva, FUN = '[[', "age", FUN.VALUE = integer(length = 1L))
 
     #see who does mature
-    private$matured <- private$matured > private$ages
+    private$matured <- private$matured >= private$ages
 
     #put matured eggs into larva
     private$pupa <- c(private$pupa, private$larva[private$matured])
@@ -274,18 +274,26 @@ oneDay_PupaMature_Patch <- function(){
 
     private$ages <- sum(private$NetworkPointer$get_stageTime(stage = c("E", "L", "P")) )
 
-    #get ages
+    # get ages
     private$matured <- vapply(X = private$pupa, FUN = '[[', "age", FUN.VALUE = integer(length = 1L))
 
-    #see who does mature
-    private$matured <- private$matured > private$ages
+    # see who does mature
+    private$matured <- private$matured >= private$ages
+
+    # get index of those that matured, so we can kill/live them
+    matured_ix <- which(private$matured)
+
+    # kill some (actually get the ones that survive)
+    matured_ix <- matured_ix[as.logical(rbinom(n = length(matured_ix),
+                                               size = 1,
+                                               prob = 1-private$NetworkPointer$get_mu("A")))]
 
     #binomial over sex. Need to add genotype deviance
-    sex <- as.logical(rbinom(n = sum(private$matured), size = 1, prob = 0.5))
+    sex <- as.logical(rbinom(n = length(matured_ix), size = 1, prob = 0.5))
 
     #if true, make an unmated female, otherwise, make male
-    private$unmated_female <- c(private$unmated_female, private$pupa[private$matured][sex])
-    private$adult_male <- c(private$adult_male, private$pupa[private$matured][!sex])
+    private$unmated_female <- c(private$unmated_female, private$pupa[matured_ix][sex])
+    private$adult_male <- c(private$adult_male, private$pupa[matured_ix][!sex])
 
     #remove matured eggs from eggs
     private$pupa[private$matured] <- NULL

@@ -161,11 +161,12 @@ void Patch::oneDay_larvaDeathAge(){
   
   holdInt = parameters::instance().get_stage_time(1);
   holdDbl = parameters::instance().get_alpha(patchID);
-  holdDbl = std::pow(holdDbl/(holdDbl + larva.size()), 1.0/holdInt);
+  holdDbl = std::pow(holdDbl/(holdDbl + larva.size()), 1.0/holdInt );
   holdDbl = 1.0-holdDbl*(1.0-parameters::instance().get_mu(1));
   
   // set bernoulli
   prng::instance().set_cBern(holdDbl);
+  
 
   // Loop over all larva in the vector
   for(auto it = larva.rbegin(); it != larva.rend(); ++it){
@@ -173,10 +174,11 @@ void Patch::oneDay_larvaDeathAge(){
     if(prng::instance().get_cBern() ){
       std::swap(*it, larva.back());
       larva.pop_back();
-    } else
+    } else {
       it->age_one_day();
+    }
   } // end loop
-
+  
 }
 
 void Patch::oneDay_pupaDeathAge(){
@@ -237,14 +239,23 @@ void Patch::oneDay_pupaMaturation(){
   
   holdInt = parameters::instance().get_stage_sum(2);
   
+  // set bernoulli
+  prng::instance().set_cBern(parameters::instance().get_mu(3));
+  
   // Loop over all pupa in the vector
   for(auto it = pupa.rbegin(); it != pupa.rend(); ++it){
     
     // If it is your time, we move in
-    if(it->get_age() > holdInt){
+    if(it->get_age() >= holdInt){
       
-      // gender mill, mwuahahahaha
-      if(prng::instance().get_rBern(reference::instance().get_phi(it->get_genotype())) ){
+      // one extra death probability, in the math
+      if(prng::instance().get_cBern() ){
+        // death!
+        std::swap(*it, pupa.back());
+        pupa.pop_back();
+        
+        // gender mill, mwuahahahaha
+      } else if(prng::instance().get_rBern(reference::instance().get_phi(it->get_genotype())) ){
         // female!
         // check if it actually makes it
         if(prng::instance().get_rBern(reference::instance().get_xiF(it->get_genotype())) ){
@@ -280,7 +291,7 @@ void Patch::oneDay_larvaMaturation(){
   // Loop over all larva in the vector
   for(auto it = larva.rbegin(); it != larva.rend(); ++it){
     // If it is your time, swap and remove
-    if(it->get_age() > holdInt){
+    if(it->get_age() >= holdInt){
       // put maturing egg into larva
       pupa.push_back(*it);
       // swap position and remove egg
@@ -298,7 +309,7 @@ void Patch::oneDay_eggMaturation(){
   // Loop over all eggs in the vector
   for(auto it = eggs.rbegin(); it != eggs.rend(); ++it){
     // If it is your time, swap and remove
-    if(it->get_age() > holdInt){
+    if(it->get_age() >= holdInt){
       // put maturing egg into larva
       larva.push_back(*it);
       // swap position and remove egg
@@ -329,7 +340,7 @@ void Patch::oneDay_mating(){
     prng::instance().set_oneSample(genProbs);
 
     // loop over unmated females
-    for(auto it= unmated_female.rbegin(); it != unmated_female.rend(); ++it){
+    for(auto it = unmated_female.rbegin(); it != unmated_female.rend(); ++it){
       //get and set mate
       mateName = genNames[prng::instance().get_oneSample()];
       it->set_mate(mateName);

@@ -29,15 +29,15 @@ library(mPlexCpp)
 # Setup Parameters for Network
 ###############################################################################
 
-numPatch <- 1
+numPatch <- 15
 set.seed(10)
 migration <- matrix(data = runif(numPatch*numPatch), nrow = numPatch, ncol = numPatch)
 migration <- migration/rowSums(migration)
 
 patchPops = rep(600L,numPatch)
 
-directory1 = "~/Desktop/HOLD/mPlex/"
-directory2 <- "~/Desktop/HOLD/MGDrivEHOLD/"
+directory1 = "~/Desktop/OUTPUT/mPlex/"
+directory2 <- "~/Desktop/OUTPUT/MGDrivEHOLD/"
 
 #setup alleles to initiate patches
 alleloTypes <- vector(mode = "list", length = 1L) #1 locus
@@ -113,7 +113,7 @@ netPar = NetworkParameters(nPatch = numPatch,
 
 migrationBatch <- basicBatchMigration(numPatches = numPatch)
 
-system.time(
+sTime <- Sys.time()
 mPlex_oneRun(seed = 10,
              networkParameters = netPar,
              reproductionReference = reproductionReference,
@@ -124,12 +124,12 @@ mPlex_oneRun(seed = 10,
              output_directory = directory1,
              reproductionType = "mPlex_mLoci",
              verbose = TRUE)
-)
-
+eTime <- Sys.time()
+difftime(time1 = eTime, time2 = sTime)
 
 
 # split the output by patch
-splitOutput(readDirectory = directory1, numCores = 1)
+splitOutput(readDirectory = directory1, numCores = 1, remFile = TRUE)
 
 # aggregate by genotype.
 AnalyzeOutput_mLoci_Daisy(readDirectory = directory1,
@@ -139,7 +139,7 @@ AnalyzeOutput_mLoci_Daisy(readDirectory = directory1,
                           numCores = 1)
 
 # plot for example
-Plot_mPlex(directory = directory2, whichPatches = NULL, totalPop = TRUE)
+Plot_mPlex(directory = directory2, whichPatches = 1:10, totalPop = TRUE)
 
 # see profiling if done
 

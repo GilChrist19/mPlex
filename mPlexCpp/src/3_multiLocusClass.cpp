@@ -110,10 +110,11 @@ void multiLocus::reset_Patch(){
   larva.clear();
   minAge = parameters::instance().get_stage_time(0)+1;
   
+  ageDist.clear();
   int counter(0);
-   for(int power = minAge; power <= parameters::instance().get_stage_sum(1); ++power, counter+=2){
-     ageDist.push_back(std::pow(1.0-parameters::instance().get_mu(1), counter));
-   }
+  for(int power = minAge; power <= parameters::instance().get_stage_sum(1); ++power, counter+=2){
+    ageDist.push_back(std::pow(1.0-parameters::instance().get_mu(1), counter));
+  }
   
   CreateMosquitoes2Allele(parameters::instance().get_larva_eq(patchID),
                           minAge, ageDist, reference::instance().get_alleloTypes(patchID), larva);
@@ -155,7 +156,7 @@ void multiLocus::oneDay_layEggs(){
     // get number of new offspring based on genotype and poisson randomness
     index = prng::instance().get_rpois(parameters::instance().get_beta()
                                               * reference::instance().get_s(female.get_genotype()));
-
+    
     // pull eggs over offspring probs
     newEggs = prng::instance().get_rmultinom_online(index, finalProbs);
     
@@ -165,6 +166,7 @@ void multiLocus::oneDay_layEggs(){
         eggs.emplace_back(Mosquito(0, finalGenotypes[eggIndex]));
       } // end loop over number of eggs per genotype
     } // end loop over newEggs vector
+    
   } // end loop over females
   
 }
