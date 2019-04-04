@@ -60,7 +60,7 @@ public:
         const Rcpp::List& maleReleases_,
         const Rcpp::List& femaleReleases_,
         const Rcpp::List& eggReleases_);
-  ~Patch();
+  virtual ~Patch();
 
   /* delete all copy semantics: ensures we get legible compile-time errors if we do something stupid */
   Patch(const Patch&) = delete;
