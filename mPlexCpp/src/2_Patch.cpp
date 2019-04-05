@@ -550,19 +550,17 @@ void Patch::oneDay_migrationIn(const popVec& male, const popVec& female){
 void Patch::init_output(std::ofstream& ADM_log, std::ofstream& ADF_log){
   
   // write headers
-  if(patchID == 0){
-    ADM_log << "Time,Patch,Age,Genotype\n";
-    ADF_log << "Time,Patch,Age,Genotype,Mate\n";
-  }
+  ADM_log << "Time,Age,Genotype\n";
+  ADF_log << "Time,Age,Genotype,Mate\n";
   
   // write males
   for(auto& mos : adult_male){
-    ADM_log << parameters::instance().get_t_now() <<  "," << patchID << "," << mos.print_male();
+    ADM_log << parameters::instance().get_t_now() << "," << mos.print_male();
   }
   
   // write unmated females
   for(auto& mos : unmated_female){
-    ADF_log << parameters::instance().get_t_now() <<  "," << patchID << "," << mos.print_female();
+    ADF_log << parameters::instance().get_t_now() << "," << mos.print_female();
   }
   
 }
@@ -573,20 +571,20 @@ void Patch::oneDay_writeOutput(std::ofstream& ADM_log, std::ofstream& ADF_log){
   // write males
   if(!adult_male.empty()){
     for(auto& mos : adult_male){
-      ADM_log << parameters::instance().get_t_now() <<  "," << patchID << "," << mos.print_male();
+      ADM_log << parameters::instance().get_t_now() << "," << mos.print_male();
     }
   } else {
-    ADM_log << parameters::instance().get_t_now() <<  "," << patchID << ",,\n";
+    ADM_log << parameters::instance().get_t_now() << ",,\n";
   }
 
   
   // write adult females
   if(!adult_female.empty()){
     for(auto& mos : adult_female){
-      ADF_log << parameters::instance().get_t_now() <<  "," << patchID << "," << mos.print_female();
+      ADF_log << parameters::instance().get_t_now() << "," << mos.print_female();
     }
   } else {
-    ADF_log << parameters::instance().get_t_now() <<  "," << patchID << ",,,\n";
+    ADF_log << parameters::instance().get_t_now() << ",,,\n";
   }
 
 }

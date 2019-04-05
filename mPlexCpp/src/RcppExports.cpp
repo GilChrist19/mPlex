@@ -6,40 +6,41 @@
 using namespace Rcpp;
 
 // run_mPlex_Cpp
-void run_mPlex_Cpp(const uint_least32_t& seed, const Rcpp::List& networkParameters_, const Rcpp::List& reproductionReference_, const Rcpp::List& patchReleases_, const Rcpp::NumericMatrix& migrationMale_, const Rcpp::NumericMatrix& migrationFemale_, const Rcpp::List& migrationBatch_, const std::string& output_directory, const std::string& reproductionType_, const bool& verbose);
-RcppExport SEXP _mPlexCpp_run_mPlex_Cpp(SEXP seedSEXP, SEXP networkParameters_SEXP, SEXP reproductionReference_SEXP, SEXP patchReleases_SEXP, SEXP migrationMale_SEXP, SEXP migrationFemale_SEXP, SEXP migrationBatch_SEXP, SEXP output_directorySEXP, SEXP reproductionType_SEXP, SEXP verboseSEXP) {
+void run_mPlex_Cpp(const uint_least32_t& seed_, const Rcpp::List& networkParameters_, const Rcpp::List& reproductionReference_, const Rcpp::List& patchReleases_, const Rcpp::NumericMatrix& migrationMale_, const Rcpp::NumericMatrix& migrationFemale_, const Rcpp::List& migrationBatch_, const std::string& outputDirectory_, const std::string& reproductionType_, const bool& verbose_);
+RcppExport SEXP _mPlexCpp_run_mPlex_Cpp(SEXP seed_SEXP, SEXP networkParameters_SEXP, SEXP reproductionReference_SEXP, SEXP patchReleases_SEXP, SEXP migrationMale_SEXP, SEXP migrationFemale_SEXP, SEXP migrationBatch_SEXP, SEXP outputDirectory_SEXP, SEXP reproductionType_SEXP, SEXP verbose_SEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const uint_least32_t& >::type seed(seedSEXP);
+    Rcpp::traits::input_parameter< const uint_least32_t& >::type seed_(seed_SEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type networkParameters_(networkParameters_SEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type reproductionReference_(reproductionReference_SEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type patchReleases_(patchReleases_SEXP);
     Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type migrationMale_(migrationMale_SEXP);
     Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type migrationFemale_(migrationFemale_SEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type migrationBatch_(migrationBatch_SEXP);
-    Rcpp::traits::input_parameter< const std::string& >::type output_directory(output_directorySEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type outputDirectory_(outputDirectory_SEXP);
     Rcpp::traits::input_parameter< const std::string& >::type reproductionType_(reproductionType_SEXP);
-    Rcpp::traits::input_parameter< const bool& >::type verbose(verboseSEXP);
-    run_mPlex_Cpp(seed, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, output_directory, reproductionType_, verbose);
+    Rcpp::traits::input_parameter< const bool& >::type verbose_(verbose_SEXP);
+    run_mPlex_Cpp(seed_, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, outputDirectory_, reproductionType_, verbose_);
     return R_NilValue;
 END_RCPP
 }
 // run_mPlex_Cpp_repetitions
-void run_mPlex_Cpp_repetitions(const uint_least32_t& seed, const Rcpp::List& networkParameters_, const Rcpp::List& reproductionReference_, const Rcpp::List& patchReleases_, const Rcpp::NumericMatrix& migrationMale_, const Rcpp::NumericMatrix& migrationFemale_, const Rcpp::List& migrationBatch_, const std::vector<std::string>& output_directory, const std::string& reproductionType_, const bool& verbose);
-RcppExport SEXP _mPlexCpp_run_mPlex_Cpp_repetitions(SEXP seedSEXP, SEXP networkParameters_SEXP, SEXP reproductionReference_SEXP, SEXP patchReleases_SEXP, SEXP migrationMale_SEXP, SEXP migrationFemale_SEXP, SEXP migrationBatch_SEXP, SEXP output_directorySEXP, SEXP reproductionType_SEXP, SEXP verboseSEXP) {
+void run_mPlex_Cpp_repetitions(const uint_least32_t& seed_, const uint_least32_t& numReps_, const Rcpp::List& networkParameters_, const Rcpp::List& reproductionReference_, const Rcpp::List& patchReleases_, const Rcpp::NumericMatrix& migrationMale_, const Rcpp::NumericMatrix& migrationFemale_, const Rcpp::List& migrationBatch_, const std::string& outputDirectory_, const std::string& reproductionType_, const bool& verbose_);
+RcppExport SEXP _mPlexCpp_run_mPlex_Cpp_repetitions(SEXP seed_SEXP, SEXP numReps_SEXP, SEXP networkParameters_SEXP, SEXP reproductionReference_SEXP, SEXP patchReleases_SEXP, SEXP migrationMale_SEXP, SEXP migrationFemale_SEXP, SEXP migrationBatch_SEXP, SEXP outputDirectory_SEXP, SEXP reproductionType_SEXP, SEXP verbose_SEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const uint_least32_t& >::type seed(seedSEXP);
+    Rcpp::traits::input_parameter< const uint_least32_t& >::type seed_(seed_SEXP);
+    Rcpp::traits::input_parameter< const uint_least32_t& >::type numReps_(numReps_SEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type networkParameters_(networkParameters_SEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type reproductionReference_(reproductionReference_SEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type patchReleases_(patchReleases_SEXP);
     Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type migrationMale_(migrationMale_SEXP);
     Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type migrationFemale_(migrationFemale_SEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type migrationBatch_(migrationBatch_SEXP);
-    Rcpp::traits::input_parameter< const std::vector<std::string>& >::type output_directory(output_directorySEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type outputDirectory_(outputDirectory_SEXP);
     Rcpp::traits::input_parameter< const std::string& >::type reproductionType_(reproductionType_SEXP);
-    Rcpp::traits::input_parameter< const bool& >::type verbose(verboseSEXP);
-    run_mPlex_Cpp_repetitions(seed, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, output_directory, reproductionType_, verbose);
+    Rcpp::traits::input_parameter< const bool& >::type verbose_(verbose_SEXP);
+    run_mPlex_Cpp_repetitions(seed_, numReps_, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, outputDirectory_, reproductionType_, verbose_);
     return R_NilValue;
 END_RCPP
 }
@@ -108,7 +109,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_mPlexCpp_run_mPlex_Cpp", (DL_FUNC) &_mPlexCpp_run_mPlex_Cpp, 10},
-    {"_mPlexCpp_run_mPlex_Cpp_repetitions", (DL_FUNC) &_mPlexCpp_run_mPlex_Cpp_repetitions, 10},
+    {"_mPlexCpp_run_mPlex_Cpp_repetitions", (DL_FUNC) &_mPlexCpp_run_mPlex_Cpp_repetitions, 11},
     {"_mPlexCpp_calc_haversine", (DL_FUNC) &_mPlexCpp_calc_haversine, 1},
     {"_mPlexCpp_calc_LognormalKernel", (DL_FUNC) &_mPlexCpp_calc_LognormalKernel, 3},
     {"_mPlexCpp_calc_GammaKernel", (DL_FUNC) &_mPlexCpp_calc_GammaKernel, 3},

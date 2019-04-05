@@ -4,12 +4,14 @@
 \alias{mPlex_runRepetitions}
 \title{Run multiple runs of mPlex}
 \usage{
-mPlex_runRepetitions(seed, networkParameters, reproductionReference,
-  patchReleases, migrationMale, migrationFemale, migrationBatch,
-  output_directory, reproductionType, verbose)
+mPlex_runRepetitions(seed, numReps, networkParameters,
+  reproductionReference, patchReleases, migrationMale, migrationFemale,
+  migrationBatch, outputDirectory, reproductionType, verbose)
 }
 \arguments{
 \item{seed}{An integer seed for random number generator}
+
+\item{numReps}{An integer specifying the number of repetitions}
 
 \item{networkParameters}{A list of simulation parameters}
 
@@ -23,7 +25,7 @@ mPlex_runRepetitions(seed, networkParameters, reproductionReference,
 
 \item{migrationBatch}{A list specifing batch migration probabilities, rates, and sex ratios}
 
-\item{output_directory}{Vector of string folder name to write output}
+\item{outputDirectory}{String folder name to write output}
 
 \item{reproductionType}{String specifying type of reproduction model}
 

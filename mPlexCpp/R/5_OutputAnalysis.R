@@ -26,88 +26,11 @@ eraseDirectory <- function(directory){
   }
   # end deleting contents
 }# end function
-###############################################################################
-# PATCH SPLITTER
-###############################################################################
-
-#' Split Output by Patch
-#'
-#' Split each run output into multiple files by patch.
-#'
-#' @usage splitOutput(readDir, writeDir, remFile, numCores)
-#'
-#' @param readDirectory Directory where output was written to
-#' @param saveDirectory Directory to write output to. Default is readDir
-#' @param remFile Remove original output? Default is TRUE
-#' @param numCores How many cores to use when writing output. Default is 1
-#'
-#' @return *.csv files for each patch
-#' @export
-splitOutput <- function(readDirectory, saveDirectory=NULL, remFile=TRUE, numCores=1){
-  
-  # set cores for data.table
-  #  There is lots of internal multithreading now, tis a problem.
-  oCores <- data.table::setDTthreads(threads = numCores, restore_after_fork = FALSE)
-  
-  # get all files in directory
-  dirFiles = list.files(path = readDirectory, pattern = ".*\\.csv$")
-  
-  # check write directory
-  if(is.null(saveDirectory)){saveDirectory <- readDirectory}
-  
-  # initialize text, progress bar below
-  cat("  Splitting", length(dirFiles), "files.\n")
-  if(remFile){
-    cat("  Removing original files.\n")
-  } else {
-    cat("  Not removing original files.\n\n")
-  }
-  
-  # loop over files
-  for(file in dirFiles){
-    
-    # Read in files
-    fileIn = data.table::fread(input = file.path(readDirectory, file), sep = ",",
-                               header = TRUE, verbose = FALSE, showProgress = FALSE,
-                               data.table = TRUE, stringsAsFactors = FALSE,
-                               logical01 = FALSE, key = "Patch")
-    
-    # progress bar stuff
-    pb = txtProgressBar(min = 0,max = length(unique(fileIn$Patch)),style = 3)
-    pbVal = 0
-    
-    # for each file, get all the patches and split into multiple files
-    for(patch in unique(fileIn$Patch)){
-      
-      fileName = sub(pattern = ".csv",
-                     replacement = file.path("_Patch",
-                                             formatC(x = patch,width = 4,format = "d",flag = "0"),
-                                             ".csv",fsep = ""),
-                     x = file, fixed = TRUE)
-      
-      data.table::fwrite(x = fileIn[J(patch)][ ,Patch:=NULL],
-                         file = file.path(saveDirectory,fileName), 
-                         logical01 = FALSE, showProgress = FALSE,
-                         verbose = FALSE)
-      
-      # some indication that it's working
-      pbVal = pbVal+1
-      setTxtProgressBar(pb = pb, value = pbVal)
-    }
-    
-    # check if removing original output
-    if(remFile){file.remove(file.path(readDirectory, file))}
-    
-  } # end file loop
-  
-  # reset number of cores (if set for some other reason)
-  setDTthreads(threads = oCores)
-  
-} # end function
 
 ###############################################################################
 # PATCH AGGREGATION
 ###############################################################################
+
 
 #' Analyze output for mPlex-mLoci or DaisyDrive
 #'
@@ -136,7 +59,7 @@ AnalyzeOutput_mLoci_Daisy <- function(readDirectory, saveDirectory,
   
   # get list of all files, then unique patches
   dirFiles = list.files(path = readDirectory, pattern = ".*\\.csv$")
-  patches = unique(x = regmatches(x = dirFiles, m = regexpr(pattern = "Patch[0-9]+", text = dirFiles)))
+  patches = unique(x = regmatches(x = dirFiles, m = regexpr(pattern = "Patch_[0-9]+", text = dirFiles)))
   
   # import one file:get simTime, check genotypes for safety checks
   testFile <- data.table::fread(input = file.path(readDirectory, dirFiles[1]), sep = ",",
@@ -294,7 +217,7 @@ AnalyzeOutput_oLocus <- function(readDirectory, saveDirectory,
   
   # get list of all files, then unique patches
   dirFiles = list.files(path = readDirectory, pattern = ".*\\.csv$")
-  patches = unique(x = regmatches(x = dirFiles, m = regexpr(pattern = "Patch[0-9]+", text = dirFiles)))
+  patches = unique(x = regmatches(x = dirFiles, m = regexpr(pattern = "Patch_[0-9]+", text = dirFiles)))
   
   # import one file:get simTime, check genotypes for safety checks
   testFile <- data.table::fread(input = file.path(readDirectory, dirFiles[1]), sep = ",",
@@ -468,7 +391,7 @@ ggCol_utility <- function(n, alpha = 1) {
 #' @export
 Plot_mPlex <- function(directory, whichPatches = NULL, totalPop = TRUE){
   
-  #keep old plot parameters to reset later
+  #keep old plot parameters to resetB later
   oldPar <- par(no.readonly = TRUE)
   
   #Get the data to plot
@@ -481,7 +404,7 @@ Plot_mPlex <- function(directory, whichPatches = NULL, totalPop = TRUE){
                                 ncol = length(columnNames), byrow = TRUE)
   
   # get genotypes, num patches, etc
-  patches = unique(x = regmatches(x = dirFiles, m = regexpr(pattern = "Patch[0-9]+", text = dirFiles)))
+  patches = unique(x = regmatches(x = dirFiles, m = regexpr(pattern = "Patch_[0-9]+", text = dirFiles)))
 
   # check if user chose specific patches
   if(length(patches)>15 && is.null(whichPatches)){

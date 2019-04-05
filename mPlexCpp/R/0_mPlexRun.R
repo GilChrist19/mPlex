@@ -21,17 +21,17 @@
 #' @param migrationMale A matrix specifying male migration rates
 #' @param migrationFemale A matrix specifying female migration rates
 #' @param migrationBatch A list specifing batch migration probabilities, rates, and sex ratios
-#' @param output_directory String folder name to write output
+#' @param outputDirectory String folder name to write output
 #' @param reproductionType String specifying type of reproduction model
 #' @param verbose Boolean, be chatty?
 #' 
 #' @export
 mPlex_oneRun <- function(seed, networkParameters, reproductionReference, patchReleases,
                          migrationMale, migrationFemale, migrationBatch,
-                         output_directory, reproductionType, verbose){
+                         outputDirectory, reproductionType, verbose){
   
   # expand so c++ can find it
-  output_directory = path.expand(output_directory)
+  outputDirectory = path.expand(outputDirectory)
   
   # pass all down for simulation
   mPlexCpp:::run_mPlex_Cpp(seed,
@@ -41,7 +41,7 @@ mPlex_oneRun <- function(seed, networkParameters, reproductionReference, patchRe
                            migrationMale,
                            migrationFemale,
                            migrationBatch,
-                           output_directory,
+                           outputDirectory,
                            reproductionType,
                            verbose)
 }
@@ -55,33 +55,36 @@ mPlex_oneRun <- function(seed, networkParameters, reproductionReference, patchRe
 #' R interface to C++ simulation code.
 #' 
 #' @param seed An integer seed for random number generator
+#' @param numReps An integer specifying the number of repetitions
 #' @param networkParameters A list of simulation parameters
 #' @param reproductionReference A list of reproduction and genotype specific parameters
 #' @param patchReleases A list of releases
 #' @param migrationMale A matrix specifying male migration rates
 #' @param migrationFemale A matrix specifying female migration rates
 #' @param migrationBatch A list specifing batch migration probabilities, rates, and sex ratios
-#' @param output_directory Vector of string folder name to write output
+#' @param outputDirectory String folder name to write output
 #' @param reproductionType String specifying type of reproduction model
 #' @param verbose Boolean, be chatty?
 #' 
 #' @export
-mPlex_runRepetitions <- function(seed, networkParameters, reproductionReference, patchReleases,
-                                 migrationMale, migrationFemale, migrationBatch,
-                                 output_directory, reproductionType, verbose){
+mPlex_runRepetitions <- function(seed, numReps, networkParameters, reproductionReference,
+                                 patchReleases, migrationMale, migrationFemale,
+                                 migrationBatch, outputDirectory, reproductionType,
+                                 verbose){
   
   # expand so c++ can find it
-  output_directory = path.expand(output_directory)
+  outputDirectory = path.expand(outputDirectory)
   
   # pass all down for simulation
   mPlexCpp:::run_mPlex_Cpp_repetitions(seed,
+                                       numReps,
                                        networkParameters,
                                        reproductionReference,
                                        patchReleases,
                                        migrationMale,
                                        migrationFemale,
                                        migrationBatch,
-                                       output_directory,
+                                       outputDirectory,
                                        reproductionType,
                                        verbose)
 }

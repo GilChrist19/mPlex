@@ -10,7 +10,7 @@
 #include <progress.hpp>
 #include <progress_bar.hpp>
 
-//#include <gperftools/profiler.h>
+#include <gperftools/profiler.h>
 
 #include <Rcpp.h>
 
@@ -38,16 +38,16 @@
 //' 
 //' 
 // [[Rcpp::export]]
-void run_mPlex_Cpp(const uint_least32_t& seed,
+void run_mPlex_Cpp(const uint_least32_t& seed_,
                    const Rcpp::List& networkParameters_,
                    const Rcpp::List& reproductionReference_,
                    const Rcpp::List& patchReleases_,
                    const Rcpp::NumericMatrix& migrationMale_,
                    const Rcpp::NumericMatrix& migrationFemale_,
                    const Rcpp::List& migrationBatch_,
-                   const std::string& output_directory,
+                   const std::string& outputDirectory_,
                    const std::string& reproductionType_,
-                   const bool& verbose){
+                   const bool& verbose_){
   
   
   #ifdef BASE_PROFILER_H_
@@ -57,9 +57,9 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
   
   
   // BEGIN INITIALIZE PRNG
-  if(verbose) {Rcpp::Rcout << "Initializing prng ... ";};
-  prng::instance().set_seed(seed);
-  if(verbose){Rcpp::Rcout <<  " ... done initializing prng!\n";};
+  if(verbose_) {Rcpp::Rcout << "Initializing prng ... ";};
+  prng::instance().set_seed(seed_);
+  if(verbose_){Rcpp::Rcout <<  " ... done initializing prng!\n";};
   // END INITIALIZE PRNG
   
   
@@ -72,12 +72,12 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
     Rcpp::stop("\nreproductionType must match one of these choices:\n DaisyDrive\n mPlex_oLocus\n mPlex_mLoci\n Family\n");
   }
     
-  if(verbose) {Rcpp::Rcout << "Setting reference ... ";};
+  if(verbose_) {Rcpp::Rcout << "Setting reference ... ";};
   // set genotype specific parameters than all drives have
   reference::instance().set_reference(reproductionReference_["eta"], reproductionReference_["phi"],
                                       reproductionReference_["omega"], reproductionReference_["xiF"],
                                       reproductionReference_["xiM"], reproductionReference_["s"]);
-  if(verbose) {Rcpp::Rcout << "\n\tBasics Done\n";};
+  if(verbose_) {Rcpp::Rcout << "\n\tBasics Done\n";};
   
   if(reproductionType_ != "Family"){
     // set allele types for initialization etc
@@ -86,22 +86,22 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
     // set mendelian allele reference
     reference::instance().set_mendelian(Rcpp::as<Rcpp::List> (reproductionReference_["mendelian"]),
                                         Rcpp::as<Rcpp::List> (reproductionReference_["mendelianAlleles"]));
-    if(verbose) {Rcpp::Rcout << "\tMendelian Done\n";};
+    if(verbose_) {Rcpp::Rcout << "\tMendelian Done\n";};
     
     // set homing allele reference
     reference::instance().set_homing(Rcpp::as<Rcpp::List> (reproductionReference_["homing"]),
                                       Rcpp::as<Rcpp::List> (reproductionReference_["homingAlleles"]));
-    if(verbose) {Rcpp::Rcout << "\tHoming Done\n";};
+    if(verbose_) {Rcpp::Rcout << "\tHoming Done\n";};
   }
 
   // set cutting reference if daisy drive
   if(reproductionType_ == "DaisyDrive"){
     reference::instance().set_cutting(Rcpp::as<Rcpp::List> (reproductionReference_["cutting"]),
                                       Rcpp::as<Rcpp::List> (reproductionReference_["cuttingAlleles"]));
-    if(verbose) {Rcpp::Rcout << "\tDaisy set\n";};
+    if(verbose_) {Rcpp::Rcout << "\tDaisy set\n";};
   }
   
-  if(verbose){Rcpp::Rcout <<  " ... done setting reference!\n";};
+  if(verbose_){Rcpp::Rcout <<  " ... done setting reference!\n";};
   // END SET REFERENCE
   
   
@@ -113,7 +113,7 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
 
 
   // BEGIN SET PARAMETERS
-  if(verbose) {Rcpp::Rcout << "Setting parameters ... ";};
+  if(verbose_) {Rcpp::Rcout << "Setting parameters ... ";};
 
   // setup input matrices and then fill them. They are std::vectors, not Rcpp things
   int dim = migrationMale_.ncol();
@@ -143,13 +143,13 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
                        networkParameters_["alpha"],networkParameters_["Leq"],networkParameters_["AdPopEQ"],
                        mHold, fHold, migrationBatch_["batchProbs"], bsHold, bmHold);
 
-  if(verbose){Rcpp::Rcout <<  " ... done setting parameters!\n";};
+  if(verbose_){Rcpp::Rcout <<  " ... done setting parameters!\n";};
   // END SET PARAMETERS
   
   
   
   // BEGIN INITIALIZE NETWORK
-  if(verbose){Rcpp::Rcout << "Initializing network ... \n";};
+  if(verbose_){Rcpp::Rcout << "Initializing network ... \n";};
   
   size_t numPatches = parameters::instance().get_n_patch();
   
@@ -171,7 +171,7 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
     // make patches of correct child type
     if(reproductionType_ == "DaisyDrive"){
       
-      if(verbose && np==0){Rcpp::Rcout << "\tInitializing Daisy Drive"<<std::endl;};
+      if(verbose_ && np==0){Rcpp::Rcout << "\tInitializing Daisy Drive"<<std::endl;};
       
       patches.emplace_back(std::make_unique<Daisy>(np,
                                                    patchRelease["maleReleases"],
@@ -180,7 +180,7 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
       
     } else if(reproductionType_ == "mPlex_oLocus"){
       
-      if(verbose && np==0){Rcpp::Rcout << "\tInitializing oneLocus Drive"<<std::endl;};
+      if(verbose_ && np==0){Rcpp::Rcout << "\tInitializing oneLocus Drive"<<std::endl;};
       
       patches.emplace_back(std::make_unique<oneLocus>(np,
                                                    patchRelease["maleReleases"],
@@ -189,7 +189,7 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
       
     } else if(reproductionType_ == "mPlex_mLoci"){
       
-      if(verbose && np==0){Rcpp::Rcout << "\tInitializing multiLocus Drive"<<std::endl;};
+      if(verbose_ && np==0){Rcpp::Rcout << "\tInitializing multiLocus Drive"<<std::endl;};
       
       patches.emplace_back(std::make_unique<multiLocus>(np,
                                                    patchRelease["maleReleases"],
@@ -198,7 +198,7 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
       
     } else if(reproductionType_ == "Family"){
       
-      if(verbose && np==0){Rcpp::Rcout << "\tBigBrother is watching"<<std::endl;};
+      if(verbose_ && np==0){Rcpp::Rcout << "\tBigBrother is watching"<<std::endl;};
       
       patches.emplace_back(std::make_unique<Family>(np,
                                                     patchRelease["maleReleases"],
@@ -209,7 +209,7 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
     
   } // end network loop
   
-  if(verbose){Rcpp::Rcout <<  " ... done initializing network!\n";};
+  if(verbose_){Rcpp::Rcout <<  " ... done initializing network!\n";};
   // END INITIALIZE NETWORK
   
   
@@ -222,91 +222,48 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
   
   
   
-    // BEGIN INITIALIZE LOGGER
-  if(verbose) {Rcpp::Rcout << "Initializing logging ... ";};
+  // BEGIN INITIALIZE LOGGER
+  if(verbose_) {Rcpp::Rcout << "Initializing logging ... ";};
   
-  // // setup strings
-  // std::string maleFile(output_directory), femaleFile(output_directory);
-  // maleFile += "/ADM_Run"
-  //             + std::string(3 - std::to_string(parameters::instance().get_run_id()).length(), '0')
-  //             + std::to_string(parameters::instance().get_run_id())
-  //             + ".csv";
-  //             
-  // femaleFile += "/ADF_Run"
-  //               + std::string(3 - std::to_string(parameters::instance().get_run_id()).length(), '0')
-  //               + std::to_string(parameters::instance().get_run_id())
-  //               + ".csv";
-  // 
-  // // define ofstreams
-  // 
-  // 
-  // 
-  // std::ofstream ADM_output, ADF_output;
-  // 
-  // // open them
-  // ADM_output.open(maleFile);
-  // ADF_output.open(femaleFile);
-  
-  
-  
-  
-  // new test shit
-  std::vector<std::ofstream> ADM_output(numPatches), ADF_output(numPatches);
-  
-  std::string maleFile(output_directory+"/ADM_Patch_"), femaleFile(output_directory+"/ADF_Patch_");
-  std::string sHold("_Run_"
-              + std::string(3 - std::to_string(parameters::instance().get_run_id()).length(), '0')
-              + std::to_string(parameters::instance().get_run_id())
-              + ".csv");
-              
+  // setup vectors of ofstreams
+  std::vector<std::ofstream> M_output(numPatches), F_output(numPatches);
+
+  // setup strings for file names
+  std::string maleFile(outputDirectory_+"/M_Run_"
+                       + std::string(3 - std::to_string(parameters::instance().get_run_id()).length(), '0')
+                       + std::to_string(parameters::instance().get_run_id())
+                       + "_Patch_"),
+              femaleFile(outputDirectory_+"/F_Run_"
+                       + std::string(3 - std::to_string(parameters::instance().get_run_id()).length(), '0')
+                       + std::to_string(parameters::instance().get_run_id())
+                       + "_Patch_");
+  std::string sHold;
+
+  // open all streams with file names
   for(size_t np=0; np<numPatches; ++np){
-    ADM_output[np].open(maleFile + std::to_string(np) + sHold);
-    ADF_output[np].open(femaleFile + std::to_string(np) + sHold);
+    // denote patch
+    sHold = std::string(3 - std::to_string(np).length(), '0')
+            + std::to_string(np)
+            + ".csv";
+    // open streams
+    M_output[np].open(maleFile + sHold);
+    F_output[np].open(femaleFile + sHold);
   }
   
-  
-  
-  
-  
-  
-  
 
-  if(verbose){Rcpp::Rcout <<  " ... done initializing logging!\n";};
+  if(verbose_){Rcpp::Rcout <<  " ... done initializing logging!\n";};
   // END INITIALIZE LOGGER
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+
   
   // BEGIN INITIALIZE OUTPUT
-  if(verbose){Rcpp::Rcout <<  "Initializing output ... ";};
+  if(verbose_){Rcpp::Rcout <<  "Initializing output ... ";};
   for(auto& it : patches){
-    it->init_output(ADM_output, ADF_output);
-    
-    //it->init_output(ADM_output[it->get_patchID()], ADF_output[it->get_patchID()]);
-    
-    
+    it->init_output(M_output[it->get_patchID()], F_output[it->get_patchID()]);
   }
   // increment time to begin
   parameters::instance().increment_t_now();
-  if(verbose){Rcpp::Rcout <<  " ... done initializing output!\n";};
+  if(verbose_){Rcpp::Rcout <<  " ... done initializing output!\n";};
   // END INITIALIZE OUTPUT
   
   
@@ -314,12 +271,20 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
   
   
   
+  
+  
+  
+  
+  
+  
+  
+  
   // BEGIN SIMULATION
-  if(verbose){Rcpp::Rcout << "begin simulation ... \n";};
+  if(verbose_){Rcpp::Rcout << "begin simulation ... \n";};
   int tMax = parameters::instance().get_sim_time();
   
   //Progress::
-  Progress pb(tMax-1,verbose);
+  Progress pb(tMax-1,verbose_);
   
   
   while(parameters::instance().get_t_now() < tMax){
@@ -344,10 +309,7 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
     
     // Log output
     for(auto& it : patches){
-      it->oneDay_writeOutput(ADM_output, ADF_output);
-      
-      //it->oneDay_writeOutput(ADM_output[it->get_patchID()], ADF_output[it->get_patchID()]);
-      
+      it->oneDay_writeOutput(M_output[it->get_patchID()], F_output[it->get_patchID()]);
     }
     
     
@@ -356,19 +318,15 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
     pb.increment();
   }
   
-  if(verbose){Rcpp::Rcout << "... simulation done!\n";};
+  if(verbose_){Rcpp::Rcout << "... simulation done!\n";};
   // END SIMULATION
   
   
   // close files
-  ADM_output.close();
-  ADF_output.close();
-  
-  
-  // for(size_t np=0; np<numPatches; ++np){
-  //   ADM_output[np].close();
-  //   ADF_output[np].close();
-  // }
+  for(size_t np=0; np<numPatches; ++np){
+    M_output[np].close();
+    F_output[np].close();
+  }
   
   
   
@@ -395,25 +353,29 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
 //'
 //'
 // [[Rcpp::export]]
-void run_mPlex_Cpp_repetitions(const uint_least32_t& seed,
+void run_mPlex_Cpp_repetitions(const uint_least32_t& seed_,
+                               const uint_least32_t& numReps_,
                                const Rcpp::List& networkParameters_,
                                const Rcpp::List& reproductionReference_,
                                const Rcpp::List& patchReleases_,
                                const Rcpp::NumericMatrix& migrationMale_,
                                const Rcpp::NumericMatrix& migrationFemale_,
                                const Rcpp::List& migrationBatch_,
-                               const std::vector<std::string>& output_directory,
+                               const std::string& outputDirectory_,
                                const std::string& reproductionType_,
-                               const bool& verbose){
+                               const bool& verbose_){
 
-
+  #ifdef BASE_PROFILER_H_
+    // make sure to change path!!! But keep file name.
+    ProfilerStart("/home/jared/Desktop/OUTPUT/profile.log");
+  #endif
 
 
 
   // BEGIN INITIALIZE PRNG
-  if(verbose) {Rcpp::Rcout << "Initializing prng ... ";};
-  prng::instance().set_seed(seed);
-  if(verbose){Rcpp::Rcout <<  " ... done initializing prng!\n";};
+  if(verbose_) {Rcpp::Rcout << "Initializing prng ... ";};
+  prng::instance().set_seed(seed_);
+  if(verbose_){Rcpp::Rcout <<  " ... done initializing prng!\n";};
   // END INITIALIZE PRNG
 
 
@@ -426,12 +388,12 @@ void run_mPlex_Cpp_repetitions(const uint_least32_t& seed,
     Rcpp::stop("\nreproductionType must match one of these choices:\n DaisyDrive\n mPlex_oLocus\n mPlex_mLoci\n Family\n");
   }
     
-  if(verbose) {Rcpp::Rcout << "Setting reference ... ";};
+  if(verbose_) {Rcpp::Rcout << "Setting reference ... ";};
   // set genotype specific parameters than all drives have
   reference::instance().set_reference(reproductionReference_["eta"], reproductionReference_["phi"],
                                       reproductionReference_["omega"], reproductionReference_["xiF"],
                                       reproductionReference_["xiM"], reproductionReference_["s"]);
-  if(verbose) {Rcpp::Rcout << "\n\tBasics Done\n";};
+  if(verbose_) {Rcpp::Rcout << "\n\tBasics Done\n";};
   
   if(reproductionType_ != "Family"){
     // set allele types for initialization etc
@@ -440,22 +402,22 @@ void run_mPlex_Cpp_repetitions(const uint_least32_t& seed,
     // set mendelian allele reference
     reference::instance().set_mendelian(Rcpp::as<Rcpp::List> (reproductionReference_["mendelian"]),
                                         Rcpp::as<Rcpp::List> (reproductionReference_["mendelianAlleles"]));
-    if(verbose) {Rcpp::Rcout << "\tMendelian Done\n";};
+    if(verbose_) {Rcpp::Rcout << "\tMendelian Done\n";};
     
     // set homing allele reference
     reference::instance().set_homing(Rcpp::as<Rcpp::List> (reproductionReference_["homing"]),
                                       Rcpp::as<Rcpp::List> (reproductionReference_["homingAlleles"]));
-    if(verbose) {Rcpp::Rcout << "\tHoming Done\n";};
+    if(verbose_) {Rcpp::Rcout << "\tHoming Done\n";};
   }
 
   // set cutting reference if daisy drive
   if(reproductionType_ == "DaisyDrive"){
     reference::instance().set_cutting(Rcpp::as<Rcpp::List> (reproductionReference_["cutting"]),
                                       Rcpp::as<Rcpp::List> (reproductionReference_["cuttingAlleles"]));
-    if(verbose) {Rcpp::Rcout << "\tDaisy set\n";};
+    if(verbose_) {Rcpp::Rcout << "\tDaisy set\n";};
   }
   
-  if(verbose){Rcpp::Rcout <<  " ... done setting reference!\n";};
+  if(verbose_){Rcpp::Rcout <<  " ... done setting reference!\n";};
   // END SET REFERENCE
 
 
@@ -467,7 +429,7 @@ void run_mPlex_Cpp_repetitions(const uint_least32_t& seed,
 
 
   // BEGIN SET PARAMETERS
-  if(verbose) {Rcpp::Rcout << "Setting parameters ... ";};
+  if(verbose_) {Rcpp::Rcout << "Setting parameters ... ";};
 
   // setup input matrices and then fill them. They are std::vectors, not Rcpp things
   int dim = migrationMale_.ncol();
@@ -497,12 +459,12 @@ void run_mPlex_Cpp_repetitions(const uint_least32_t& seed,
                        networkParameters_["alpha"],networkParameters_["Leq"],networkParameters_["AdPopEQ"],
                        mHold, fHold, migrationBatch_["batchProbs"], bsHold, bmHold);
 
-  if(verbose){Rcpp::Rcout <<  " ... done setting parameters!\n";};
+  if(verbose_){Rcpp::Rcout <<  " ... done setting parameters!\n";};
   // END SET PARAMETERS
 
 
   // BEGIN INITIALIZE NETWORK
-  if(verbose){Rcpp::Rcout << "Initializing network ... \n";};
+  if(verbose_){Rcpp::Rcout << "Initializing network ... \n";};
   
   size_t numPatches = parameters::instance().get_n_patch();
   
@@ -524,7 +486,7 @@ void run_mPlex_Cpp_repetitions(const uint_least32_t& seed,
     // make patches of correct child type
     if(reproductionType_ == "DaisyDrive"){
       
-      if(verbose && np==0){Rcpp::Rcout << "\tInitializing Daisy Drive"<<std::endl;};
+      if(verbose_ && np==0){Rcpp::Rcout << "\tInitializing Daisy Drive"<<std::endl;};
       
       patches.emplace_back(std::make_unique<Daisy>(np,
                                                    patchRelease["maleReleases"],
@@ -533,7 +495,7 @@ void run_mPlex_Cpp_repetitions(const uint_least32_t& seed,
       
     } else if(reproductionType_ == "mPlex_oLocus"){
       
-      if(verbose && np==0){Rcpp::Rcout << "\tInitializing oneLocus Drive"<<std::endl;};
+      if(verbose_ && np==0){Rcpp::Rcout << "\tInitializing oneLocus Drive"<<std::endl;};
       
       patches.emplace_back(std::make_unique<oneLocus>(np,
                                                    patchRelease["maleReleases"],
@@ -542,7 +504,7 @@ void run_mPlex_Cpp_repetitions(const uint_least32_t& seed,
       
     } else if(reproductionType_ == "mPlex_mLoci"){
       
-      if(verbose && np==0){Rcpp::Rcout << "\tInitializing multiLocus Drive"<<std::endl;};
+      if(verbose_ && np==0){Rcpp::Rcout << "\tInitializing multiLocus Drive"<<std::endl;};
       
       patches.emplace_back(std::make_unique<multiLocus>(np,
                                                    patchRelease["maleReleases"],
@@ -551,7 +513,7 @@ void run_mPlex_Cpp_repetitions(const uint_least32_t& seed,
       
     } else if(reproductionType_ == "Family"){
       
-      if(verbose && np==0){Rcpp::Rcout << "\tBigBrother is watching"<<std::endl;};
+      if(verbose_ && np==0){Rcpp::Rcout << "\tBigBrother is watching"<<std::endl;};
       
       patches.emplace_back(std::make_unique<Family>(np,
                                                     patchRelease["maleReleases"],
@@ -562,60 +524,84 @@ void run_mPlex_Cpp_repetitions(const uint_least32_t& seed,
     
   } // end network loop
   
-  if(verbose){Rcpp::Rcout <<  " ... done initializing network!\n";};
+  if(verbose_){Rcpp::Rcout <<  " ... done initializing network!\n";};
   // END INITIALIZE NETWORK
 
 
 
+  
+  
+  
 
   // initialize things for inside the loop
-  std::string maleFile, femaleFile;
-  std::ofstream ADM_output, ADF_output;
+  // std::string maleFile, femaleFile;
+  // std::ofstream M_output, F_output;
   int tMax = parameters::instance().get_sim_time();
+  
+  std::vector<std::ofstream> M_output(numPatches), F_output(numPatches);
+  std::string maleFile, femaleFile, sHold;
 
 
 
   // BEGIN REPETITION WRAP
-  for(size_t rep=0; rep<output_directory.size(); ++rep){
-    if(verbose){Rcpp::Rcout <<  "begin repetition " << rep+parameters::instance().get_run_id()<< "\n";};
+  for(size_t rep=0; rep<numReps_; ++rep){
+    if(verbose_){Rcpp::Rcout <<  "begin repetition " << rep+parameters::instance().get_run_id()<< "\n";};
 
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     // BEGIN INITIALIZE LOGGER
-    if(verbose) {Rcpp::Rcout << "Initializing logging ... ";};
+    if(verbose_) {Rcpp::Rcout << "Initializing logging ... ";};
 
-    // setup strings
-    maleFile = output_directory[rep];
-    femaleFile = output_directory[rep];
-
-    maleFile += "/ADM_Run"+ std::string(3 - std::to_string(parameters::instance().get_run_id()).length(), '0')
-                + std::to_string(rep+parameters::instance().get_run_id())+ ".csv";
-
-    femaleFile += "/ADF_Run"+ std::string(3 - std::to_string(parameters::instance().get_run_id()).length(), '0')
-      + std::to_string(rep+parameters::instance().get_run_id())+ ".csv";
-
-
-    // open ofstreams
-    ADM_output.open(maleFile);
-    ADF_output.open(femaleFile);
-
-    if(verbose){Rcpp::Rcout <<  " ... done initializing logging!\n";};
+    // setup strings for file names
+    //  these increment runs
+    maleFile = outputDirectory_ + "/M_Run_"
+                + std::string(3 - std::to_string(parameters::instance().get_run_id()).length(), '0')
+                + std::to_string(rep+parameters::instance().get_run_id())
+                + "_Patch_";
+    femaleFile = outputDirectory_ + "/F_Run_"
+                + std::string(3 - std::to_string(parameters::instance().get_run_id()).length(), '0')
+                + std::to_string(rep+parameters::instance().get_run_id())
+                + "_Patch_";
+    
+    // open all streams with file names
+    for(size_t np=0; np<numPatches; ++np){
+      // denote patch
+      sHold = std::string(3 - std::to_string(np).length(), '0')
+              + std::to_string(np)
+              + ".csv";
+      // open streams
+      M_output[np].open(maleFile + sHold);
+      F_output[np].open(femaleFile + sHold);
+    }
+    
+    if(verbose_){Rcpp::Rcout <<  " ... done initializing logging!\n";};
     // END INITIALIZE LOGGER
 
 
+    
+    
 
     // BEGIN INITIALIZE OUTPUT
-    if(verbose){Rcpp::Rcout <<  "Initializing output ... ";};
+    if(verbose_){Rcpp::Rcout <<  "Initializing output ... ";};
     for(auto& it : patches){
-
-      it->init_output(ADM_output, ADF_output);
+      it->init_output(M_output[it->get_patchID()], F_output[it->get_patchID()]);
     }
     // increment time to begin
     parameters::instance().increment_t_now();
-    if(verbose){Rcpp::Rcout <<  " ... done initializing output!\n";};
+    if(verbose_){Rcpp::Rcout <<  " ... done initializing output!\n";};
     // END INITIALIZE OUTPUT
 
 
     //Progress::
-    Progress pb(tMax-1,verbose);
+    Progress pb(tMax-1,verbose_);
 
     // one simulation loop
     while(parameters::instance().get_t_now() < tMax){
@@ -645,11 +631,10 @@ void run_mPlex_Cpp_repetitions(const uint_least32_t& seed,
                                                patches[outPatch]->get_femaleMigration(inPatch));
         }
       }
-
-
+      
       // Log output
       for(auto& it : patches){
-        it->oneDay_writeOutput(ADM_output, ADF_output);
+        it->oneDay_writeOutput(M_output[it->get_patchID()], F_output[it->get_patchID()]);
       }
 
       // increment time and progress
@@ -657,26 +642,35 @@ void run_mPlex_Cpp_repetitions(const uint_least32_t& seed,
       pb.increment();
     } // end one sim loop
 
+    
+    
+    
     // close files
-    ADM_output.close();
-    ADF_output.close();
-
-    // reset patches
-    //  This does involve rebuilding the starting mosquitoes, so the distribution may change
-    parameters::instance().reset_t_now();
     for(size_t np=0; np<numPatches; ++np){
-
-      patches[np]->reset_Patch();
-
+      M_output[np].close();
+      F_output[np].close();
     }
 
 
+    
+    // reset patches
+    //  This does involve rebuilding the starting mosquitoes, so the distribution may change
+    parameters::instance().reset_t_now();
+    for(auto& np : patches){
+      np->reset_Patch();
+    }
 
 
-    if(verbose){Rcpp::Rcout <<  "end repetition " << rep+parameters::instance().get_run_id() << "\n\n";};
+    if(verbose_){Rcpp::Rcout <<  "end repetition " << rep+parameters::instance().get_run_id() << "\n\n";};
   } // end repetition loop
 
-  if(verbose){Rcpp::Rcout << "... end repetitions \n";};
+  if(verbose_){Rcpp::Rcout << "... end repetitions \n";};
+  
+  
+  // close profiler
+  #ifdef BASE_PROFILER_H_
+    ProfilerStop();
+  #endif
 }
 
 

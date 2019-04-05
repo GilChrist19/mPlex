@@ -5,7 +5,7 @@
 \title{Run one run of mPlex}
 \usage{
 mPlex_oneRun(seed, networkParameters, reproductionReference, patchReleases,
-  migrationMale, migrationFemale, migrationBatch, output_directory,
+  migrationMale, migrationFemale, migrationBatch, outputDirectory,
   reproductionType, verbose)
 }
 \arguments{
@@ -23,7 +23,7 @@ mPlex_oneRun(seed, networkParameters, reproductionReference, patchReleases,
 
 \item{migrationBatch}{A list specifing batch migration probabilities, rates, and sex ratios}
 
-\item{output_directory}{String folder name to write output}
+\item{outputDirectory}{String folder name to write output}
 
 \item{reproductionType}{String specifying type of reproduction model}
 
