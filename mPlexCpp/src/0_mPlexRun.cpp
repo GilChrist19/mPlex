@@ -145,45 +145,6 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
 
   if(verbose){Rcpp::Rcout <<  " ... done setting parameters!\n";};
   // END SET PARAMETERS
-
-
-  
-
-  
-  
-  
-  
-  // BEGIN INITIALIZE LOGGER
-  if(verbose) {Rcpp::Rcout << "Initializing logging ... ";};
-  
-  // setup strings
-  std::string maleFile(output_directory), femaleFile(output_directory);
-  maleFile += "/ADM_Run"
-              + std::string(3 - std::to_string(parameters::instance().get_run_id()).length(), '0')
-              + std::to_string(parameters::instance().get_run_id())
-              + ".csv";
-              
-  femaleFile += "/ADF_Run"
-                + std::string(3 - std::to_string(parameters::instance().get_run_id()).length(), '0')
-                + std::to_string(parameters::instance().get_run_id())
-                + ".csv";
-  
-  // define ofstreams
-  std::ofstream ADM_output, ADF_output;
-  
-  // open them
-  ADM_output.open(maleFile);
-  ADF_output.open(femaleFile);
-
-  if(verbose){Rcpp::Rcout <<  " ... done initializing logging!\n";};
-  // END INITIALIZE LOGGER
-  
-  
-  
-  
-  
-  
-  
   
   
   
@@ -257,10 +218,91 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
   
   
   
+  
+  
+  
+  
+    // BEGIN INITIALIZE LOGGER
+  if(verbose) {Rcpp::Rcout << "Initializing logging ... ";};
+  
+  // // setup strings
+  // std::string maleFile(output_directory), femaleFile(output_directory);
+  // maleFile += "/ADM_Run"
+  //             + std::string(3 - std::to_string(parameters::instance().get_run_id()).length(), '0')
+  //             + std::to_string(parameters::instance().get_run_id())
+  //             + ".csv";
+  //             
+  // femaleFile += "/ADF_Run"
+  //               + std::string(3 - std::to_string(parameters::instance().get_run_id()).length(), '0')
+  //               + std::to_string(parameters::instance().get_run_id())
+  //               + ".csv";
+  // 
+  // // define ofstreams
+  // 
+  // 
+  // 
+  // std::ofstream ADM_output, ADF_output;
+  // 
+  // // open them
+  // ADM_output.open(maleFile);
+  // ADF_output.open(femaleFile);
+  
+  
+  
+  
+  // new test shit
+  std::vector<std::ofstream> ADM_output(numPatches), ADF_output(numPatches);
+  
+  std::string maleFile(output_directory+"/ADM_Patch_"), femaleFile(output_directory+"/ADF_Patch_");
+  std::string sHold("_Run_"
+              + std::string(3 - std::to_string(parameters::instance().get_run_id()).length(), '0')
+              + std::to_string(parameters::instance().get_run_id())
+              + ".csv");
+              
+  for(size_t np=0; np<numPatches; ++np){
+    ADM_output[np].open(maleFile + std::to_string(np) + sHold);
+    ADF_output[np].open(femaleFile + std::to_string(np) + sHold);
+  }
+  
+  
+  
+  
+  
+  
+  
+
+  if(verbose){Rcpp::Rcout <<  " ... done initializing logging!\n";};
+  // END INITIALIZE LOGGER
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   // BEGIN INITIALIZE OUTPUT
   if(verbose){Rcpp::Rcout <<  "Initializing output ... ";};
   for(auto& it : patches){
     it->init_output(ADM_output, ADF_output);
+    
+    //it->init_output(ADM_output[it->get_patchID()], ADF_output[it->get_patchID()]);
+    
+    
   }
   // increment time to begin
   parameters::instance().increment_t_now();
@@ -303,6 +345,9 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
     // Log output
     for(auto& it : patches){
       it->oneDay_writeOutput(ADM_output, ADF_output);
+      
+      //it->oneDay_writeOutput(ADM_output[it->get_patchID()], ADF_output[it->get_patchID()]);
+      
     }
     
     
@@ -318,6 +363,15 @@ void run_mPlex_Cpp(const uint_least32_t& seed,
   // close files
   ADM_output.close();
   ADF_output.close();
+  
+  
+  // for(size_t np=0; np<numPatches; ++np){
+  //   ADM_output[np].close();
+  //   ADF_output[np].close();
+  // }
+  
+  
+  
   
   // close profiler
   #ifdef BASE_PROFILER_H_

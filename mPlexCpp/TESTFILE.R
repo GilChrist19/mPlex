@@ -29,12 +29,12 @@ library(mPlexCpp)
 # Setup Parameters for Network
 ###############################################################################
 
-numPatch <- 15
+numPatch <- 5
 set.seed(10)
 migration <- matrix(data = runif(numPatch*numPatch), nrow = numPatch, ncol = numPatch)
 migration <- migration/rowSums(migration)
 
-patchPops = rep(600L,numPatch)
+patchPops = rep(1000L,numPatch)
 
 directory1 = "~/Desktop/OUTPUT/mPlex/"
 directory2 <- "~/Desktop/OUTPUT/MGDrivEHOLD/"
@@ -104,7 +104,7 @@ patchReleases[[1]]$maleReleases <- c(holdRel, holdRel2)
 # Calculate parameters and initialize network
 ###############################################################################
 netPar = NetworkParameters(nPatch = numPatch,
-                           simTime = 10000,
+                           simTime = 1000,
                            alleloTypes = AllAlleles,
                            AdPopEQ = patchPops,
                            runID = 1L,
@@ -113,19 +113,27 @@ netPar = NetworkParameters(nPatch = numPatch,
 
 migrationBatch <- basicBatchMigration(numPatches = numPatch)
 
-sTime <- Sys.time()
-mPlex_oneRun(seed = 10,
-             networkParameters = netPar,
-             reproductionReference = reproductionReference,
-             patchReleases = patchReleases,
-             migrationMale = migration,
-             migrationFemale = migration,
-             migrationBatch = migrationBatch,
-             output_directory = directory1,
-             reproductionType = "mPlex_mLoci",
-             verbose = TRUE)
-eTime <- Sys.time()
-difftime(time1 = eTime, time2 = sTime)
+
+for(i in 1:5){
+  sTime <- Sys.time()
+  mPlex_oneRun(seed = 10,
+               networkParameters = netPar,
+               reproductionReference = reproductionReference,
+               patchReleases = patchReleases,
+               migrationMale = migration,
+               migrationFemale = migration,
+               migrationBatch = migrationBatch,
+               output_directory = directory1,
+               reproductionType = "mPlex_mLoci",
+               verbose = FALSE)
+  eTime <- Sys.time()
+  print(x = difftime(time1 = eTime, time2 = sTime))
+  
+  
+}
+
+
+
 
 
 # split the output by patch
