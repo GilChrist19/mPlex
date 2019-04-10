@@ -28,8 +28,175 @@ eraseDirectory <- function(directory){
 }# end function
 
 ###############################################################################
-# PATCH AGGREGATION
+# GENOTYPE GROUPINGS
 ###############################################################################
+
+#' Generate genotypes of interest for mPlex-mLoci or DaisyDrive
+#'
+#' This function generates a *.csv of genotypes of interest and the grouping scheme, ie, 
+#' if one locus isn't interesting and should be considered the same. This file will be used 
+#' for data analysis.
+#'
+#' @param outputFile Name of file to output. Must end in .csv
+#' @param genotypes A list of each locus containing the genotypes of interest at that locus. Default is all genotypes
+#' @param collapse A vector of each locus containing TRUE/FALSE. If TRUE, the genotypes of interest at that locus are collapsed and the output is the sum of all of them.
+#'
+#' @export
+genOI_mLoci_Daisy <- function(outputFile, genotypes, collapse){
+  
+  #check that the collapse length is equal to genotype length
+  if(length(genotypes) != length(collapse)){
+    stop("collapse must be specified for each loci.
+         length(collapse) == length(genotypes)")
+  }
+  
+  # check for null genotypes
+  for(i in 1:length(genotypes)){
+    #if null, look at all possible genotypes at that locus
+    if( is.null(genotypes[[i]]) ){
+      genotypes[[i]] <- c("HH","HR","HS","HW","RR","RS","RW","SS","SW","WW")
+    }
+  }
+  
+  
+  # generate all combinations of genotypes of interest
+  holdGens <- expand.grid(genotypes, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
+  holdGens <- do.call(what = paste0, args = holdGens)
+  
+  
+  #do collapse if there is some
+  for(i in 1:length(genotypes)){
+    #if collapse is true, collapse the genotypes so all are searched for as one
+    if(collapse[i]){
+      genotypes[[i]] <- file.path("(", paste0(genotypes[[i]],collapse = "|"), ")", fsep = "")
+    }
+  }
+  #expand all combinations of alleles at each site
+  gOI <- expand.grid(genotypes, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE)
+  #bind all combinations into complete genotypes
+  gOI <- do.call(what = paste0, args = gOI)
+  
+  
+  # create output vector
+  outDF <- data.frame("Key"=holdGens, "Group"=0, stringsAsFactors = FALSE)
+  
+  # group output into groups
+  for(i in 1:length(gOI)){
+    outDF[grep(pattern = gOI[i], x = holdGens),"Group"] <- i
+  }
+  
+  # write output
+  write.csv(x = outDF, file = outputFile, row.names = FALSE)
+  
+}
+
+#' Generate genotypes of interest for mPlex-oLocus
+#'
+#' This function generates a *.csv of genotypes of interest and the grouping scheme, ie, 
+#' if one locus isn't interesting and should be considered the same. This file will be used 
+#' for data analysis.
+#'
+#' @param outputFile Name of file to output. Must end in .csv
+#' @param alleles A list of lists that contain the genotypes of interest at each locus. Default is all genotypes
+#' @param collapse A list of lists containing TRUE/FALSE for each locus. If TRUE, the genotypes of interest at that locus are collapsed and the output is the sum of all of them.
+#'
+#' @export
+genOI_oLocus <- function(outputFile, genotypes, collapse){
+  
+  # safety checks
+  #check that the number of loci is equal to the genotype length
+  if(length(alleles)!=2){
+    stop("There are 2 alleles in this simulation
+         list(list(locus_1, locus_2), list(locus_1, locus_2))")
+  }
+  #check that the collapse length is equal to genotype length
+  if(length(alleles) != length(collapse) || lengths(alleles) != lengths(collapse)){
+    stop("collapse must be specified for each locus in each allele.
+         length(collapse) == length(alleles)
+         lengths(collapse) == lengths(alleles)")
+  }
+  
+  
+  # check for null genotypes
+  for(outer in 1:2){
+    for(inner in 1:length(collapse[[1]])){
+      #if null, look at all possible genotypes at that locus
+      if( is.null(alleles[[outer]][[inner]]) ){
+        alleles[[outer]][[inner]] <- c("H", "R", "S", "W")
+      }
+    }#end loop over each loci
+  }#end loop over each allele
+  
+  
+  
+  # generate all combinations of genotypes of interest
+  holdAlleles <- vector(mode = "list", length = 2)
+  
+  #do collapse if there is some
+  for(outer in 1:2){
+    #collapse possible alleles
+    holdAlleles[[outer]] <- do.call(what = paste0,
+                                    args = expand.grid(alleles[[outer]],
+                                                       KEEP.OUT.ATTRS = FALSE,
+                                                       stringsAsFactors = FALSE))
+    
+    # loop over alleles at each locus
+    for(inner in 1:length(collapse[[1]])){
+      #if collapse is true, collapse the genotypes so all are searched for as one
+      if(collapse[[outer]][inner]){
+        alleles[[outer]][[inner]] <- file.path("(", paste0(alleles[[outer]][[inner]],collapse = "|"), ")", fsep = "")
+      }
+    }#end loop over each loci
+    
+    #expand and paste all possible loci combinations in each allele
+    alleles[[outer]] <- do.call(what = paste0,
+                                args = expand.grid(alleles[[outer]], KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE))
+    
+  }#end loop over each allele
+  
+  #expand/bind all combinations of alleles at each site
+  gOI <- do.call(what = paste0,
+                 args = expand.grid(alleles, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE))
+  #expand/bind all possible alleles
+  holdAlleles <- do.call(what = paste0,
+                         args = expand.grid(holdAlleles,
+                                            KEEP.OUT.ATTRS = FALSE,
+                                            stringsAsFactors = FALSE))
+  
+  
+  # create output dataframe
+  outDF <- data.frame("Key"=holdAlleles, "Group"=0, stringsAsFactors = FALSE)
+  
+  # group output into groups
+  for(i in 1:length(gOI)){
+    outDF[grep(pattern = gOI[i], x = holdAlleles),"Group"] <- i
+  }
+  
+  
+  # write output
+  write.csv(x = outDF, file = outputFile, row.names = FALSE)
+  
+}
+
+###############################################################################
+# AGGREGATE
+###############################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #' Analyze output for mPlex-mLoci or DaisyDrive

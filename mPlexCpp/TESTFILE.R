@@ -238,6 +238,19 @@ testFunc <- function(readDirectory, simTime, genotypes, collapse){
   patches = unique(x = regmatches(x = allFiles[[1]], m = regexpr(pattern = "Patch_[0-9]+", text = dirFiles)))
   
   
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
 }
 
 
@@ -245,6 +258,98 @@ testFunc <- function(readDirectory, simTime, genotypes, collapse){
 
 
 
+
+genotypes <- list(c("HH","HW"),NULL, c("HH","HW"))
+collapse <- c(FALSE, TRUE, FALSE)
+outputFile <- "~/Desktop/testFile1.csv"
+
+
+
+
+
+alleles = list(list(c(NULL),c("H")),list(c(NULL),c("W","R","B")))
+collapse = list(c(F,T),c(F,T))
+
+
+
+
+
+genOI_oLocus <- function(outputFile, genotypes, collapse){
+  
+  # safety checks
+  #check that the number of loci is equal to the genotype length
+  if(length(alleles)!=2){
+    stop("There are 2 alleles in this simulation
+         list(list(locus_1, locus_2), list(locus_1, locus_2))")
+  }
+  #check that the collapse length is equal to genotype length
+  if(length(alleles) != length(collapse) || lengths(alleles) != lengths(collapse)){
+    stop("collapse must be specified for each locus in each allele.
+         length(collapse) == length(alleles)
+         lengths(collapse) == lengths(alleles)")
+  }
+  
+  
+  # check for null genotypes
+  for(outer in 1:2){
+    for(inner in 1:length(collapse[[1]])){
+      #if null, look at all possible genotypes at that locus
+      if( is.null(alleles[[outer]][[inner]]) ){
+        alleles[[outer]][[inner]] <- c("H", "R", "S", "W")
+      }
+    }#end loop over each loci
+  }#end loop over each allele
+  
+  
+  
+  # generate all combinations of genotypes of interest
+  holdAlleles <- vector(mode = "list", length = 2)
+    
+  #do collapse if there is some
+  for(outer in 1:2){
+    #collapse possible alleles
+    holdAlleles[[outer]] <- do.call(what = paste0,
+                                    args = expand.grid(alleles[[outer]],
+                                                       KEEP.OUT.ATTRS = FALSE,
+                                                       stringsAsFactors = FALSE))
+    
+    # loop over alleles at each locus
+    for(inner in 1:length(collapse[[1]])){
+      #if collapse is true, collapse the genotypes so all are searched for as one
+      if(collapse[[outer]][inner]){
+        alleles[[outer]][[inner]] <- file.path("(", paste0(alleles[[outer]][[inner]],collapse = "|"), ")", fsep = "")
+      }
+    }#end loop over each loci
+    
+    #expand and paste all possible loci combinations in each allele
+    alleles[[outer]] <- do.call(what = paste0,
+                                args = expand.grid(alleles[[outer]], KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE))
+    
+  }#end loop over each allele
+  
+  #expand/bind all combinations of alleles at each site
+  gOI <- do.call(what = paste0,
+                 args = expand.grid(alleles, KEEP.OUT.ATTRS = FALSE, stringsAsFactors = FALSE))
+  #expand/bind all possible alleles
+  holdAlleles <- do.call(what = paste0,
+                         args = expand.grid(holdAlleles,
+                                            KEEP.OUT.ATTRS = FALSE,
+                                            stringsAsFactors = FALSE))
+  
+  
+  # create output dataframe
+  outDF <- data.frame("Key"=holdAlleles, "Group"=0, stringsAsFactors = FALSE)
+  
+  # group output into groups
+  for(i in 1:length(gOI)){
+    outDF[grep(pattern = gOI[i], x = holdAlleles),"Group"] <- i
+  }
+  
+  
+  # write output
+  write.csv(x = outDF, file = outputFile, row.names = FALSE)
+  
+}
 
 
 
