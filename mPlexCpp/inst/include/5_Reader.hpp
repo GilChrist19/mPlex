@@ -16,7 +16,7 @@
 #include <vector>
 #include <cmath>
 
-//#include <Rcpp.h> // because used with armadillo later. can swap without armadillo
+#include <Rcpp.h> // because used with armadillo later. can swap without armadillo
 //#include <RcppArmadillo.h>
 
 struct SimpleMos{
@@ -199,11 +199,23 @@ void MPLEXReader::readSimOut(const std::string& file_, const int& start_, const 
   // skip first line
   curChar += start_;
   
+  Rcpp::Rcout << "Read in everything in buffer\n";
+  Rcpp::Rcout << "Buffer size is: " << fileSize << std::endl;
+
+int loopnum(0);
+
 
   // switch statement for male vs female files
   switch (switch_){
     case 0: // male file
-      while(curChar != holdString.end()){
+      
+      Rcpp::Rcout << "In case 0!\n";
+      
+      
+      while( (curChar+2) != holdString.end()){
+        
+        loopnum++;
+        Rcpp::Rcout << "Loop number: "<<loopnum<<std::endl;
         
         // clear string holder
         oneNum.clear();
@@ -216,6 +228,8 @@ void MPLEXReader::readSimOut(const std::string& file_, const int& start_, const 
         }
         // iterate over the comma
         ++curChar;
+        
+        Rcpp::Rcout << oneNum << std::endl;
         
         // skip over age
         while(*&*curChar != ','){
@@ -231,6 +245,15 @@ void MPLEXReader::readSimOut(const std::string& file_, const int& start_, const 
         }
         // iterate over the EOL
         ++curChar;
+        
+       
+        
+        if(loopnum >= 45) break;
+        
+        Rcpp::Rcout << twoNum << std::endl;
+        
+         Rcpp::Rcout << *(curChar-1);
+         
         
         // add new mosquito to the vector
         dataPlace_.emplace_back(str2int(&oneNum[0]), twoNum);

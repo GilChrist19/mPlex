@@ -12,8 +12,12 @@ using namespace Rcpp;
 // [[Rcpp::export]]
 void testRead(std::string& female_, std::string& male_, const int& size_){
   
+  Rcpp::Rcout << "In testRead\n";
+  
   // initialize reader
   MPLEXReader fileReader(female_);
+  
+  Rcpp::Rcout<< "Initialized reader\n";
   
   // initialize vector
   std::vector<SimpleMos> inData;
