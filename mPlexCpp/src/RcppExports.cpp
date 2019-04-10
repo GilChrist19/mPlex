@@ -106,6 +106,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// testRead
+void testRead(std::string& female_, std::string& male_, const int& size_);
+RcppExport SEXP _mPlexCpp_testRead(SEXP female_SEXP, SEXP male_SEXP, SEXP size_SEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::string& >::type female_(female_SEXP);
+    Rcpp::traits::input_parameter< std::string& >::type male_(male_SEXP);
+    Rcpp::traits::input_parameter< const int& >::type size_(size_SEXP);
+    testRead(female_, male_, size_);
+    return R_NilValue;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_mPlexCpp_run_mPlex_Cpp", (DL_FUNC) &_mPlexCpp_run_mPlex_Cpp, 10},
@@ -115,6 +127,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_mPlexCpp_calc_GammaKernel", (DL_FUNC) &_mPlexCpp_calc_GammaKernel, 3},
     {"_mPlexCpp_calc_ExpKernel", (DL_FUNC) &_mPlexCpp_calc_ExpKernel, 2},
     {"_mPlexCpp_calc_HurdleExpKernel", (DL_FUNC) &_mPlexCpp_calc_HurdleExpKernel, 3},
+    {"_mPlexCpp_testRead", (DL_FUNC) &_mPlexCpp_testRead, 3},
     {NULL, NULL, 0}
 };
 

@@ -95,3 +95,7 @@ calc_HurdleExpKernel <- function(distMat, r, pi) {
     .Call('_mPlexCpp_calc_HurdleExpKernel', PACKAGE = 'mPlexCpp', distMat, r, pi)
 }
 
+testRead <- function(female_, male_, size_) {
+    invisible(.Call('_mPlexCpp_testRead', PACKAGE = 'mPlexCpp', female_, male_, size_))
+}
+
