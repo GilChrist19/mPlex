@@ -16,8 +16,12 @@
 #include <vector>
 #include <cmath>
 
-#include <Rcpp.h> // because used with armadillo later. can swap without armadillo
+//#include <Rcpp.h> // because used with armadillo later. can swap without armadillo
 //#include <RcppArmadillo.h>
+
+/******************************************************************************
+ * Struct Definition
+ *****************************************************************************/
 
 struct SimpleMos{
   int time;
@@ -26,10 +30,9 @@ struct SimpleMos{
   SimpleMos(int time_, std::string gen_) : time(time_), gen(gen_){}
 };
 
-
-
-
-
+/******************************************************************************
+ * Class Definition
+ *****************************************************************************/
 
 class MPLEXReader {
 public:
@@ -41,7 +44,7 @@ public:
     holdStream.open(_bigFile);  // open stream
     holdStream.seekg(0, std::ios::end);     // skip to end of file
     fileSize = holdStream.tellg();          // get size of file
-    holdString.resize(fileSize);           // reserve space
+    holdString.reserve(fileSize);           // reserve space
     holdStream.close();
     
     // initialize holders for conversions
@@ -56,10 +59,6 @@ public:
   // main functions
   // void readFileDBL(const std::string& _file, const int& start, const int& nrow,
   //                  const int& ncol, Rcpp::NumericMatrix& dataPlace);
-  
-  
-  
-  
   
   void readSimOut(const std::string& _file, const int& start, const int& switch_,
                   std::vector<SimpleMos>& dataPlace);
@@ -83,8 +82,8 @@ private:
   double baseDBL;
   double expDBL;
   int    baseINT;
-  size_t outerLoop;
-  size_t innerLoop;
+  // size_t outerLoop;
+  // size_t innerLoop;
   
   std::string::iterator curChar, endChar;
   std::string oneNum, twoNum;
@@ -179,43 +178,35 @@ int MPLEXReader::str2int(const char *p) {
 // } // end double reader
 
 
-// read ints from file into an already created matrix
+// read simulation output, append to vector of objects, read by male or female
 void MPLEXReader::readSimOut(const std::string& file_, const int& start_, const int& switch_,
                               std::vector<SimpleMos>& dataPlace_){
   
-  holdString.clear();
-  
+
   // open file
-  holdStream.open(file_);
+  holdStream.open(file_, std::ios_base::binary);
+  
+  
   // get amount to read
   holdStream.seekg(0, std::ios::end);
   fileSize = holdStream.tellg(); // size of file
   holdStream.seekg(0); // back to beginning
   
+  // resize buffer to current file size
+  holdString.resize(fileSize);
+  
   // read in everything
   holdStream.read(&holdString[0], fileSize);
-  // set iterator at beginning
+  // set iterators
   curChar = holdString.begin();
+  endChar = holdString.end();
   // skip first line
   curChar += start_;
   
-  Rcpp::Rcout << "Read in everything in buffer\n";
-  Rcpp::Rcout << "Buffer size is: " << fileSize << std::endl;
-
-int loopnum(0);
-
-
   // switch statement for male vs female files
   switch (switch_){
     case 0: // male file
-      
-      Rcpp::Rcout << "In case 0!\n";
-      
-      
-      while( (curChar+2) != holdString.end()){
-        
-        loopnum++;
-        Rcpp::Rcout << "Loop number: "<<loopnum<<std::endl;
+      while( curChar != endChar){
         
         // clear string holder
         oneNum.clear();
@@ -228,8 +219,6 @@ int loopnum(0);
         }
         // iterate over the comma
         ++curChar;
-        
-        Rcpp::Rcout << oneNum << std::endl;
         
         // skip over age
         while(*&*curChar != ','){
@@ -246,21 +235,12 @@ int loopnum(0);
         // iterate over the EOL
         ++curChar;
         
-       
-        
-        if(loopnum >= 45) break;
-        
-        Rcpp::Rcout << twoNum << std::endl;
-        
-         Rcpp::Rcout << *(curChar-1);
-         
-        
         // add new mosquito to the vector
         dataPlace_.emplace_back(str2int(&oneNum[0]), twoNum);
       } // end loop over file
       break;
   case 1: //female file  
-    while(curChar != holdString.end()){
+    while(curChar != endChar){
       
       // clear string holder
       oneNum.clear();
@@ -293,7 +273,7 @@ int loopnum(0);
       while(*&*curChar != '\n'){
         ++curChar;
       }
-      // iterate over the comma
+      // iterate over EOL
       ++curChar;
       
       // add new mosquito to the vector
@@ -304,10 +284,8 @@ int loopnum(0);
     
   } // end switch
   
-  
   // close file
   holdStream.close();
-  
   
 } // end int reader
 

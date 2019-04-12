@@ -106,15 +106,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// testRead
-void testRead(std::string& female_, std::string& male_, const int& size_);
-RcppExport SEXP _mPlexCpp_testRead(SEXP female_SEXP, SEXP male_SEXP, SEXP size_SEXP) {
+// simAgg
+void simAgg(const std::vector<std::vector<std::string> >& readFiles_, const std::vector<std::vector<std::string> >& writeFiles_, const std::string& largeFile_, const int& simTime_, const Rcpp::List& genKey_);
+RcppExport SEXP _mPlexCpp_simAgg(SEXP readFiles_SEXP, SEXP writeFiles_SEXP, SEXP largeFile_SEXP, SEXP simTime_SEXP, SEXP genKey_SEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< std::string& >::type female_(female_SEXP);
-    Rcpp::traits::input_parameter< std::string& >::type male_(male_SEXP);
-    Rcpp::traits::input_parameter< const int& >::type size_(size_SEXP);
-    testRead(female_, male_, size_);
+    Rcpp::traits::input_parameter< const std::vector<std::vector<std::string> >& >::type readFiles_(readFiles_SEXP);
+    Rcpp::traits::input_parameter< const std::vector<std::vector<std::string> >& >::type writeFiles_(writeFiles_SEXP);
+    Rcpp::traits::input_parameter< const std::string& >::type largeFile_(largeFile_SEXP);
+    Rcpp::traits::input_parameter< const int& >::type simTime_(simTime_SEXP);
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type genKey_(genKey_SEXP);
+    simAgg(readFiles_, writeFiles_, largeFile_, simTime_, genKey_);
     return R_NilValue;
 END_RCPP
 }
@@ -127,7 +129,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_mPlexCpp_calc_GammaKernel", (DL_FUNC) &_mPlexCpp_calc_GammaKernel, 3},
     {"_mPlexCpp_calc_ExpKernel", (DL_FUNC) &_mPlexCpp_calc_ExpKernel, 2},
     {"_mPlexCpp_calc_HurdleExpKernel", (DL_FUNC) &_mPlexCpp_calc_HurdleExpKernel, 3},
-    {"_mPlexCpp_testRead", (DL_FUNC) &_mPlexCpp_testRead, 3},
+    {"_mPlexCpp_simAgg", (DL_FUNC) &_mPlexCpp_simAgg, 5},
     {NULL, NULL, 0}
 };
 

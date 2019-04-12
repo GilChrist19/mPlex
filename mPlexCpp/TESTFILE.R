@@ -211,43 +211,67 @@ system(sprintf("google-pprof --text --cum --lines  /bin/ls %sprofile.log", direc
 
 
 
+cat("NumSamp  PercentSamp  CumPercentSamp  NumSampTree  PercentSampTree  Function")
+system(sprintf("google-pprof --text --cum --lines  /bin/ls %sprofile.log", "~/Desktop/OUTPUT/"), intern = TRUE)
+
+
+mPlexCpp::genOI_mLoci_Daisy(outputFile = "~/Desktop/OUTPUT/mPlex/Aggregate/0_AggKey.csv", genotypes = list(NULL), collapse = c(FALSE))
 
 
 
-testFunc <- function(readDirectory, simTime, genotypes, collapse){
-  
-  # create directory for putting aggregated files
-  outDir <- file.path(readDirectory, 'Aggregate')
-  dir.create(path = outDir)
+readDirectory <- "~/Desktop/OUTPUT/mPlex/experimentTest"
+writeDirectory <- "~/Desktop/OUTPUT/mPlex/Aggregate"
+simTime=1000
+
+testFunc <- function(readDirectory, writeDirectory, simTime){
   
   # list all files
-  allFiles <- list(list.files(path = readDirectory, pattern = 'M_', full.names = TRUE),
-                   list.files(path = readDirectory, pattern = 'F_', full.names = TRUE))
+  readFiles <- list(list.files(path = readDirectory, pattern = 'M_', full.names = TRUE),
+                    list.files(path = readDirectory, pattern = 'F_', full.names = TRUE))
   
   # get file with largest size for buffer
   #  Definitely female, so only check them.
-  maxVal <- which.max(x = file.size(allFiles[[2]]))
+  largeFile <- readFiles[[2]][which.max(x = file.size(readFiles[[2]]))]
   
-  # get numpatches
+  # generate write file names
+  writeFiles <- vector(mode = "list", length = 2)
+  writeDirectory <- path.expand(path = writeDirectory)
   
+  for(i in 1:2){
+    hold <- strsplit(x = readFiles[[i]], split = "/", fixed = TRUE, useBytes = TRUE)
+    writeFiles[[i]] <- file.path(writeDirectory,
+                                 unlist(x = hold)[seq.int(from = 0, to = length(hold)*length(hold[[1]]), by = length(hold[[1]]))])
+  }
   
-  
-  
-  
-  
-  patches = unique(x = regmatches(x = allFiles[[1]], m = regexpr(pattern = "Patch_[0-9]+", text = dirFiles)))
-  
-  
-  
-  
-  
+  # read in genotype collapse key
+  genKey <- read.csv(file = list.files(path = writeDirectory, pattern = "AggKey", full.names = TRUE),
+                     header = TRUE, stringsAsFactors = FALSE)
 
   
   
   
+  microbenchmark::microbenchmark(  mPlexCpp:::testFunc(readFiles_ = readFiles, writeFiles_ = writeFiles, largeFile_ = largeFile, simTime_ = simTime, genKey_ = genKey),
+                                   times = 10)
   
   
   
+  
+  mPlexCpp:::testFunc(readFiles_ = readFiles, writeFiles_ = writeFiles, largeFile_ = largeFile, simTime_ = simTime, genKey_ = genKey)
+  mPlexCpp:::testFunc2(readFiles_ = readFiles, writeFiles_ = writeFiles, largeFile_ = largeFile, simTime_ = simTime, genKey_ = genKey)
+  
+  
+  
+  
+  
+  Unit: seconds
+  expr
+  mPlexCpp:::testFunc(readFiles_ = readFiles, writeFiles_ = writeFiles,      largeFile_ = largeFile, simTime_ = simTime, genKey_ = genKey)
+  mPlexCpp:::testFunc2(readFiles_ = readFiles, writeFiles_ = writeFiles,      largeFile_ = largeFile, simTime_ = simTime, genKey_ = genKey)
+  min       lq     mean   median       uq      max neval
+  8.803576 8.891493 8.951752 8.979497 9.021589 9.077743    10
+  8.866992 8.900587 8.948064 8.953239 8.987247 9.054045    10
+  
+
   
   
   
@@ -255,8 +279,8 @@ testFunc <- function(readDirectory, simTime, genotypes, collapse){
 
 
 
-
-
+genKey <- read.csv(file = "~/Desktop/testFile1.csv", header = TRUE, stringsAsFactors = FALSE)
+mPlexCpp:::testFunc(genKey_ = genKey)
 
 
 genotypes <- list(c("HH","HW"),NULL, c("HH","HW"))
