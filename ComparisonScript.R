@@ -19,14 +19,20 @@
 # Clean environment and source files
 ###############################################################################
 rm(list=ls());gc()
-library(MGDrivE)
-library(MGDrivEv2)
+
+# DOES NEED DATA.TABLE!!!!!!
+
+#library(MGDrivE)
+#library(MGDrivEv2)
 #library(mPlexCpp)
-library(parallel)
+#library(parallel)
 
 ###############################################################################
 # Modified quantiles function
 ###############################################################################
+# This sets all data.table functions to a single thread
+data.table::setDTthreads(threads = 1)
+
 AnalyzeQuantilesMOD <- function(readDirectory, writeDirectory, numFiles, numPatches, FPop){
   
   #get files
@@ -163,33 +169,29 @@ AnalyzeQuantilesMOD <- function(readDirectory, writeDirectory, numFiles, numPatc
 AnalyzeQuantilesMOD2 <- function(readDirectory, writeDirectory, numFiles, numPatches, FPop){
   
   #get files
-  repFiles = list.dirs(path = readDirectory, full.names = TRUE, recursive = FALSE)[1:numFiles]
-  patchFiles = lapply(X = repFiles, FUN = list.files, pattern = ".*\\.csv$")
-  
-  #subset females/males
-  malePatches <- lapply(X = patchFiles, FUN = grep, pattern = "ADM", fixed = TRUE, value=TRUE)
-  femalePatches <- lapply(X = patchFiles, FUN = grep, pattern = "ADF", fixed = TRUE, value=TRUE)
+  allMaleFiles <- list.files(path = readDirectory, pattern = "M_", full.names = TRUE)[1:(numFiles*numPatches)] 
+  allFemaleFiles <- list.files(path = readDirectory, pattern = "F_", full.names = TRUE)[1:(numFiles*numPatches)]  
+    
   
   #generate a list of all patches to run over
-  patchList = unique(regmatches(x = patchFiles[[1]],
-                                m = regexpr(pattern = "Patch[0-9]+",
-                                            text = patchFiles[[1]],
+  patchList = unique(regmatches(x = allMaleFiles,
+                                m = regexpr(pattern = "Patch_[0-9]+",
+                                            text = allMaleFiles,
                                             perl = TRUE)))
   
   #read in a file initially to get variables and setup return array
-  testFile <- data.table::fread(input = file.path(repFiles[1], patchFiles[[1]][1]),
+  testFile <- data.table::fread(input = allMaleFiles[1],
                                 header = TRUE, verbose = FALSE, showProgress = FALSE,
-                                logical01 = FALSE, sep = ",", drop = c("Time", "Total Pop."))
+                                logical01 = FALSE, sep = ",", drop = c("Time", "Other"))
   
   #bunch of constants that get used several times
-  numReps <- length(repFiles)
   columnNames <- c("Time", names(testFile))
   numRow <- dim(testFile)[1]
   numCol <- dim(testFile)[2]+1
   
   #setup input data holder
-  popDataMale <- array(data = 0, dim = c(numRow,  numReps, numCol-1))
-  popDataFemale <- array(data = 0, dim = c(numRow, numReps, numCol-1))
+  popDataMale <- array(data = 0, dim = c(numRow,  numFiles, numCol-1))
+  popDataFemale <- array(data = 0, dim = c(numRow, numFiles, numCol-1))
   
   #setup output data holder
   outputDataMale <- array(data = 0, dim = c(numRow, numCol, 1),
@@ -203,46 +205,44 @@ AnalyzeQuantilesMOD2 <- function(readDirectory, writeDirectory, numFiles, numPat
   #loop over all patches and do stats.
   for(patch in patchList){
     #get male and female files, all repetitions of this patch
-    maleFiles <- vapply(X = malePatches,
-                        FUN = grep, pattern = patch, fixed=TRUE, value=TRUE,
-                        FUN.VALUE = character(length = 1L))
+    maleFiles <- grep(pattern = patch, x = allMaleFiles, value = TRUE,
+                      fixed = TRUE, useBytes = TRUE)
     
-    femaleFiles <- vapply(X = femalePatches,
-                          FUN = grep, pattern = patch, fixed=TRUE, value=TRUE,
-                          FUN.VALUE = character(length = 1L))
+    femaleFiles <- grep(pattern = patch, x = allFemaleFiles, value = TRUE,
+                        fixed = TRUE, useBytes = TRUE)
     
     
     #Read in all repetitions for this patch
-    for(repetition in 1:numReps){
-      popDataMale[ ,repetition, ] <- as.matrix(data.table::fread(input = file.path(repFiles[repetition], maleFiles[repetition]),
+    for(repetition in 1:numFiles){
+      popDataMale[ ,repetition, ] <- as.matrix(data.table::fread(input = maleFiles[repetition],
                                                                  header = TRUE, verbose = FALSE, showProgress = FALSE,
-                                                                 logical01 = FALSE, sep = ",", drop = c("Time", "Total Pop.")))
-      popDataFemale[ ,repetition, ] <- as.matrix(data.table::fread(input = file.path(repFiles[repetition], femaleFiles[repetition]),
+                                                                 logical01 = FALSE, sep = ",", drop = c("Time", "Other")))
+      popDataFemale[ ,repetition, ] <- as.matrix(data.table::fread(input = femaleFiles[repetition],
                                                                    header = TRUE, verbose = FALSE, showProgress = FALSE,
-                                                                   logical01 = FALSE, sep = ",", drop = c("Time", "Total Pop.")))
+                                                                   logical01 = FALSE, sep = ",", drop = c("Time", "Other")))
     }
     
     
     #do mean
     for(whichCol in 1:(numCol-1)){
       outputDataMale[ ,whichCol+1,1] <- .rowMeans(x = popDataMale[ , ,whichCol],
-                                                  m = numRow, n = numReps)
+                                                  m = numRow, n = numFiles)
       outputDataFemale[ ,whichCol+1,1] <- .rowMeans(x = popDataFemale[ , ,whichCol],
-                                                    m = numRow, n = numReps)
+                                                    m = numRow, n = numFiles)
     }
     
     
     #write output
     maleFileName <- file.path(writeDirectory,
                               file.path("NumPatches_", formatC(x = numPatches, width = 2, format = "d", flag = "0"),
-                                        ":", formatC(x = as.integer(gsub(pattern = "Patch", replacement = "", x = patch, fixed = TRUE))+1, width = 2, format = "d", flag = "0"),
+                                        ":", formatC(x = as.integer(gsub(pattern = "Patch_", replacement = "", x = patch, fixed = TRUE))+1, width = 2, format = "d", flag = "0"),
                                         "_FPop_", formatC(x = FPop, width = 3, format = "d", flag = "0"),
                                         "_NumReps_", formatC(x = numFiles, width = 3, format = "d", flag = "0"),
                                         "_Mean_Male.csv", fsep = "")
     )
     femaleFileName <- file.path(writeDirectory,
                                 file.path("NumPatches_", formatC(x = numPatches, width = 2, format = "d", flag = "0"),
-                                          ":", formatC(x = as.integer(gsub(pattern = "Patch", replacement = "", x = patch, fixed = TRUE))+1, width = 2, format = "d", flag = "0"),
+                                          ":", formatC(x = as.integer(gsub(pattern = "Patch_", replacement = "", x = patch, fixed = TRUE))+1, width = 2, format = "d", flag = "0"),
                                           "_FPop_", formatC(x = FPop, width = 3, format = "d", flag = "0"),
                                           "_NumReps_", formatC(x = numFiles, width = 3, format = "d", flag = "0"),
                                           "_Mean_Female.csv", fsep = "")
@@ -269,14 +269,14 @@ AnalyzeQuantilesMOD2 <- function(readDirectory, writeDirectory, numFiles, numPat
     #file names
     maleFileName <- file.path(writeDirectory,
                               file.path("NumPatches_", formatC(x = numPatches, width = 2, format = "d", flag = "0"),
-                                        ":", formatC(x = as.integer(gsub(pattern = "Patch", replacement = "", x = patch, fixed = TRUE))+1, width = 2, format = "d", flag = "0"),
+                                        ":", formatC(x = as.integer(gsub(pattern = "Patch_", replacement = "", x = patch, fixed = TRUE))+1, width = 2, format = "d", flag = "0"),
                                         "_FPop_", formatC(x = FPop, width = 3, format = "d", flag = "0"),
                                         "_NumReps_", formatC(x = numFiles, width = 3, format = "d", flag = "0"),
                                         "_Variance_Male.csv", fsep = "")
     )
     femaleFileName <- file.path(writeDirectory,
                                 file.path("NumPatches_", formatC(x = numPatches, width = 2, format = "d", flag = "0"),
-                                          ":", formatC(x = as.integer(gsub(pattern = "Patch", replacement = "", x = patch, fixed = TRUE))+1, width = 2, format = "d", flag = "0"),
+                                          ":", formatC(x = as.integer(gsub(pattern = "Patch_", replacement = "", x = patch, fixed = TRUE))+1, width = 2, format = "d", flag = "0"),
                                           "_FPop_", formatC(x = FPop, width = 3, format = "d", flag = "0"),
                                           "_NumReps_", formatC(x = numFiles, width = 3, format = "d", flag = "0"),
                                           "_Variance_Female.csv", fsep = "")
@@ -428,7 +428,8 @@ numFileAnalysis <- c(10,25,50,100,252)
 
 simulationTime=200 # Number of "days" run in the simulation
 repetitions=numFileAnalysis[length(numFileAnalysis)] #252
-numCores <- 1#detectCores()/2 #should give number of real cpu cores
+numCores <- 2#detectCores()/2 #should give number of real cpu cores
+    # NUM CORES MUST BE A DIVISOR OF REPETITIONS!!!!!!!!!
 
 # drive parameters, need to be shared by both
 cutting <- 0.9
@@ -438,19 +439,10 @@ bioParameters=list(betaK=20,tEgg=6,tLarva=11,tPupa=4,popGrowth=1.096,muAd=0.09)
 
 
 
-
-
-
 #######################################
 # Run MGDrivE
 #######################################
 
-# setup cluster
-cl=parallel::makePSOCKcluster(names=numCores, outfile = "~/Desktop/OUTPUT/error.out")
-parallel::clusterEvalQ(cl=cl,expr={
-  library(MGDrivE)
-  library(MGDrivEv2)
-})
 
 for(Kernel in Movement){
   for(Population in FPop){
@@ -483,111 +475,94 @@ for(Kernel in Movement){
       releasesStart=100,releasesNumber=10,releasesInterval=1,
       releaseProportion=Population
     )
-    maleReleasesVector1=generateReleaseVector(driveCube=driveCube,releasesParameters=releasesParameters,sex="M")
+    maleReleasesVector1=MGDrivE::generateReleaseVector(driveCube=driveCube,releasesParameters=releasesParameters,sex="M")
     
     patchReleases[[1]]$maleReleases=maleReleasesVector1
     
     
-    #numCores and repsPerCore have to divide to whole numbers. Basically, pay attention
-    # and balance runs so they make sense?
-    repsPerCore <- repetitions/numCores
-    repStart <- seq(1, repetitions, repetitions/numCores)
-    OutputList <- vector(mode = "list", length = numCores)
-    
-    # loop over number of cores
-    for(i in 1:numCores){
-      # vector of folder names for each core to output to
-      folderName=paste0(DataDir,"/Rep_",
-                        formatC(x = repStart[i]:(repStart[i]+repsPerCore-1), width = 4, format = "d", flag = "0"),
-                        sep = "")
-      # create the folders if they don't exist, clear them if they do
-      for(j in 1:repsPerCore){
-        if(!dir.exists(folderName[j])){dir.create(folderName[j])}else{eraseDirectoryMOD(folderName[j])}
-      }
-      # store in list, the vector of folder names and the number of which rep to start on
-      OutputList[[i]]$folder=folderName
-      OutputList[[i]]$i=repStart[i]
-    } # end loop
     
     
     
-    # setup parallel cluster and run!
-    parallel::clusterExport(
-      cl=cl,
-      varlist=c("simulationTime","numNodes","bioParameters","patchPops","patchReleases",
-                "migration","driveCube","batchMigration","AnalyzeQuantilesMOD",
-                "Population","DataDir","MGDrivEAnalysisDir")
-    )
-
+    # vector of folder names for each core to output to
+    folderName=paste0(DataDir,"/Rep_",
+                      formatC(x = 1:repetitions, width = 4, format = "d", flag = "0"),
+                      sep = "")
+    
+    # create folders
+    for(i in folderName){
+      if(!dir.exists(i)){dir.create(i)}else{eraseDirectoryMOD(i)}
+    }
     
     
-    parallel::parLapply(cl=cl,X=OutputList,fun=function(x){
-      # set up network parameters
-      netPar=Network.Parameters(
-        runID=x$i,simTime=simulationTime,nPatch=numNodes,
+    
+    
+    
+    
+    # setup network parameters
+    netPar=MGDrivE::Network.Parameters(
+        runID=1,simTime=simulationTime,nPatch=numNodes,
         beta=bioParameters$betaK,muAd=bioParameters$muAd,popGrowth=bioParameters$popGrowth,
         tEgg=bioParameters$tEgg,tLarva=bioParameters$tLarva,tPupa=bioParameters$tPupa,
         AdPopEQ=patchPops
       )
-      # set seed
-      randomSeed=as.integer((as.double(Sys.time())*1000+Sys.getpid()) %% 2^31)
-      # pass parameters and run
-      MGDrivEv2::stochastic_multiple(seed = randomSeed,
-                                     cubeR = driveCube,
-                                     parametersR = netPar,
-                                     migrationFemaleR = migration,
-                                     migrationMaleR = migration,
-                                     migrationBatchR = batchMigration,
-                                     releasesR = patchReleases,
-                                     output = x$folder,
-                                     verbose = FALSE)
-      gc()
-    })
     
+    # set seed
+    randomSeed=as.integer((as.double(Sys.time())*1000+Sys.getpid()) %% 2^31)
     
+    # pass parameters and run
+    MGDrivEv2::stochastic_multiple(seed = randomSeed,
+                                   cubeR = driveCube,
+                                   parametersR = netPar,
+                                   migrationFemaleR = migration,
+                                   migrationMaleR = migration,
+                                   migrationBatchR = batchMigration,
+                                   releasesR = patchReleases,
+                                   output = folderName,
+                                   verbose = FALSE)
+      
     
     ###############################################################################################################
     ############################### POST-ANALYSIS #################################################################
-    # create vector of just folder names from the outputList above
-    FolderVec <- c(vapply(X = OutputList, FUN = "[[", 1, FUN.VALUE = character(repsPerCore)))
-    
-    # split output and aggregate females. seems to work in one loop, may have to split
-    parallel::parLapply(cl=cl,X=FolderVec,fun=function(x){
-      MGDrivE::splitOutput(readDir=x, writeDir = NULL, remFile = TRUE, numCores = 1)
-      MGDrivE::aggregateFemales(readDir=x, writeDir = NULL, genotypes = driveCube$genotypesID, remFile = TRUE, numCores = 1)
-      gc()
-    })
-    
-    # do analysis in parallel, over number of files to use
-    parallel::parLapply(cl=cl, X=numFileAnalysis, fun=function(x){
-      AnalyzeQuantilesMOD(readDirectory = DataDir,
+    # split data by patch and aggregate females over mate
+    MGDrivEv2::SplitAggregateCpp(readDir = DataDir, writeDir = DataDir,
+                                 simTime = simulationTime, numPatch = numNodes,
+                                 genotypes = driveCube$genotypesID, remFiles = TRUE)  
+      
+    # run modified analysis function
+    #  fast enough, simple without parallel loop
+     for(i in numFileAnalysis){
+       AnalyzeQuantilesMOD(readDirectory = DataDir,
                           writeDirectory = MGDrivEAnalysisDir,
-                          numFiles = x,
+                          numFiles = i,
                           numPatches = numNodes,
                           FPop = Population)
-      gc()
-    })
-    
+     }
     
     
   }# end loop over populations
 }# end loop over kernels
 
-# stop cluster
-parallel::stopCluster(cl)
-
-# detach packages
-# will pull necessary functions directly from packages to keep MGDrive from 
-#  covering things in mPlex
-detach("package:MGDrivE", unload=TRUE)
-detach("package:MGDrivEv2", unload=TRUE)
 
 #######################################
 #######################################
 #######################################
 # mPLEX
 #######################################
-library(mPlexCpp)
+#library(mPlexCpp)
+library(parallel)
+
+
+
+#######################################
+# Setup mPlex aggregate key
+#######################################
+# example function for other uses
+#  this has to get written to a special place!!!!!
+#mPlexCpp::genOI_mLoci_Daisy(outputFile = "~/Desktop/0_aggKey.csv",genotypes = list(NULL),collapse = c(FALSE))
+aggKey <- data.frame("Key"=c("HH","HR","HS","HW","RR","RS","RW","SS","SW","WW"),
+                     "Group"=c(1,2,3,4,5,6,7,8,9,10))
+      
+      
 
 # setup cluster
 cl=parallel::makePSOCKcluster(names=numCores)
@@ -624,8 +599,7 @@ for(Kernel in Movement){
                                                                      "RS"=0.8))
     
     # movement matrix and batch migration
-    migration <- Kernel
-    batchMigration <- basicBatchMigration(batchProbs = 0.0, sexProbs = c(0.5,0.5), numPatches = numNodes)
+    batchMigration <- mPlexCpp::basicBatchMigration(batchProbs = 0.0, sexProbs = c(0.5,0.5), numPatches = numNodes)
 
     
     
@@ -656,33 +630,19 @@ for(Kernel in Movement){
     ########################################
     # Folder Setup
     ########################################
-    #numCores and repsPerCore have to divide to whole numbers. Basically, pay attention
-    # and balance runs so they make sense?
-    repsPerCore <- repetitions/numCores
-    repStart <- seq(1, repetitions, repetitions/numCores)
-    OutputList <- vector(mode = "list", length = numCores)
+    nReps <- repetitions/numCores
+    repStarIDt <- seq(1, repetitions, nReps)
     
-    # loop over number of cores
-    for(i in 1:numCores){
-      # vector of folder names for each core to output to
-      folderName=paste0(DataDir,"/Rep_",
-                        formatC(x = repStart[i]:(repStart[i]+repsPerCore-1), width = 4, format = "d", flag = "0"),
-                        sep = "")
-      # create the folders if they don't exist, clear them if they do
-      for(j in 1:repsPerCore){
-        if(!dir.exists(folderName[j])){dir.create(folderName[j])}else{eraseDirectoryMOD(folderName[j])}
-      }
-      # store in list, the vector of folder names and the number of which rep to start on
-      OutputList[[i]]$folder=folderName
-      OutputList[[i]]$i=repStart[i]
-    } # end loop
-    
-    
-    
-    OutputList2=paste0(DataDir2,"/Rep_", formatC(x = 1:repetitions, width = 4, format = "d", flag = "0"), sep = "")
-    for(j in 1:repetitions){
-      if(!dir.exists(OutputList2[j])){dir.create(OutputList2[j])}else{eraseDirectoryMOD(OutputList2[j])}
+    # create folders/clear folders
+    for(i in c(DataDir,DataDir2)){
+      if(!dir.exists(i)){dir.create(i)}else{eraseDirectoryMOD(i)}
     }
+    
+    # put aggKey in second folder
+    write.csv(x = aggKey, file = file.path(DataDir2,"0_AggKey.csv"), row.names = FALSE)
+    
+    
+    
 
     ########################################
     # Run
@@ -691,31 +651,33 @@ for(Kernel in Movement){
     parallel::clusterExport(
       cl=cl,
       varlist=c("simulationTime","numNodes","bioParameters","patchPops","patchReleases",
-                "migration","AllAlleles","batchMigration","reproductionReference",
-                "AnalyzeQuantilesMOD2","Population","DataDir2","mPlexAnalysisDir")
+                "Kernel","AllAlleles","batchMigration","reproductionReference",
+                "AnalyzeQuantilesMOD2","Population","DataDir2","mPlexAnalysisDir","DataDir", "nReps")
     )
     
     
-    parallel::parLapply(cl=cl,X=OutputList,fun=function(x){
+    parallel::parLapply(cl=cl,X=repStarIDt,fun=function(x){
       # set up network parameters
       netPar = NetworkParameters(nPatch = numNodes,
                                  simTime = simulationTime,
                                  alleloTypes = AllAlleles,
                                  AdPopEQ = patchPops,
-                                 runID = x$i,
+                                 runID = x,
                                  dayGrowthRate = bioParameters$popGrowth,tEgg = bioParameters$tEgg,
                                  tLarva = bioParameters$tLarva,tPupa = bioParameters$tPupa,muAd = bioParameters$muAd,
                                  beta = bioParameters$betaK)
       # set seed
       randomSeed=as.integer((as.double(Sys.time())*1000+Sys.getpid()) %% 2^31)
       # pass parameters and run
-      mPlexCpp::mPlex_runRepetitions(seed = randomSeed,networkParameters = netPar,
+      mPlexCpp::mPlex_runRepetitions(seed = randomSeed,
+                                     numReps = nReps,
+                                     networkParameters = netPar,
                                      reproductionReference = reproductionReference,
                                      patchReleases = patchReleases,
-                                     migrationMale = migration,
-                                     migrationFemale = migration,
+                                     migrationMale = Kernel,
+                                     migrationFemale = Kernel,
                                      migrationBatch = batchMigration,
-                                     output_directory = x$folder,
+                                     outputDirectory = DataDir,
                                      reproductionType = "mPlex_mLoci",
                                      verbose = FALSE)
       
@@ -723,32 +685,21 @@ for(Kernel in Movement){
     })
     
     
+    ########################################
+    # Post-Analysis
+    ########################################
+    # aggregate by key
+    mPlexCpp::SimAggregation(readDirectory = DataDir, writeDirectory = DataDir2, simTime = simulationTime)
     
-    ###############################################################################################################
-    ############################### POST-ANALYSIS #################################################################
-    # create vector of just folder names from the outputList above
-    FolderVec <- c(vapply(X = OutputList, FUN = "[[", 1, FUN.VALUE = character(repsPerCore)))
-    
-    FolderList <- as.list(data.frame(rbind(FolderVec, OutputList2), stringsAsFactors = FALSE)) # combine with second list, put into nice format. Weird command
-    
-    # split output and aggregate females. seems to work in one loop, may have to split
-    parallel::parLapply(cl=cl,X=FolderList,fun=function(x){
-      mPlexCpp::splitOutput(readDirectory = x[1], numCores = 1)
-      mPlexCpp::AnalyzeOutput_mLoci_Daisy(readDirectory = x[1],saveDirectory = x[2],
-                                          genotypes = list(NULL),collapse = c(FALSE),
-                                          numCores = 1)
-      gc()
-    })
-    
-    # do analysis in parallel, over number of files to use
-    parallel::parLapply(cl=cl, X=numFileAnalysis, fun=function(x){
+    # do analysis.
+    #  serial, it's fast enough and this is simpler/safer
+    for(i in numFileAnalysis){
       AnalyzeQuantilesMOD2(readDirectory = DataDir2,
                            writeDirectory = mPlexAnalysisDir,
-                           numFiles = x,
+                           numFiles = i,
                            numPatches = numNodes,
                            FPop = Population)
-      gc()
-    })
+     }
     
     
   }# end loop over populations
@@ -759,7 +710,7 @@ parallel::stopCluster(cl)
 
 
 # detach packages
-detach("package:mPlexCpp", unload=TRUE)
+detach("package:parallel", unload=TRUE)
 
 
 
@@ -917,45 +868,6 @@ for(numPatch in pNames){
     }# end loop over number of files used in analysis
   }# end loop over female population
 }# end loop of number of patches
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

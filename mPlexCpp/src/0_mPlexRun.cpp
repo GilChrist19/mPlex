@@ -563,11 +563,11 @@ void run_mPlex_Cpp_repetitions(const uint_least32_t& seed_,
     // setup strings for file names
     //  these increment runs
     maleFile = outputDirectory_ + "/M_Run_"
-                + std::string(3 - std::to_string(parameters::instance().get_run_id()).length(), '0')
+                + std::string(3 - std::to_string(rep+parameters::instance().get_run_id()).length(), '0')
                 + std::to_string(rep+parameters::instance().get_run_id())
                 + "_Patch_";
     femaleFile = outputDirectory_ + "/F_Run_"
-                + std::string(3 - std::to_string(parameters::instance().get_run_id()).length(), '0')
+                + std::string(3 - std::to_string(rep+parameters::instance().get_run_id()).length(), '0')
                 + std::to_string(rep+parameters::instance().get_run_id())
                 + "_Patch_";
     

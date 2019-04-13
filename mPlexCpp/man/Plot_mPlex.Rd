@@ -17,7 +17,6 @@ Plot_mPlex(directory, whichPatches=NULL,totalPop=TRUE)
 Plots the analyzed output of mPlex.
 }
 \details{
-This function plots output from the analyze function. Setting totalPop
-to FALSE keeps it from plotting the total population. The function breaks down
-if you plot too many patches, but it looks bad long before that.
+This function plots output from the analyze function. totPop is not currently
+used. If there are several repetitions available, it only plots the first one.
 }
