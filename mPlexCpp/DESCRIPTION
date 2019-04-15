@@ -3,15 +3,15 @@ Type: Package
 Title: mPlex, C++
 Version: 1.0
 Date: 2018-01-17
-Author: Your Name
-Maintainer: Your Name <your@email.com>
+Author: Jared Bennett
+Maintainer: Jared Bennett <jared_bennett@berkeley.edu>
 Description: One paragraph description of what the package does as one or more
          full sentences.
 License: GPL (>= 2)
 Encoding: UTF-8
 Imports: Rcpp (>= 0.12.14), RcppProgress
 LinkingTo: Rcpp, RcppProgress
-Depends: R (>= 2.10), data.table
+Depends: R (>= 2.10)
 LazyData: true
 RoxygenNote: 6.1.1
 Roxygen: list(markdown = TRUE)
