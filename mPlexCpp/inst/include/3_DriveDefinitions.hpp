@@ -14,6 +14,11 @@ using dMat = std::vector<dVec>;
 using sMat = std::vector<sVec>;
 
 
+/****************
+ * SETUP FUNCTION
+ ****************/
+std::vector<double> popDist(const double& mu, const double& alpha, const int& larvalEQ, const iVec& timeAq);
+
 /******************************************************************************
  * Daisy Class
 ******************************************************************************/
@@ -25,7 +30,7 @@ using sMat = std::vector<sVec>;
  * SETUP FUNCTION
  ****************/
 // for setting up Daisy and multiLocus patches
-void CreateMosquitoes2Allele(const int& numMos, const int& minAge, const dVec& ageDist,
+void CreateMosquitoes2Allele(const int& Leq, const int& minAge, const dVec& ageDist,
                              const Rcpp::ListOf<Rcpp::List>& aTypes, popVec& returnPop);
 
 /****************
@@ -153,7 +158,7 @@ private:
  * SETUP FUNCTION
  ****************/
 // for setting up oneLocus patch
-void CreateMosquitoes2Loci(const int& numMos, const int& minAge, const dVec& ageDist,
+void CreateMosquitoes2Loci(const int& Leq, const int& minAge, const dVec& ageDist,
                            const Rcpp::ListOf<Rcpp::List>& aTypes, popVec& returnPop);
 
 /****************
@@ -223,7 +228,7 @@ private:
  * SETUP FUNCTION
  ****************/
 // only works for setting up family relations
-void CreateMosquitoesFamily(const int& numMos, const int& minAge,
+void CreateMosquitoesFamily(const int& Leq, const int& minAge,
                             const dVec& ageDist, popVec& returnPop);
 
 /****************

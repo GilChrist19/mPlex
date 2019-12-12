@@ -4,8 +4,12 @@
 \alias{calcLarvalStageMortalityRate}
 \title{Calculate Larval Stage Mortality Rate}
 \usage{
-calcLarvalStageMortalityRate(generationPopGrowthRate, adultMortality,
-  fertility, aquaticStagesDuration)
+calcLarvalStageMortalityRate(
+  generationPopGrowthRate,
+  adultMortality,
+  fertility,
+  aquaticStagesDuration
+)
 }
 \arguments{
 \item{generationPopGrowthRate}{see \code{\link{calcPopulationGrowthRate}}}

@@ -4,9 +4,19 @@
 \alias{mPlex_runRepetitions}
 \title{Run multiple runs of mPlex}
 \usage{
-mPlex_runRepetitions(seed, numReps, networkParameters,
-  reproductionReference, patchReleases, migrationMale, migrationFemale,
-  migrationBatch, outputDirectory, reproductionType, verbose)
+mPlex_runRepetitions(
+  seed,
+  numReps,
+  networkParameters,
+  reproductionReference,
+  patchReleases,
+  migrationMale,
+  migrationFemale,
+  migrationBatch,
+  outputDirectory,
+  reproductionType,
+  verbose
+)
 }
 \arguments{
 \item{seed}{An integer seed for random number generator}

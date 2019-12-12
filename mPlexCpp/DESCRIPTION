@@ -9,11 +9,11 @@ Description: One paragraph description of what the package does as one or more
          full sentences.
 License: GPL (>= 2)
 Encoding: UTF-8
-Imports: Rcpp (>= 0.12.14), RcppProgress
-LinkingTo: Rcpp, RcppProgress
+Imports: Rcpp (>= 0.12.14), RcppProgress, RcppArmadillo
+LinkingTo: Rcpp, RcppProgress, RcppArmadillo
 Depends: R (>= 2.10)
 LazyData: true
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.2
 Roxygen: list(markdown = TRUE)
 SystemRequirements: C++14
 ByteCompile: true

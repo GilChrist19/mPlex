@@ -33,66 +33,241 @@ run_mPlex_Cpp_repetitions <- function(seed_, numReps_, networkParameters_, repro
     invisible(.Call('_mPlexCpp_run_mPlex_Cpp_repetitions', PACKAGE = 'mPlexCpp', seed_, numReps_, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, outputDirectory_, reproductionType_, verbose_))
 }
 
-#' Calculate Haversine Distance
+#' Calculate Geodesic Distance - Cosine Method
 #'
-#' Calculate the great-circle distance (Haversine distance) between sets of longitude - latitude points, see \url{https://en.wikipedia.org/wiki/Haversine_formula}
+#' This function calculates geodesic distance using the cosine method.
 #'
-#' @param latlongs numeric matrix where first column is vector of latitudes and second column is vector of longitudes
+#' @param latLongs Two column matrix of latitudes/longitudes
+#' @param r Earth radius. Default is WGS-84 radius
+#'
+#' @examples
+#' # two-column matrix with latitude/longitude, in degrees
+#' latLong = cbind(runif(n = 5, min = 0, max = 90),
+#'                 runif(n = 5, min = 0, max = 180))
+#'
+#' # cosine distance formula
+#' distMat = calcCos(latLongs = latLong)
 #'
 #' @export
-calc_haversine <- function(latlongs) {
-    .Call('_mPlexCpp_calc_haversine', PACKAGE = 'mPlexCpp', latlongs)
+calcCos <- function(latLongs, r = 6378137) {
+    .Call('_mPlexCpp_calcCos', PACKAGE = 'mPlexCpp', latLongs, r)
+}
+
+#' Calculate Geodesic Distance - Haversine Method
+#'
+#' This function calculates geodesic distance using the Haversine method.
+#'
+#' @param latLongs Two column matrix of latitudes/longitudes
+#' @param r Earth radius. Default is WGS-84 radius
+#'
+#' @examples
+#' # two-column matrix with latitude/longitude, in degrees
+#' latLong = cbind(runif(n = 5, min = 0, max = 90),
+#'                 runif(n = 5, min = 0, max = 180))
+#'
+#' # Haversine distance formula
+#' distMat = calcHaversine(latLongs = latLong)
+#'
+#' @export
+calcHaversine <- function(latLongs, r = 6378137) {
+    .Call('_mPlexCpp_calcHaversine', PACKAGE = 'mPlexCpp', latLongs, r)
+}
+
+#' Calculate Geodesic Distance - Vincenty Sphere Method
+#'
+#' This function calculates geodesic distance using the Vincenty sphere method.
+#'
+#' @param latLongs Two column matrix of latitudes/longitudes
+#' @param r Earth radius. Default is WGS-84 radius
+#'
+#' @examples
+#' # two-column matrix with latitude/longitude, in degrees
+#' latLong = cbind(runif(n = 5, min = 0, max = 90),
+#'                 runif(n = 5, min = 0, max = 180))
+#'
+#' # Vincenty Sphere  distance formula
+#' distMat = calcVinSph(latLongs = latLong)
+#'
+#' @export
+calcVinSph <- function(latLongs, r = 6378137) {
+    .Call('_mPlexCpp_calcVinSph', PACKAGE = 'mPlexCpp', latLongs, r)
+}
+
+#' Calculate Geodesic Distance - Vincenty Ellipsoid Method
+#'
+#' This function calculates geodesic distance using the original Vincenty Ellipsoid method.
+#'
+#' @param latLongs Two column matrix of latitudes/longitudes
+#' @param a Equatorial radius of the earth, default is WGS-84 radius
+#' @param b Polar radius of the earth, default is WGS-84 radius
+#' @param f Flattening or inverse eccentricity, default eccentricity is WGS-84
+#' @param eps Convergence criteria
+#' @param iter Maximum number of iterations to attempt convergence
+#'
+#' @examples
+#' # two-column matrix with latitude/longitude, in degrees
+#' latLong = cbind(runif(n = 5, min = 0, max = 90),
+#'                 runif(n = 5, min = 0, max = 180))
+#'
+#' # Vincenty Ellipsoid  distance formula
+#' distMat = calcVinEll(latLongs = latLong)
+#'
+#' @export
+calcVinEll <- function(latLongs, a = 6378137, b = 6356752.3142, f = 1.0/298.257223563, eps = 1e-12, iter = 100) {
+    .Call('_mPlexCpp_calcVinEll', PACKAGE = 'mPlexCpp', latLongs, a, b, f, eps, iter)
 }
 
 #' Calculate Lognormal Stochastic Matrix
 #'
-#' Given a distance matrix from \code{\link[MGDrivE]{calc_haversine}}, calculate a stochastic matrix where one step movement probabilities follow a lognormal density.
+#' Given a distance matrix from \code{\link[MGDrivE]{calcVinEll}},
+#' calculate a stochastic matrix where one step movement probabilities follow a lognormal density.
 #'
-#' @param distMat distance matrix from \code{\link[MGDrivE]{calc_haversine}}
+#' The distribution and density functions for the lognormal kernel are given below:
+#' \deqn{
+#' F(x)=\frac{1}{2} + \frac{1}{2} \mathrm{erf}[\frac{\mathrm{ln}x-\mu}{\sqrt{2}\sigma}]
+#' }
+#' \deqn{
+#' f(x)=\frac{1}{x\sigma\sqrt{2\pi}}\mathrm{exp}\left( -\frac{(\mathrm{ln}x-\mu)^{2}}{2\sigma^{2}} \right)
+#' }
+#' where \eqn{\mu} is the mean on the log scale, and \eqn{\sigma} is the standard deviation on the log scale.
+#'
+#' @param distMat distance matrix from \code{\link[MGDrivE]{calcVinEll}}
 #' @param meanlog log mean of \code{\link[stats]{Lognormal}} distribution
 #' @param sdlog log standard deviation of \code{\link[stats]{Lognormal}} distribution
 #'
+#' @examples
+#' # setup distance matrix
+#' # two-column matrix with latitude/longitude, in degrees
+#' latLong = cbind(runif(n = 5, min = 0, max = 90),
+#'                 runif(n = 5, min = 0, max = 180))
+#'
+#' # Vincenty Ellipsoid  distance formula
+#' distMat = calcVinEll(latLongs = latLong)
+#'
+#' # calculate lognormal distribution over distances
+#' #  mean and standard deviation are just for example
+#' kernMat = calcLognormalKernel(distMat = distMat, meanlog = 100, sdlog = 10)
+#'
 #' @export
-calc_LognormalKernel <- function(distMat, meanlog, sdlog) {
-    .Call('_mPlexCpp_calc_LognormalKernel', PACKAGE = 'mPlexCpp', distMat, meanlog, sdlog)
+calcLognormalKernel <- function(distMat, meanlog, sdlog) {
+    .Call('_mPlexCpp_calcLognormalKernel', PACKAGE = 'mPlexCpp', distMat, meanlog, sdlog)
 }
 
 #' Calculate Gamma Stochastic Matrix
 #'
-#' Given a distance matrix from \code{\link[MGDrivE]{calc_haversine}}, calculate a stochastic matrix where one step movement probabilities follow a gamma density.
+#' Given a distance matrix from \code{\link[MGDrivE]{calcVinEll}}, calculate a
+#' stochastic matrix where one step movement probabilities follow a gamma density.
 #'
-#' @param distMat distance matrix from \code{\link[MGDrivE]{calc_haversine}}
+#' The distribution and density functions for the gamma kernel are given below:
+#' \deqn{
+#' F(x)=\frac{1}{\Gamma(\alpha)}\gamma(\alpha,\beta x)
+#' }
+#' \deqn{
+#' f(x)=\frac{\beta^{\alpha}}{\Gamma(\alpha)}x^{\alpha-1}e^{-\beta x}
+#' }
+#' where \eqn{\Gamma(\alpha)} is the Gamma function, \eqn{\gamma(\alpha,\beta x)} is hte lower incomplete
+#' gamma function, and \eqn{\alpha,\beta} are the shape and rate parameters, respectively.
+#'
+#' @param distMat distance matrix from \code{\link[MGDrivE]{calcVinEll}}
 #' @param shape shape parameter of \code{\link[stats]{GammaDist}} distribution
 #' @param rate rate parameter of \code{\link[stats]{GammaDist}} distribution
 #'
+#' @examples
+#' # setup distance matrix
+#' # two-column matrix with latitude/longitude, in degrees
+#' latLong = cbind(runif(n = 5, min = 0, max = 90),
+#'                 runif(n = 5, min = 0, max = 180))
+#'
+#' # Vincenty Ellipsoid  distance formula
+#' distMat = calcVinEll(latLongs = latLong)
+#'
+#' # calculate gamma distribution over distances
+#' #  shape and rate are just for example
+#' kernMat = calcGammaKernel(distMat = distMat, shape = 1, rate = 1)
+#'
 #' @export
-calc_GammaKernel <- function(distMat, shape, rate) {
-    .Call('_mPlexCpp_calc_GammaKernel', PACKAGE = 'mPlexCpp', distMat, shape, rate)
+calcGammaKernel <- function(distMat, shape, rate) {
+    .Call('_mPlexCpp_calcGammaKernel', PACKAGE = 'mPlexCpp', distMat, shape, rate)
 }
 
 #' Calculate Exponential Stochastic Matrix
 #'
-#' Given a distance matrix from \code{\link[MGDrivE]{calc_haversine}}, calculate a stochastic matrix where one step movement probabilities follow an exponential density.
+#' Given a distance matrix from \code{\link[MGDrivE]{calcVinEll}}, calculate a
+#' stochastic matrix where one step movement probabilities follow an exponential density.
 #'
-#' @param distMat distance matrix from \code{\link[MGDrivE]{calc_haversine}}
-#' @param r rate parameter of \code{\link[stats]{Exponential}} distribution
+#' The distribution and density functions for the exponential kernel are given below:
+#' \deqn{
+#' F(x)=1-e^{-\lambda x}
+#' }
+#' \deqn{
+#' f(x)=\lambda e^{-\lambda x}
+#' }
+#' where \eqn{\lambda} is the rate parameter of the exponential distribution.
+#'
+#' @param distMat distance matrix from \code{\link[MGDrivE]{calcVinEll}}
+#' @param rate rate parameter of \code{\link[stats]{Exponential}} distribution
+#'
+#' @examples
+#' # setup distance matrix
+#' # two-column matrix with latitude/longitude, in degrees
+#' latLong = cbind(runif(n = 5, min = 0, max = 90),
+#'                 runif(n = 5, min = 0, max = 180))
+#'
+#' # Vincenty Ellipsoid  distance formula
+#' distMat = calcVinEll(latLongs = latLong)
+#'
+#' # calculate exponential distribution over distances
+#' #  rate is just for example
+#' kernMat = calcExpKernel(distMat = distMat, rate = 10)
 #'
 #' @export
-calc_ExpKernel <- function(distMat, r) {
-    .Call('_mPlexCpp_calc_ExpKernel', PACKAGE = 'mPlexCpp', distMat, r)
+calcExpKernel <- function(distMat, rate) {
+    .Call('_mPlexCpp_calcExpKernel', PACKAGE = 'mPlexCpp', distMat, rate)
 }
 
-#' Calculate Hurdle Exponential Stochastic Matrix
+#' Calculate Zero-inflated Exponential Stochastic Matrix
 #'
-#' Given a distance matrix from \code{\link[MGDrivE]{calc_haversine}}, calculate a stochastic matrix where one step movement probabilities follow an zero-truncated exponential density with a point mass at zero.
+#' Given a distance matrix from \code{\link[MGDrivE]{calcVinEll}}, calculate a
+#' stochastic matrix where one step movement probabilities follow an zero-inflated
+#' exponential density with a point mass at zero. The point mass at zero represents the first stage of
+#' a two-stage process, where mosquitoes decide to stay at their current node or leave anywhere.
+#' This parameter can be calculated from lifetime probabilities to stay at the current node with the
+#' helper function \code{\link[MGDrivE]{calcZeroInflation}}.
 #'
-#' @param distMat distance matrix from \code{\link[MGDrivE]{calc_haversine}}
-#' @param r rate parameter of \code{\link[stats]{Exponential}} distribution
-#' @param pi point mass at zero
+#' If a mosquito leaves its current node, with probability \eqn{1-p_{0}}, it then chooses
+#' a destination node according to a standard exponential density with rate parameter \eqn{rate}.
+#'
+#' The distribution and density functions for the zero inflated exponential kernel are given below:
+#' \deqn{
+#' F(x)=p_{0}\theta(x) + (1-p_{0})(1-e^{-\lambda x})
+#' }
+#' \deqn{
+#' f(x)=p_{0}\delta(x)+(1-p_{0})\lambda e^{-\lambda x}
+#' }
+#' where \eqn{\lambda} is the rate parameter of the exponential distribution, \eqn{\theta(x)} is the Heaviside step function
+#' and \eqn{\delta(x)} is the Dirac delta function.
+#'
+#'
+#' @param distMat distance matrix from \code{\link[MGDrivE]{calcVinEll}}
+#' @param rate rate parameter of \code{\link[stats]{Exponential}} distribution
+#' @param p0 point mass at zero
+#'
+#' @examples
+#' # setup distance matrix
+#' # two-column matrix with latitude/longitude, in degrees
+#' latLong = cbind(runif(n = 5, min = 0, max = 90),
+#'                 runif(n = 5, min = 0, max = 180))
+#'
+#' # Vincenty Ellipsoid  distance formula
+#' distMat = calcVinEll(latLongs = latLong)
+#'
+#' # calculate hurdle exponential distribution over distances
+#' #  rate and point mass are just for example
+#' kernMat = calcHurdleExpKernel(distMat = distMat, rate = 1/1e6, p0 = 0.1)
 #'
 #' @export
-calc_HurdleExpKernel <- function(distMat, r, pi) {
-    .Call('_mPlexCpp_calc_HurdleExpKernel', PACKAGE = 'mPlexCpp', distMat, r, pi)
+calcHurdleExpKernel <- function(distMat, rate, p0) {
+    .Call('_mPlexCpp_calcHurdleExpKernel', PACKAGE = 'mPlexCpp', distMat, rate, p0)
 }
 
 simAgg <- function(readFiles_, writeFiles_, largeFile_, simTime_, genKey_) {

@@ -4,9 +4,21 @@
 \alias{NetworkParameters}
 \title{Network Parameters}
 \usage{
-NetworkParameters(nPatch, simTime, alleloTypes, parallel = FALSE,
-  moveVar = 1000, tEgg = 1L, tLarva = 14L, tPupa = 1L, beta = 32,
-  muAd = 0.123, dayGrowthRate = 1.096, AdPopEQ, runID = 1L)
+NetworkParameters(
+  nPatch,
+  simTime,
+  alleloTypes,
+  parallel = FALSE,
+  moveVar = 1000,
+  tEgg = 1L,
+  tLarva = 14L,
+  tPupa = 1L,
+  beta = 32,
+  muAd = 0.123,
+  dayGrowthRate = 1.096,
+  AdPopEQ,
+  runID = 1L
+)
 }
 \arguments{
 \item{nPatch}{number of \code{\link{Patch}}}

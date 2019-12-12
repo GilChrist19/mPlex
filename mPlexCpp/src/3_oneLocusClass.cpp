@@ -27,44 +27,94 @@ oneLocus::oneLocus(const int& patchID_,
   * SET POPULATIONS
   ****************/
   // holder objects, these are for distribution function
-  int minAge;
-  dVec ageDist;
-  ageDist.reserve(parameters::instance().get_stage_sum(1));
-  
-  // eggs
-  eggs.reserve(2*parameters::instance().get_larva_eq(patchID));
-  minAge = 0;
-  ageDist.assign(parameters::instance().get_stage_time(0),1);
-  CreateMosquitoes2Loci(parameters::instance().get_larva_eq(patchID),
-                         minAge, ageDist, reference::instance().get_alleloTypes(patchID), eggs);
-  
-  // larva
-  larva.reserve(2*parameters::instance().get_larva_eq(patchID));
-  minAge = parameters::instance().get_stage_time(0)+1;
-  
-  ageDist.clear();
-  int counter(0);
-  for(int power = minAge; power <= parameters::instance().get_stage_sum(1); ++power, counter+=2){
-   ageDist.push_back(std::pow(1.0-parameters::instance().get_mu(1), counter));
-  }
-  
-  CreateMosquitoes2Loci(parameters::instance().get_larva_eq(patchID),
-                         minAge, ageDist, reference::instance().get_alleloTypes(patchID), larva);
-  
-  // pupa
-  pupa.reserve(2*parameters::instance().get_adult_pop_eq(patchID));
-  
-  // adults
-  adult_male.reserve(2*parameters::instance().get_adult_pop_eq(patchID));
-  adult_female.reserve(2*parameters::instance().get_adult_pop_eq(patchID));
-  unmated_female.reserve(2*parameters::instance().get_adult_pop_eq(patchID));
-  
-  minAge = parameters::instance().get_stage_sum(2)+1;
-  ageDist.assign(parameters::instance().get_stage_sum(3) - minAge +1,1);
-  CreateMosquitoes2Loci(parameters::instance().get_adult_pop_eq(patchID)/2,
-                         minAge, ageDist, reference::instance().get_alleloTypes(patchID), adult_male);
-  CreateMosquitoes2Loci(parameters::instance().get_adult_pop_eq(patchID)/2,
-                         minAge, ageDist, reference::instance().get_alleloTypes(patchID), unmated_female);
+  int minAge, maxAge;
+   dVec distHold;
+   
+   // solve aquatic distribution
+   dVec aDist = popDist(parameters::instance().get_mu(0),
+                        parameters::instance().get_alpha(patchID),
+                        parameters::instance().get_larva_eq(patchID),
+                        {parameters::instance().get_stage_time(0),
+                         parameters::instance().get_stage_time(1),
+                         parameters::instance().get_stage_time(2)});
+   
+   // eggs
+   minAge = 0;
+   maxAge = parameters::instance().get_stage_time(0) - 1;
+   
+   distHold.resize(maxAge+1);
+   std::copy(aDist.begin(), aDist.begin() + maxAge+1, distHold.begin());
+   
+   eggs.reserve(round(1.1*parameters::instance().get_larva_eq(patchID) * accumulate(distHold.begin(), distHold.end(), 0.0)));
+   
+   CreateMosquitoes2Loci(parameters::instance().get_larva_eq(patchID),
+                           minAge, distHold, reference::instance().get_alleloTypes(patchID), eggs);
+   
+   
+   // larva
+   minAge = parameters::instance().get_stage_time(0);
+   maxAge = parameters::instance().get_stage_sum(1)-1;
+   
+   distHold.resize(maxAge+1 - minAge);
+   std::copy(aDist.begin() + minAge, aDist.begin() + maxAge + 1, distHold.begin());
+   
+   larva.reserve(round(1.1*parameters::instance().get_larva_eq(patchID) * accumulate(distHold.begin(), distHold.end(), 0.0)));
+   
+   CreateMosquitoes2Loci(parameters::instance().get_larva_eq(patchID),
+                           minAge, distHold, reference::instance().get_alleloTypes(patchID), larva);
+   
+   
+   // pupa
+   minAge = parameters::instance().get_stage_sum(1);
+   maxAge = parameters::instance().get_stage_sum(2) - 1;
+   
+   distHold.resize(maxAge+1 - minAge);
+   std::copy(aDist.begin() + minAge, aDist.begin() + maxAge + 1, distHold.begin());
+   
+   pupa.reserve(round(1.1*parameters::instance().get_larva_eq(patchID) * accumulate(distHold.begin(), distHold.end(), 0.0)));
+   
+   CreateMosquitoes2Loci(parameters::instance().get_larva_eq(patchID),
+                           minAge, distHold, reference::instance().get_alleloTypes(patchID), pupa);
+   
+   /***********************************/
+   // Solve adult distribution
+   /***********************************/
+   // basically stolen from popDist() and adapted for adults
+   // setup matrix to solve
+   arma::Mat<double> markovMat(parameters::instance().get_stage_time(3) * 2,
+                               parameters::instance().get_stage_time(3) * 2,
+                               arma::fill::eye);
+   
+   // create and fill offDiagonal vector
+   arma::Col<double> offDiag(parameters::instance().get_stage_time(3) * 2-1);
+   offDiag.fill(parameters::instance().get_mu(3) - 1.0);
+   
+   // put off diagonal in matrix
+   markovMat.diag(1) = offDiag;
+   
+   // invert matrix
+   markovMat = markovMat.i();
+   
+   // get normalized vector of larval ratios
+   arma::Row<double> solVec(markovMat.row(0)/arma::sum(markovMat.row(0)));
+   
+   // store as standard vector, both for return and because arma::Row doesn't 
+   //  have some of the functions I need
+   std::vector<double> hold(solVec.begin(), solVec.end());
+   
+   
+   int popSize(round(1.1 * parameters::instance().get_adult_pop_eq(patchID) * accumulate(hold.begin(), hold.end(), 0.0)));
+   
+   adult_male.reserve(popSize);
+   adult_female.reserve(popSize);
+   unmated_female.reserve(popSize);
+   
+   minAge = parameters::instance().get_stage_sum(2);
+   
+   CreateMosquitoes2Loci(parameters::instance().get_adult_pop_eq(patchID)/2,
+                           minAge, hold, reference::instance().get_alleloTypes(patchID), adult_male);
+   CreateMosquitoes2Loci(parameters::instance().get_adult_pop_eq(patchID)/2,
+                           minAge, hold, reference::instance().get_alleloTypes(patchID), unmated_female);
   
   
   // Reproduction setup
@@ -89,45 +139,105 @@ void oneLocus::reset_Patch(){
   /****************
    * RESET POPULATIONS
    ****************/
-  // holder objects, these are for distribution function
-  int minAge;
-  dVec ageDist;
-  ageDist.reserve(parameters::instance().get_stage_sum(1));
-  
-  // eggs
   eggs.clear();
-  minAge = 0;
-  ageDist.assign(parameters::instance().get_stage_time(0),1);
-  CreateMosquitoes2Loci(parameters::instance().get_larva_eq(patchID),
-                          minAge, ageDist, reference::instance().get_alleloTypes(patchID), eggs);
-  
-  // larva
   larva.clear();
-  minAge = parameters::instance().get_stage_time(0)+1;
-  
-  ageDist.clear();
-  int counter(0);
-  for(int power = minAge; power <= parameters::instance().get_stage_sum(1); ++power, counter+=2){
-    ageDist.push_back(std::pow(1.0-parameters::instance().get_mu(1), counter));
-  }
-  
-  CreateMosquitoes2Loci(parameters::instance().get_larva_eq(patchID),
-                        minAge, ageDist, reference::instance().get_alleloTypes(patchID), larva);
-  
-  // pupa
   pupa.clear();
-  
-  // adults
   adult_male.clear();
   adult_female.clear();
   unmated_female.clear();
   
-  minAge = parameters::instance().get_stage_sum(2)+1;
-  ageDist.assign(parameters::instance().get_stage_sum(3) - minAge +1,1);
+  /****************
+   * SET POPULATIONS
+   ****************/
+  // holder objects, these are for distribution function
+  int minAge, maxAge;
+  dVec distHold;
+  
+  // solve aquatic distribution
+  dVec aDist = popDist(parameters::instance().get_mu(0),
+                       parameters::instance().get_alpha(patchID),
+                       parameters::instance().get_larva_eq(patchID),
+                       {parameters::instance().get_stage_time(0),
+                        parameters::instance().get_stage_time(1),
+                        parameters::instance().get_stage_time(2)});
+  
+  // eggs
+  minAge = 0;
+  maxAge = parameters::instance().get_stage_time(0) - 1;
+  
+  distHold.resize(maxAge+1);
+  std::copy(aDist.begin(), aDist.begin() + maxAge+1, distHold.begin());
+  
+  eggs.reserve(round(1.1*parameters::instance().get_larva_eq(patchID) * accumulate(distHold.begin(), distHold.end(), 0.0)));
+  
+  CreateMosquitoes2Loci(parameters::instance().get_larva_eq(patchID),
+                          minAge, distHold, reference::instance().get_alleloTypes(patchID), eggs);
+  
+  
+  // larva
+  minAge = parameters::instance().get_stage_time(0);
+  maxAge = parameters::instance().get_stage_sum(1)-1;
+  
+  distHold.resize(maxAge+1 - minAge);
+  std::copy(aDist.begin() + minAge, aDist.begin() + maxAge + 1, distHold.begin());
+  
+  larva.reserve(round(1.1*parameters::instance().get_larva_eq(patchID) * accumulate(distHold.begin(), distHold.end(), 0.0)));
+  
+  CreateMosquitoes2Loci(parameters::instance().get_larva_eq(patchID),
+                          minAge, distHold, reference::instance().get_alleloTypes(patchID), larva);
+  
+  
+  // pupa
+  minAge = parameters::instance().get_stage_sum(1);
+  maxAge = parameters::instance().get_stage_sum(2) - 1;
+  
+  distHold.resize(maxAge+1 - minAge);
+  std::copy(aDist.begin() + minAge, aDist.begin() + maxAge + 1, distHold.begin());
+  
+  pupa.reserve(round(1.1*parameters::instance().get_larva_eq(patchID) * accumulate(distHold.begin(), distHold.end(), 0.0)));
+  
+  CreateMosquitoes2Loci(parameters::instance().get_larva_eq(patchID),
+                          minAge, distHold, reference::instance().get_alleloTypes(patchID), pupa);
+  
+  /***********************************/
+  // Solve adult distribution
+  /***********************************/
+  // basically stolen from popDist() and adapted for adults
+  // setup matrix to solve
+  arma::Mat<double> markovMat(parameters::instance().get_stage_time(3) * 2,
+                              parameters::instance().get_stage_time(3) * 2,
+                              arma::fill::eye);
+  
+  // create and fill offDiagonal vector
+  arma::Col<double> offDiag(parameters::instance().get_stage_time(3) * 2-1);
+  offDiag.fill(parameters::instance().get_mu(3) - 1.0);
+  
+  // put off diagonal in matrix
+  markovMat.diag(1) = offDiag;
+  
+  // invert matrix
+  markovMat = markovMat.i();
+  
+  // get normalized vector of larval ratios
+  arma::Row<double> solVec(markovMat.row(0)/arma::sum(markovMat.row(0)));
+  
+  // store as standard vector, both for return and because arma::Row doesn't 
+  //  have some of the functions I need
+  std::vector<double> hold(solVec.begin(), solVec.end());
+  
+  
+  int popSize(round(1.1 * parameters::instance().get_adult_pop_eq(patchID) * accumulate(hold.begin(), hold.end(), 0.0)));
+  
+  adult_male.reserve(popSize);
+  adult_female.reserve(popSize);
+  unmated_female.reserve(popSize);
+  
+  minAge = parameters::instance().get_stage_sum(2);
+  
   CreateMosquitoes2Loci(parameters::instance().get_adult_pop_eq(patchID)/2,
-                          minAge, ageDist, reference::instance().get_alleloTypes(patchID), adult_male);
+                          minAge, hold, reference::instance().get_alleloTypes(patchID), adult_male);
   CreateMosquitoes2Loci(parameters::instance().get_adult_pop_eq(patchID)/2,
-                          minAge, ageDist, reference::instance().get_alleloTypes(patchID), unmated_female);
+                          minAge, hold, reference::instance().get_alleloTypes(patchID), unmated_female);
   
   
   /****************
@@ -172,7 +282,7 @@ void oneLocus::oneDay_layEggs(){
 /**************************************
  * SETUP
  **************************************/
-void CreateMosquitoes2Loci(const int& numMos, const int& minAge, const dVec& ageDist,
+void CreateMosquitoes2Loci(const int& Leq, const int& minAge, const dVec& ageDist,
                            const Rcpp::ListOf<Rcpp::List>& aTypes, popVec& returnPop){
   
   // This only good for things that have 2 loci, but multiple alleles
@@ -189,36 +299,39 @@ void CreateMosquitoes2Loci(const int& numMos, const int& minAge, const dVec& age
   int age;
   
   
-  // loop over number of mosquitoes to create
-  for(size_t count=0; count < numMos; ++count){
-    
-    // loop over each locus
-    for(size_t loci=0; loci < numLoci; ++ loci){
+  // loop over each age that mosquitoes can be
+  for(size_t age = 0; age < ageDist.size(); age++){
+    // loop over number of mosquitoes to create
+    for(size_t num=0; num < round(Leq * ageDist[age]); num++){
+      /*********/
+      // set genotype
+      /*********/
+      // loop over each locus
+      for(size_t loci=0; loci < numLoci; ++ loci){
+        
+        probs = Rcpp::as<std::vector<double> >( aTypes[loci]["probs"] );
+        alleles = Rcpp::as<std::vector<std::string> >( aTypes[loci]["alleles"] );
+        
+        // generate each allele
+        prng::instance().set_oneSample(probs);
+        locus1[loci] = alleles[prng::instance().get_oneSample()];
+        locus2[loci] = alleles[prng::instance().get_oneSample()];
+      }
       
-      probs = Rcpp::as<std::vector<double> >( aTypes[loci]["probs"] );
-      alleles = Rcpp::as<std::vector<std::string> >( aTypes[loci]["alleles"] );
+      // combine alleles into final genotype
+      for(auto const& s : locus1){ genotype += s; }
+      for(auto const& s : locus2){ genotype += s; }
       
-      // generate each allele
-      prng::instance().set_oneSample(probs);
-      locus1[loci] = alleles[prng::instance().get_oneSample()];
-      locus2[loci] = alleles[prng::instance().get_oneSample()];
-    }
-    
-    // combine alleles into final genotype
-    for(auto const& s : locus1){ genotype += s; }
-    for(auto const& s : locus2){ genotype += s; }
-    
-    
-    // set age of mosquito
-    prng::instance().set_oneSample(ageDist);
-    age = minAge + prng::instance().get_oneSample();
-    
-    // add new mosquito to population
-    returnPop.emplace_back(Mosquito(age, genotype));
-    
-    // clear genotype for next one
-    genotype.clear();
-  } // end loop over mosquitoes
+      
+      // add new mosquito to population
+      returnPop.emplace_back(Mosquito(minAge + age, genotype));
+      
+      // clear genotype for next one
+      genotype.clear();
+      
+    } // end loop over number of mosquitoes
+  } // end loop over age distribution
+  
   
 }
 

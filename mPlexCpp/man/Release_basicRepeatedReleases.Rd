@@ -4,8 +4,16 @@
 \alias{Release_basicRepeatedReleases}
 \title{Make List of Mosquito Releases}
 \usage{
-Release_basicRepeatedReleases(releaseStart, releaseEnd, releaseInterval,
-  genMos, numMos, minAge, maxAge, ageDist)
+Release_basicRepeatedReleases(
+  releaseStart,
+  releaseEnd,
+  releaseInterval,
+  genMos,
+  numMos,
+  minAge,
+  maxAge,
+  ageDist
+)
 }
 \arguments{
 \item{releaseStart}{Day releases start}

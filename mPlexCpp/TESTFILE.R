@@ -119,7 +119,7 @@ netPar = NetworkParameters(nPatch = numPatch,
                            AdPopEQ = patchPops,
                            runID = 1L,
                            dayGrowthRate = 1.1,
-                           beta = 32L, tEgg = 1, tLarva = 10, tPupa = 1)
+                           beta = 32L, tEgg = 1, tLarva = 10, tPupa = 2)
 
 migrationBatch <- basicBatchMigration(numPatches = numPatch)
 

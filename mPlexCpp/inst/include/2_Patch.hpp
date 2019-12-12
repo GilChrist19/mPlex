@@ -9,6 +9,7 @@
 #ifndef PATCH_MPLEX
 #define PATCH_MPLEX
 
+#include <RcppArmadillo.h>
 
 #include <vector>
 #include <fstream>
@@ -19,7 +20,7 @@
 #include "4_PRNG.hpp"
 #include "4_Parameters.hpp"
 
-#include <Rcpp.h>
+
 
 /**************************************
  * forward declarations & alias

@@ -4,8 +4,13 @@
 \alias{calcDensityDependentDeathRate}
 \title{Calculate Density-dependent Larval Mortality}
 \usage{
-calcDensityDependentDeathRate(fertility, thetaAq, timeAq,
-  adultPopSizeEquilibrium, populationGrowthRate)
+calcDensityDependentDeathRate(
+  fertility,
+  thetaAq,
+  timeAq,
+  adultPopSizeEquilibrium,
+  populationGrowthRate
+)
 }
 \arguments{
 \item{fertility}{number of eggs per oviposition for wild-type females, \eqn{\beta_{k}}}

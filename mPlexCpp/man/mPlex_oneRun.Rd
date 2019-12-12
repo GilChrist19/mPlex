@@ -4,9 +4,18 @@
 \alias{mPlex_oneRun}
 \title{Run one run of mPlex}
 \usage{
-mPlex_oneRun(seed, networkParameters, reproductionReference, patchReleases,
-  migrationMale, migrationFemale, migrationBatch, outputDirectory,
-  reproductionType, verbose)
+mPlex_oneRun(
+  seed,
+  networkParameters,
+  reproductionReference,
+  patchReleases,
+  migrationMale,
+  migrationFemale,
+  migrationBatch,
+  outputDirectory,
+  reproductionType,
+  verbose
+)
 }
 \arguments{
 \item{seed}{An integer seed for random number generator}

@@ -4,8 +4,11 @@
 \alias{basicBatchMigration}
 \title{Make List of Batch Migration Parameters}
 \usage{
-basicBatchMigration(batchProbs = 1e-05, sexProbs = c(0.01, 0.01),
-  numPatches = 1)
+basicBatchMigration(
+  batchProbs = 1e-05,
+  sexProbs = c(0.01, 0.01),
+  numPatches = 1
+)
 }
 \arguments{
 \item{batchProbs}{Probability of a batch migration, either 1 number or vector of length equal to the number of patches}

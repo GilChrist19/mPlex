@@ -7,12 +7,13 @@
 //                                              /_/   /_/      
 ///////////////////////////////////////////////////////////////////////////////
 
+#include <RcppArmadillo.h>
+// [[Rcpp::depends(RcppArmadillo)]]
+
 #include <progress.hpp>
 #include <progress_bar.hpp>
 
 #include <gperftools/profiler.h>
-
-#include <Rcpp.h>
 
 #include "1_Mosquito.hpp"
 #include "2_Patch.hpp"
