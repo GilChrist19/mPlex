@@ -17,7 +17,15 @@ using sMat = std::vector<sVec>;
 /****************
  * SETUP FUNCTION
  ****************/
+std::vector<double> markovDist(const double& life, const int& time);
 std::vector<double> popDist(const double& mu, const double& alpha, const int& larvalEQ, const iVec& timeAq);
+
+void fillPopulation(const int& patchID, popVec& eggVec, popVec& larvaVec, popVec& pupaVec,
+                    popVec& aMaleVec, popVec& aFemaleVec, popVec& unFemaleVec,
+                    void (*populationFill)(const int&, const int&, const dVec&, const Rcpp::ListOf<Rcpp::List>&, popVec&) );
+void fillPopulation(const int& patchID, popVec& eggVec, popVec& larvaVec, popVec& pupaVec,
+                    popVec& aMaleVec, popVec& aFemaleVec, popVec& unFemaleVec,
+                    void (*populationFill)(const int&, const int&, const dVec&, popVec&) );
 
 /******************************************************************************
  * Daisy Class

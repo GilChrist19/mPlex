@@ -25,95 +25,9 @@ Daisy::Daisy(const int& patchID_,
   /****************
   * SET POPULATIONS
   ****************/
-  // holder objects, these are for distribution function
-  int minAge, maxAge;
-  dVec distHold;
-               
-   // solve aquatic distribution
-   dVec aDist = popDist(parameters::instance().get_mu(0),
-                        parameters::instance().get_alpha(patchID),
-                        parameters::instance().get_larva_eq(patchID),
-                        {parameters::instance().get_stage_time(0),
-                         parameters::instance().get_stage_time(1),
-                         parameters::instance().get_stage_time(2)});
-   
-   // eggs
-   minAge = 0;
-   maxAge = parameters::instance().get_stage_time(0) - 1;
-   
-   distHold.resize(maxAge+1);
-   std::copy(aDist.begin(), aDist.begin() + maxAge+1, distHold.begin());
-   
-   eggs.reserve(round(1.1*parameters::instance().get_larva_eq(patchID) * accumulate(distHold.begin(), distHold.end(), 0.0)));
-   
-   CreateMosquitoes2Allele(parameters::instance().get_larva_eq(patchID),
-                           minAge, distHold, reference::instance().get_alleloTypes(patchID), eggs);
-   
-   
-   // larva
-   minAge = parameters::instance().get_stage_time(0);
-   maxAge = parameters::instance().get_stage_sum(1)-1;
-   
-   distHold.resize(maxAge+1 - minAge);
-   std::copy(aDist.begin() + minAge, aDist.begin() + maxAge + 1, distHold.begin());
-   
-   larva.reserve(round(1.1*parameters::instance().get_larva_eq(patchID) * accumulate(distHold.begin(), distHold.end(), 0.0)));
-   
-   CreateMosquitoes2Allele(parameters::instance().get_larva_eq(patchID),
-                           minAge, distHold, reference::instance().get_alleloTypes(patchID), larva);
-   
-   
-   // pupa
-   minAge = parameters::instance().get_stage_sum(1);
-   maxAge = parameters::instance().get_stage_sum(2) - 1;
-   
-   distHold.resize(maxAge+1 - minAge);
-   std::copy(aDist.begin() + minAge, aDist.begin() + maxAge + 1, distHold.begin());
-   
-   pupa.reserve(round(1.1*parameters::instance().get_larva_eq(patchID) * accumulate(distHold.begin(), distHold.end(), 0.0)));
-   
-   CreateMosquitoes2Allele(parameters::instance().get_larva_eq(patchID),
-                           minAge, distHold, reference::instance().get_alleloTypes(patchID), pupa);
-   
-   /***********************************/
-   // Solve adult distribution
-   /***********************************/
-   // basically stolen from popDist() and adapted for adults
-   // setup matrix to solve
-   arma::Mat<double> markovMat(parameters::instance().get_stage_time(3) * 2,
-                               parameters::instance().get_stage_time(3) * 2,
-                               arma::fill::eye);
-   
-   // create and fill offDiagonal vector
-   arma::Col<double> offDiag(parameters::instance().get_stage_time(3) * 2-1);
-   offDiag.fill(parameters::instance().get_mu(3) - 1.0);
-   
-   // put off diagonal in matrix
-   markovMat.diag(1) = offDiag;
-   
-   // invert matrix
-   markovMat = markovMat.i();
-   
-   // get normalized vector of larval ratios
-   arma::Row<double> solVec(markovMat.row(0)/arma::sum(markovMat.row(0)));
-   
-   // store as standard vector, both for return and because arma::Row doesn't 
-   //  have some of the functions I need
-   std::vector<double> hold(solVec.begin(), solVec.end());
-   
-   
-   int popSize(round(1.1 * parameters::instance().get_adult_pop_eq(patchID) * accumulate(hold.begin(), hold.end(), 0.0)));
-   
-   adult_male.reserve(popSize);
-   adult_female.reserve(popSize);
-   unmated_female.reserve(popSize);
-   
-   minAge = parameters::instance().get_stage_sum(2);
-   
-   CreateMosquitoes2Allele(parameters::instance().get_adult_pop_eq(patchID)/2,
-                           minAge, hold, reference::instance().get_alleloTypes(patchID), adult_male);
-   CreateMosquitoes2Allele(parameters::instance().get_adult_pop_eq(patchID)/2,
-                           minAge, hold, reference::instance().get_alleloTypes(patchID), unmated_female);
+  fillPopulation(patchID, eggs, larva, pupa,
+                 adult_male, adult_female, unmated_female,
+                 CreateMosquitoes2Allele);
 
   
   // Reproduction setup
@@ -151,96 +65,9 @@ void Daisy::reset_Patch(){
   /****************
    * SET POPULATIONS
    ****************/
-  // holder objects, these are for distribution function
-  int minAge, maxAge;
-  dVec distHold;
-  
-  // solve aquatic distribution
-  dVec aDist = popDist(parameters::instance().get_mu(0),
-                       parameters::instance().get_alpha(patchID),
-                       parameters::instance().get_larva_eq(patchID),
-                       {parameters::instance().get_stage_time(0),
-                        parameters::instance().get_stage_time(1),
-                        parameters::instance().get_stage_time(2)});
-  
-  // eggs
-  minAge = 0;
-  maxAge = parameters::instance().get_stage_time(0) - 1;
-  
-  distHold.resize(maxAge+1);
-  std::copy(aDist.begin(), aDist.begin() + maxAge+1, distHold.begin());
-  
-  eggs.reserve(round(1.1*parameters::instance().get_larva_eq(patchID) * accumulate(distHold.begin(), distHold.end(), 0.0)));
-  
-  CreateMosquitoes2Allele(parameters::instance().get_larva_eq(patchID),
-                          minAge, distHold, reference::instance().get_alleloTypes(patchID), eggs);
-  
-  
-  // larva
-  minAge = parameters::instance().get_stage_time(0);
-  maxAge = parameters::instance().get_stage_sum(1)-1;
-  
-  distHold.resize(maxAge+1 - minAge);
-  std::copy(aDist.begin() + minAge, aDist.begin() + maxAge + 1, distHold.begin());
-  
-  larva.reserve(round(1.1*parameters::instance().get_larva_eq(patchID) * accumulate(distHold.begin(), distHold.end(), 0.0)));
-  
-  CreateMosquitoes2Allele(parameters::instance().get_larva_eq(patchID),
-                          minAge, distHold, reference::instance().get_alleloTypes(patchID), larva);
-  
-  
-  // pupa
-  minAge = parameters::instance().get_stage_sum(1);
-  maxAge = parameters::instance().get_stage_sum(2) - 1;
-  
-  distHold.resize(maxAge+1 - minAge);
-  std::copy(aDist.begin() + minAge, aDist.begin() + maxAge + 1, distHold.begin());
-  
-  pupa.reserve(round(1.1*parameters::instance().get_larva_eq(patchID) * accumulate(distHold.begin(), distHold.end(), 0.0)));
-  
-  CreateMosquitoes2Allele(parameters::instance().get_larva_eq(patchID),
-                          minAge, distHold, reference::instance().get_alleloTypes(patchID), pupa);
-  
-  /***********************************/
-  // Solve adult distribution
-  /***********************************/
-  // basically stolen from popDist() and adapted for adults
-  // setup matrix to solve
-  arma::Mat<double> markovMat(parameters::instance().get_stage_time(3) * 2,
-                              parameters::instance().get_stage_time(3) * 2,
-                              arma::fill::eye);
-  
-  // create and fill offDiagonal vector
-  arma::Col<double> offDiag(parameters::instance().get_stage_time(3) * 2-1);
-  offDiag.fill(parameters::instance().get_mu(3) - 1.0);
-  
-  // put off diagonal in matrix
-  markovMat.diag(1) = offDiag;
-  
-  // invert matrix
-  markovMat = markovMat.i();
-  
-  // get normalized vector of larval ratios
-  arma::Row<double> solVec(markovMat.row(0)/arma::sum(markovMat.row(0)));
-  
-  // store as standard vector, both for return and because arma::Row doesn't 
-  //  have some of the functions I need
-  std::vector<double> hold(solVec.begin(), solVec.end());
-  
-  
-  int popSize(round(1.1 * parameters::instance().get_adult_pop_eq(patchID) * accumulate(hold.begin(), hold.end(), 0.0)));
-  
-  adult_male.reserve(popSize);
-  adult_female.reserve(popSize);
-  unmated_female.reserve(popSize);
-  
-  minAge = parameters::instance().get_stage_sum(2);
-  
-  CreateMosquitoes2Allele(parameters::instance().get_adult_pop_eq(patchID)/2,
-                          minAge, hold, reference::instance().get_alleloTypes(patchID), adult_male);
-  CreateMosquitoes2Allele(parameters::instance().get_adult_pop_eq(patchID)/2,
-                          minAge, hold, reference::instance().get_alleloTypes(patchID), unmated_female);
-  
+  fillPopulation(patchID, eggs, larva, pupa,
+                 adult_male, adult_female, unmated_female,
+                 CreateMosquitoes2Allele);
   
   /****************
    * RESET RELEASES
@@ -286,24 +113,14 @@ void Daisy::oneDay_layEggs(){
 /**************************************
  * SETUP
  **************************************/
-std::vector<double> popDist(const double& mu, const double& alpha, const int& larvalEQ, const iVec& timeAq) {
-  // This comes from MGDrivE, where Sean solved the initial conditions as a CTMC
+std::vector<double> markovDist(const double& life, const int& time){
   
-  /***********************************/
-  // setup different death rates
-  /***********************************/
-  double epLife(1.0 - mu);
-  double lLife(std::pow(alpha/(alpha + larvalEQ), 1.0/timeAq[1]) * epLife );
-  
-  /***********************************/
-  // Solve larval distribution
-  /***********************************/
   // setup matrix to solve
-  arma::Mat<double> markovMat(timeAq[1], timeAq[1], arma::fill::eye);
+  arma::Mat<double> markovMat(time, time, arma::fill::eye);
   
   // create and fill offDiagonal vector
-  arma::Col<double> offDiag(timeAq[1]-1);
-  offDiag.fill((1.0 - lLife) - 1.0);
+  arma::Col<double> offDiag(time-1);
+  offDiag.fill((1.0 - life) - 1.0);
   
   // put off diagonal in matrix
   markovMat.diag(1) = offDiag;
@@ -316,7 +133,24 @@ std::vector<double> popDist(const double& mu, const double& alpha, const int& la
   
   // store as standard vector, both for return and because arma::Row doesn't 
   //  have some of the functions I need
-  std::vector<double> hold(solVec.begin(), solVec.end());
+  std::vector<double> retVec(solVec.begin(), solVec.end());
+  
+  return(retVec);
+}
+
+std::vector<double> popDist(const double& mu, const double& alpha, const int& larvalEQ, const iVec& timeAq) {
+  // This comes from MGDrivE, where Sean solved the initial conditions as a CTMC
+  
+  /***********************************/
+  // setup different death rates
+  /***********************************/
+  double epLife(1.0 - mu);
+  double lLife(std::pow(alpha/(alpha + larvalEQ), 1.0/timeAq[1]) * epLife );
+  
+  /***********************************/
+  // Solve larval distribution
+  /***********************************/
+  std::vector<double> hold(markovDist(lLife, timeAq[1]));
   
   /***********************************/
   // Egg distribution at the front
@@ -337,9 +171,196 @@ std::vector<double> popDist(const double& mu, const double& alpha, const int& la
   return(hold);
 }
 
+// this one is for Daisy, oneLocus, and multiLocus classes
+void fillPopulation(const int& patchID, popVec& eggVec, popVec& larvaVec, popVec& pupaVec,
+                    popVec& aMaleVec, popVec& aFemaleVec, popVec& unFemaleVec,
+                    void (*populationFill)(const int&, const int&, const dVec&,
+                          const Rcpp::ListOf<Rcpp::List>&, popVec&)
+                      ){
+  
+  // holder objects, these are for distribution function
+  int minAge, maxAge;
+  dVec distHold;
+  
+  // solve aquatic distribution
+  dVec aDist = popDist(parameters::instance().get_mu(0),
+                       parameters::instance().get_alpha(patchID),
+                       parameters::instance().get_larva_eq(patchID),
+                       {parameters::instance().get_stage_time(0),
+                        parameters::instance().get_stage_time(1),
+                        parameters::instance().get_stage_time(2)});
+  
+  
+  /*********/
+  // eggs
+  /*********/
+  minAge = 0;
+  maxAge = parameters::instance().get_stage_time(0) - 1;
+  
+  // set age distribution vector
+  distHold.resize(maxAge+1);
+  std::copy(aDist.begin(), aDist.begin() + maxAge+1, distHold.begin());
+  
+  // reserve estimated population size
+  eggVec.reserve(round(1.1*parameters::instance().get_larva_eq(patchID) * accumulate(distHold.begin(), distHold.end(), 0.0)));
+  
+  // fill initial population
+  populationFill(parameters::instance().get_larva_eq(patchID),
+                 minAge, distHold, reference::instance().get_alleloTypes(patchID), eggVec);
+  
+  
+  /*********/
+  // larva
+  /*********/
+  minAge = parameters::instance().get_stage_time(0);
+  maxAge = parameters::instance().get_stage_sum(1)-1;
+  
+  // set age distribution vector
+  distHold.resize(maxAge+1 - minAge);
+  std::copy(aDist.begin() + minAge, aDist.begin() + maxAge + 1, distHold.begin());
+  
+  // reserve estimated population size
+  larvaVec.reserve(round(1.1*parameters::instance().get_larva_eq(patchID) * accumulate(distHold.begin(), distHold.end(), 0.0)));
+  
+  // fill initial population
+  populationFill(parameters::instance().get_larva_eq(patchID),
+                 minAge, distHold, reference::instance().get_alleloTypes(patchID), larvaVec);
 
+  
+  /*********/
+  // pupa
+  /*********/
+  minAge = parameters::instance().get_stage_sum(1);
+  maxAge = parameters::instance().get_stage_sum(2) - 1;
+  
+  // set age distribution vector
+  distHold.resize(maxAge+1 - minAge);
+  std::copy(aDist.begin() + minAge, aDist.begin() + maxAge + 1, distHold.begin());
+  
+  // reserve estimated population size
+  pupaVec.reserve(round(1.1*parameters::instance().get_larva_eq(patchID) * accumulate(distHold.begin(), distHold.end(), 0.0)));
+  
+  // fill initial population
+  populationFill(parameters::instance().get_larva_eq(patchID),
+                 minAge, distHold, reference::instance().get_alleloTypes(patchID), pupaVec);
+  
+  
+  /***********************************/
+  // Solve adult distribution
+  /***********************************/
+  minAge = parameters::instance().get_stage_sum(2);
+  
+  // set age distribution vector
+  aDist = markovDist(1.0 - parameters::instance().get_mu(3), parameters::instance().get_stage_time(3) * 3);
+  
+  // reserve estimated population size
+  int popSize(round(1.1 * parameters::instance().get_adult_pop_eq(patchID) * accumulate(aDist.begin(), aDist.end(), 0.0)));
+  aMaleVec.reserve(popSize);
+  aFemaleVec.reserve(popSize);
+  unFemaleVec.reserve(popSize);
+  
+  // fill initial population
+  populationFill(parameters::instance().get_adult_pop_eq(patchID)/2,
+                 minAge, aDist, reference::instance().get_alleloTypes(patchID), aMaleVec);
+  populationFill(parameters::instance().get_adult_pop_eq(patchID)/2,
+                 minAge, aDist, reference::instance().get_alleloTypes(patchID), unFemaleVec);
+  
+}
 
-
+// this one is solely for family class
+void fillPopulation(const int& patchID, popVec& eggVec, popVec& larvaVec, popVec& pupaVec,
+                    popVec& aMaleVec, popVec& aFemaleVec, popVec& unFemaleVec,
+                    void (*populationFill)(const int&, const int&, const dVec&, popVec&)
+){
+  
+  // holder objects, these are for distribution function
+  int minAge, maxAge;
+  dVec distHold;
+  
+  // solve aquatic distribution
+  dVec aDist = popDist(parameters::instance().get_mu(0),
+                       parameters::instance().get_alpha(patchID),
+                       parameters::instance().get_larva_eq(patchID),
+                       {parameters::instance().get_stage_time(0),
+                        parameters::instance().get_stage_time(1),
+                        parameters::instance().get_stage_time(2)});
+  
+  
+  /*********/
+  // eggs
+  /*********/
+  minAge = 0;
+  maxAge = parameters::instance().get_stage_time(0) - 1;
+  
+  // set age distribution vector
+  distHold.resize(maxAge+1);
+  std::copy(aDist.begin(), aDist.begin() + maxAge+1, distHold.begin());
+  
+  // reserve estimated population size
+  eggVec.reserve(round(1.1*parameters::instance().get_larva_eq(patchID) * accumulate(distHold.begin(), distHold.end(), 0.0)));
+  
+  // fill initial population
+  populationFill(parameters::instance().get_larva_eq(patchID),
+                 minAge, distHold, eggVec);
+  
+  
+  /*********/
+  // larva
+  /*********/
+  minAge = parameters::instance().get_stage_time(0);
+  maxAge = parameters::instance().get_stage_sum(1)-1;
+  
+  // set age distribution vector
+  distHold.resize(maxAge+1 - minAge);
+  std::copy(aDist.begin() + minAge, aDist.begin() + maxAge + 1, distHold.begin());
+  
+  // reserve estimated population size
+  larvaVec.reserve(round(1.1*parameters::instance().get_larva_eq(patchID) * accumulate(distHold.begin(), distHold.end(), 0.0)));
+  
+  // fill initial population
+  populationFill(parameters::instance().get_larva_eq(patchID),
+                 minAge, distHold, larvaVec);
+  
+  
+  /*********/
+  // pupa
+  /*********/
+  minAge = parameters::instance().get_stage_sum(1);
+  maxAge = parameters::instance().get_stage_sum(2) - 1;
+  
+  // set age distribution vector
+  distHold.resize(maxAge+1 - minAge);
+  std::copy(aDist.begin() + minAge, aDist.begin() + maxAge + 1, distHold.begin());
+  
+  // reserve estimated population size
+  pupaVec.reserve(round(1.1*parameters::instance().get_larva_eq(patchID) * accumulate(distHold.begin(), distHold.end(), 0.0)));
+  
+  // fill initial population
+  populationFill(parameters::instance().get_larva_eq(patchID),
+                 minAge, distHold, pupaVec);
+  
+  
+  /***********************************/
+  // Solve adult distribution
+  /***********************************/
+  minAge = parameters::instance().get_stage_sum(2);
+  
+  // set age distribution vector
+  aDist = markovDist(1.0 - parameters::instance().get_mu(3), parameters::instance().get_stage_time(3) * 3);
+  
+  // reserve estimated population size
+  int popSize(round(1.1 * parameters::instance().get_adult_pop_eq(patchID) * accumulate(aDist.begin(), aDist.end(), 0.0)));
+  aMaleVec.reserve(popSize);
+  aFemaleVec.reserve(popSize);
+  unFemaleVec.reserve(popSize);
+  
+  // fill initial population
+  populationFill(parameters::instance().get_adult_pop_eq(patchID)/2,
+                 minAge, aDist, aMaleVec);
+  populationFill(parameters::instance().get_adult_pop_eq(patchID)/2,
+                 minAge, aDist, unFemaleVec);
+  
+}
 
 
 // This is also used in the multiLocusClass setup and reset functions
@@ -395,6 +416,8 @@ void CreateMosquitoes2Allele(const int& Leq, const int& minAge, const dVec& ageD
   } // end loop over age distribution
 
 }
+
+
 
 /**************************************
  * GENERATING FUNCTION
