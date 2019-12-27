@@ -25,9 +25,13 @@ multiLocus::multiLocus(const int& patchID_,
    /****************
    * SET POPULATIONS
    ****************/
-   fillPopulation(patchID, eggs, larva, pupa,
+   // set initial genotypes and their probabilities
+   twoAlleleGenotypes(reference::instance().get_alleloTypes(patchID), genos0, probs0);
+   
+   fillPopulation(patchID, genos0, probs0, 
+                  eggs, larva, pupa,
                   adult_male, adult_female, unmated_female,
-                  CreateMosquitoes2Allele);
+                  CreateMosquitoes);
    
    // Reproduction setup
    numAlleles = reference::instance().get_alleloTypes(patchID).size();
@@ -64,9 +68,10 @@ void multiLocus::reset_Patch(){
   /****************
    * SET POPULATIONS
    ****************/
-  fillPopulation(patchID, eggs, larva, pupa,
+  fillPopulation(patchID, genos0, probs0, 
+                 eggs, larva, pupa,
                  adult_male, adult_female, unmated_female,
-                 CreateMosquitoes2Allele);
+                 CreateMosquitoes);
   
   /****************
    * RESET RELEASES

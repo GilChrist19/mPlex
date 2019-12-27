@@ -25,9 +25,13 @@ Daisy::Daisy(const int& patchID_,
   /****************
   * SET POPULATIONS
   ****************/
-  fillPopulation(patchID, eggs, larva, pupa,
+  // set initial genotypes and their probabilities
+  twoAlleleGenotypes(reference::instance().get_alleloTypes(patchID), genos0, probs0);
+               
+  fillPopulation(patchID, genos0, probs0, 
+                 eggs, larva, pupa,
                  adult_male, adult_female, unmated_female,
-                 CreateMosquitoes2Allele);
+                 CreateMosquitoes);
 
   
   // Reproduction setup
@@ -65,9 +69,10 @@ void Daisy::reset_Patch(){
   /****************
    * SET POPULATIONS
    ****************/
-  fillPopulation(patchID, eggs, larva, pupa,
+  fillPopulation(patchID, genos0, probs0, 
+                 eggs, larva, pupa,
                  adult_male, adult_female, unmated_female,
-                 CreateMosquitoes2Allele);
+                 CreateMosquitoes);
   
   /****************
    * RESET RELEASES
@@ -171,11 +176,91 @@ std::vector<double> popDist(const double& mu, const double& alpha, const int& la
   return(hold);
 }
 
+void twoAlleleLocus(const dVec& probs, const sVec& alleles, dVec& retProbs, sVec& retGenos){
+  for(size_t current=0; current<alleles.size(); ++current){
+    for(size_t newOne=current; newOne<alleles.size(); ++newOne){
+      // combine strings and probabilities
+      retGenos.push_back(alleles[current] + alleles[newOne]);
+      retProbs.push_back(probs[current] * probs[newOne]);
+    } // end loop over new things
+  } // end loop over current things
+}
+
+void twoAlleleGenotypes(const Rcpp::ListOf<Rcpp::List>& aTypes, sVec& retGenos, dVec& retProbs){
+  
+  // get things for a patch
+  size_t numLoci = aTypes.size();
+  
+  // things to reuse later
+  sVec finalGenotypes, holdGens, holdGens2, alleles;
+  dVec finalProbs, holdProbs, holdProbs2, probs;
+
+  /*****************************************************************************/
+  // Cartesian Product of All Loci
+  /*****************************************************************************/
+  
+  // fill first index
+  probs = Rcpp::as<dVec>( aTypes[0]["probs"] );
+  alleles = Rcpp::as<sVec>( aTypes[0]["alleles"] );
+  
+  // set first locus
+  twoAlleleLocus(probs, alleles, finalProbs, finalGenotypes);
+  
+  
+  // loop over rest of them
+  for(int index=1; index<numLoci; ++index){
+    
+    // get probabilities
+    probs = Rcpp::as<dVec>( aTypes[index]["probs"] );
+    alleles = Rcpp::as<sVec>( aTypes[index]["alleles"] );
+    
+    // generate 2 allele loci, for all alleles at current locus
+    twoAlleleLocus(probs, alleles, holdProbs2, holdGens2);
+      
+      
+    // loop over current elements in return, and elements in next vector
+    for(size_t current=0; current<finalGenotypes.size(); ++current){
+      for(size_t newOne=0; newOne<holdGens2.size(); ++newOne){
+        // combine strings and probabilities
+        holdGens.push_back(finalGenotypes[current] + holdGens2[newOne]);
+        holdProbs.push_back(finalProbs[current] * holdProbs2[newOne]);
+      } // end loop over new things
+    } // end loop over current things
+    
+    // set returns
+    finalGenotypes = holdGens;
+    finalProbs = holdProbs;
+
+    // clear holders
+    holdGens.clear();
+    holdProbs.clear();
+    holdGens2.clear();
+    holdProbs2.clear();
+    
+  } // end loop over loci
+  
+  /*****************************************************************************/
+  // End Cartesian Product of All Loci
+  /*****************************************************************************/
+  
+  //remove zeros and normalize
+  double normalizer = std::accumulate(finalProbs.begin(), finalProbs.end(),0.0);
+  for(size_t index=0; index<finalGenotypes.size(); ++index){
+    // if not zero, normalize and keep
+    if(finalProbs[index] != 0){
+      retGenos.push_back(finalGenotypes[index]);
+      retProbs.push_back(finalProbs[index]/normalizer);
+    }
+  } // end normalize and remove zeros
+  
+}
+
 // this one is for Daisy, oneLocus, and multiLocus classes
-void fillPopulation(const int& patchID, popVec& eggVec, popVec& larvaVec, popVec& pupaVec,
+void fillPopulation(const int& patchID, const sVec& genos, const dVec& genoProbs,
+                    popVec& eggVec, popVec& larvaVec, popVec& pupaVec,
                     popVec& aMaleVec, popVec& aFemaleVec, popVec& unFemaleVec,
                     void (*populationFill)(const int&, const int&, const dVec&,
-                          const Rcpp::ListOf<Rcpp::List>&, popVec&)
+                          const sVec&, const dVec&, popVec&)
                       ){
   
   // holder objects, these are for distribution function
@@ -206,7 +291,7 @@ void fillPopulation(const int& patchID, popVec& eggVec, popVec& larvaVec, popVec
   
   // fill initial population
   populationFill(parameters::instance().get_larva_eq(patchID),
-                 minAge, distHold, reference::instance().get_alleloTypes(patchID), eggVec);
+                 minAge, distHold, genos, genoProbs, eggVec);
   
   
   /*********/
@@ -224,7 +309,7 @@ void fillPopulation(const int& patchID, popVec& eggVec, popVec& larvaVec, popVec
   
   // fill initial population
   populationFill(parameters::instance().get_larva_eq(patchID),
-                 minAge, distHold, reference::instance().get_alleloTypes(patchID), larvaVec);
+                 minAge, distHold, genos, genoProbs, larvaVec);
 
   
   /*********/
@@ -242,7 +327,7 @@ void fillPopulation(const int& patchID, popVec& eggVec, popVec& larvaVec, popVec
   
   // fill initial population
   populationFill(parameters::instance().get_larva_eq(patchID),
-                 minAge, distHold, reference::instance().get_alleloTypes(patchID), pupaVec);
+                 minAge, distHold, genos, genoProbs, pupaVec);
   
   
   /***********************************/
@@ -261,9 +346,9 @@ void fillPopulation(const int& patchID, popVec& eggVec, popVec& larvaVec, popVec
   
   // fill initial population
   populationFill(parameters::instance().get_adult_pop_eq(patchID)/2,
-                 minAge, aDist, reference::instance().get_alleloTypes(patchID), aMaleVec);
+                 minAge, aDist, genos, genoProbs, aMaleVec);
   populationFill(parameters::instance().get_adult_pop_eq(patchID)/2,
-                 minAge, aDist, reference::instance().get_alleloTypes(patchID), unFemaleVec);
+                 minAge, aDist, genos, genoProbs, unFemaleVec);
   
 }
 
@@ -364,57 +449,29 @@ void fillPopulation(const int& patchID, popVec& eggVec, popVec& larvaVec, popVec
 
 
 // This is also used in the multiLocusClass setup and reset functions
-void CreateMosquitoes2Allele(const int& Leq, const int& minAge, const dVec& ageDist,
-                             const Rcpp::ListOf<Rcpp::List>& aTypes, popVec& returnPop){
-  
-  // This only good for things that have 2 alleles per locus
+// also used by oneLocus, since genotypes are calculated elsewhere
+void CreateMosquitoes(const int& Leq, const int& minAge, const dVec& ageDist,
+                      const sVec& genos0, const dVec& genoProbs0, popVec& returnPop){
 
-  // number of loci is the number of sublists in aTypes
-  size_t numLoci = aTypes.size();
-  
-  // holders for things in loop
-  std::vector<double> probs;
-  std::vector<std::string> alleles;
-  std::vector<std::string> genHold(2);
-  std::string genotype;
-  int age;
+  double ageNum;
   
   // loop over each age that mosquitoes can be
   for(size_t age = 0; age < ageDist.size(); age++){
-    // loop over number of mosquitoes to create
-    for(size_t num=0; num < round(Leq * ageDist[age]); num++){
-      /*********/
-      // set genotype
-      /*********/
-      // loop over each locus
-      for(size_t loci=0; loci < numLoci; ++ loci){
-        
-        probs = Rcpp::as<std::vector<double> >( aTypes[loci]["probs"] );
-        alleles = Rcpp::as<std::vector<std::string> >( aTypes[loci]["alleles"] );
-        
-        // generate each allele
-        prng::instance().set_oneSample(probs);
-        for(size_t gen=0; gen < 2; gen++){
-          genHold[gen] = alleles[prng::instance().get_oneSample()];
-        }
-        
-        // sort alleles
-        std::sort(genHold.begin(), genHold.end());
-        
-        // combine alleles into final genotype
-        for(auto const& s : genHold){ genotype += s; }
-      } // end loop over loci
+    
+    // loop over possible genotypes
+    for(size_t whichGeno=0; whichGeno < genos0.size(); whichGeno++){
       
+      // loop over number of mosquitoes to create
+      ageNum = Leq * ageDist[age];
       
-      // add new mosquito to population
-      returnPop.emplace_back(Mosquito(minAge + age, genotype));
-      
-      // clear genotype for next one
-      genotype.clear();
-      
-    } // end loop over number of mosquitoes
+      for(size_t numMos=0; numMos < round(ageNum * genoProbs0[whichGeno]); numMos++){
+        // add new mosquito to population
+        returnPop.emplace_back(Mosquito(minAge + age, genos0[whichGeno]));
+        
+      } // end creation loop
+    } // end loop over genotype breakdown
   } // end loop over age distribution
-
+  
 }
 
 

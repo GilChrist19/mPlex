@@ -20,12 +20,37 @@ using sMat = std::vector<sVec>;
 std::vector<double> markovDist(const double& life, const int& time);
 std::vector<double> popDist(const double& mu, const double& alpha, const int& larvalEQ, const iVec& timeAq);
 
-void fillPopulation(const int& patchID, popVec& eggVec, popVec& larvaVec, popVec& pupaVec,
+
+
+
+void fillPopulation(const int& patchID, const sVec& genos0, const dVec& genoProbs0,
+                    popVec& eggVec, popVec& larvaVec, popVec& pupaVec,
                     popVec& aMaleVec, popVec& aFemaleVec, popVec& unFemaleVec,
-                    void (*populationFill)(const int&, const int&, const dVec&, const Rcpp::ListOf<Rcpp::List>&, popVec&) );
+                    void (*populationFill)(const int&, const int&, const dVec&, const sVec&, const dVec&, popVec&) );
 void fillPopulation(const int& patchID, popVec& eggVec, popVec& larvaVec, popVec& pupaVec,
                     popVec& aMaleVec, popVec& aFemaleVec, popVec& unFemaleVec,
                     void (*populationFill)(const int&, const int&, const dVec&, popVec&) );
+
+
+
+
+void twoAlleleLocus(const dVec& probs, const sVec& alleles, dVec& retProbs, sVec& retGenos);
+
+// Daisy and multiLocus
+void twoAlleleGenotypes(const Rcpp::ListOf<Rcpp::List>& aTypes, sVec& retGenos, dVec& retProbs);
+
+// oneLocus
+void twoLociGenotypes(const Rcpp::ListOf<Rcpp::List>& aTypes, sVec& retGenos, dVec& retProbs);
+
+
+
+
+
+
+void CreateMosquitoes(const int& Leq, const int& minAge, const dVec& ageDist,
+                      const sVec& genos0, const dVec& genoProbs0, popVec& returnPop);
+
+
 
 /******************************************************************************
  * Daisy Class
@@ -33,13 +58,6 @@ void fillPopulation(const int& patchID, popVec& eggVec, popVec& larvaVec, popVec
 #ifndef DAISY_MPLEX
 #define DAISY_MPLEX
 
-
-/****************
- * SETUP FUNCTION
- ****************/
-// for setting up Daisy and multiLocus patches
-void CreateMosquitoes2Allele(const int& Leq, const int& minAge, const dVec& ageDist,
-                             const Rcpp::ListOf<Rcpp::List>& aTypes, popVec& returnPop);
 
 /****************
  * CLASS
@@ -90,6 +108,10 @@ private:
   
   // used in reproduction
   iVec newEggs;
+  
+  // used for reset
+  dVec   probs0;
+  sVec   genos0;
 
 };
 
@@ -151,6 +173,10 @@ private:
   // used in reproduction
   iVec newEggs;
   
+  // used for reset
+  dVec   probs0;
+  sVec   genos0;
+  
 };
 
 #endif
@@ -160,14 +186,6 @@ private:
 ******************************************************************************/
 #ifndef ONELOCUS_MPLEX
 #define ONELOCUS_MPLEX
-
-
-/****************
- * SETUP FUNCTION
- ****************/
-// for setting up oneLocus patch
-void CreateMosquitoes2Loci(const int& Leq, const int& minAge, const dVec& ageDist,
-                           const Rcpp::ListOf<Rcpp::List>& aTypes, popVec& returnPop);
 
 /****************
  * CLASS
@@ -221,6 +239,10 @@ private:
   
   // used in reproduction
   iVec newEggs;
+  
+  // used for reset
+  dVec   probs0;
+  sVec   genos0;
   
 };
 

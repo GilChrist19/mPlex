@@ -139,14 +139,13 @@ protected:
   dVec                probsMigration;
   
   // mating things
-  std::vector<std::string> genNames;
-  std::vector<double> genProbs;
+  sVec genNames;
+  dVec genProbs;
   std::string mateName;
   
   // holder things
   double holdDbl;
-  int    holdInt;
-  
+  int    holdInt;  
   
   // releases
   std::vector<release_event> releaseM0; //male initial releases

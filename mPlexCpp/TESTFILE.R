@@ -41,7 +41,7 @@ for(i in c(simDir, aggDir)){dir.create(path = i)}
 # Setup Parameters for Network
 ###############################################################################
 
-numPatch <- 5
+numPatch <- 1
 set.seed(10)
 migration <- matrix(data = runif(numPatch*numPatch), nrow = numPatch, ncol = numPatch)
 migration <- migration/rowSums(migration)
@@ -54,6 +54,20 @@ alleloTypes[[1]]$alleles <- c("W")
 alleloTypes[[1]]$probs <- c(1L)
 
 AllAlleles <- replicate(n = numPatch, expr = alleloTypes, simplify = FALSE)
+
+
+alleloTypes <- vector(mode = "list", length = 1L) #3 loci
+alleloTypes[[1]]$alleles <- c("W","R")
+alleloTypes[[1]]$probs <- c(1,2)
+# alleloTypes[[2]]$alleles <- c("W","H")
+# alleloTypes[[2]]$probs <- c(0,1)
+# alleloTypes[[3]]$alleles <- c("W","H")
+# alleloTypes[[3]]$probs <- c(1,0)
+
+AllAlleles <- replicate(n = numPatch, expr = alleloTypes, simplify = FALSE)
+
+
+
 
 
 # reproductionReference <- MakeReference_DaisyDrive(H = c(0.98, 0.5),
@@ -112,7 +126,7 @@ patchReleases[[1]]$maleReleases <- c(holdRel, holdRel2)
 ###############################################################################
 # Calculate parameters and initialize network
 ###############################################################################
-simTime <- 1000
+simTime <- 10
 netPar = NetworkParameters(nPatch = numPatch,
                            simTime = simTime,
                            alleloTypes = AllAlleles,
