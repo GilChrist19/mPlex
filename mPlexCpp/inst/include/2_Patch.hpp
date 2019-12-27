@@ -21,7 +21,6 @@
 #include "4_Parameters.hpp"
 
 
-
 /**************************************
  * forward declarations & alias
 **************************************/
@@ -47,7 +46,6 @@ using release_event = struct release_event {
   ~release_event() {};
 
 };
-
 
 /**************************************
  * patch class declaration
@@ -87,30 +85,30 @@ public:
   
   
   // Population dynamics
-  void      oneDay_popDynamics();
+  void      oneDay_popDynamics(prng& myPRNG);
   
   // Death
-  void      oneDay_eggDeathAge();
-  void      oneDay_larvaDeathAge();
-  void      oneDay_pupaDeathAge();
-  void      oneDay_adultDeathAge();
+  void      oneDay_eggDeathAge(prng& myPRNG);
+  void      oneDay_larvaDeathAge(prng& myPRNG);
+  void      oneDay_pupaDeathAge(prng& myPRNG);
+  void      oneDay_adultDeathAge(prng& myPRNG);
   
   // Maturation
-  void      oneDay_pupaMaturation();
+  void      oneDay_pupaMaturation(prng& myPRNG);
   void      oneDay_larvaMaturation();
   void      oneDay_eggMaturation();
   
   // Mating
-  void      oneDay_mating();
+  void      oneDay_mating(prng& myPRNG);
   
   // New Eggs
-  virtual void  oneDay_layEggs() = 0;
+  virtual void  oneDay_layEggs(prng& myPRNG) = 0;
   
   // Releases 
   void      oneDay_Releases();
 
   // migration
-  void      oneDay_migrationOut();
+  void      oneDay_migrationOut(prng& myPRNG);
   void      oneDay_migrationIn(const popVec& male, const popVec& female);
   
   // extras

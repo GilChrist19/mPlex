@@ -104,30 +104,30 @@ Patch& Patch::operator=(Patch&& rhs) = default;
 * Population Dynamics for One Day
 ******************************************************************************/
 /* population dynamics */
-void Patch::oneDay_popDynamics(){
+void Patch::oneDay_popDynamics(prng& myPRNG){
 
   // Death and Age
-  oneDay_eggDeathAge();
-  oneDay_larvaDeathAge();
-  oneDay_pupaDeathAge();
-  oneDay_adultDeathAge();
+  oneDay_eggDeathAge(myPRNG);
+  oneDay_larvaDeathAge(myPRNG);
+  oneDay_pupaDeathAge(myPRNG);
+  oneDay_adultDeathAge(myPRNG);
   
   // Mature
-  oneDay_pupaMaturation();
+  oneDay_pupaMaturation(myPRNG);
   oneDay_larvaMaturation();
   oneDay_eggMaturation();
   
   // Mate
-  oneDay_mating();
+  oneDay_mating(myPRNG);
   
   // New Eggs
-  oneDay_layEggs();
+  oneDay_layEggs(myPRNG);
   
   // Releases
   oneDay_Releases();
   
   // Migration out
-  oneDay_migrationOut();
+  oneDay_migrationOut(myPRNG);
 
 };
 
@@ -139,15 +139,15 @@ void Patch::oneDay_popDynamics(){
 /**************************************
  * Death
 ***************************************/
-void Patch::oneDay_eggDeathAge(){
+void Patch::oneDay_eggDeathAge(prng& myPRNG){
 
   // set bernoulli
-  prng::instance().set_cBern(parameters::instance().get_mu(0));
+  myPRNG.set_cBern(parameters::instance().get_mu(0));
   
   // Loop over all eggs in the vector
   for(auto it = eggs.rbegin(); it != eggs.rend(); ++it){
     // If it is your time, swap and remove
-    if(prng::instance().get_cBern() ){
+    if(myPRNG.get_cBern() ){
       std::swap(*it, eggs.back());
       eggs.pop_back();
     } else {
@@ -157,7 +157,7 @@ void Patch::oneDay_eggDeathAge(){
   
 }
 
-void Patch::oneDay_larvaDeathAge(){
+void Patch::oneDay_larvaDeathAge(prng& myPRNG){
   
   holdInt = parameters::instance().get_stage_time(1);
   holdDbl = parameters::instance().get_alpha(patchID);
@@ -165,13 +165,13 @@ void Patch::oneDay_larvaDeathAge(){
   holdDbl = 1.0-holdDbl*(1.0-parameters::instance().get_mu(1));
   
   // set bernoulli
-  prng::instance().set_cBern(holdDbl);
+  myPRNG.set_cBern(holdDbl);
   
 
   // Loop over all larva in the vector
   for(auto it = larva.rbegin(); it != larva.rend(); ++it){
     // If it is your time, swap and remove
-    if(prng::instance().get_cBern() ){
+    if(myPRNG.get_cBern() ){
       std::swap(*it, larva.back());
       larva.pop_back();
     } else {
@@ -181,15 +181,15 @@ void Patch::oneDay_larvaDeathAge(){
   
 }
 
-void Patch::oneDay_pupaDeathAge(){
+void Patch::oneDay_pupaDeathAge(prng& myPRNG){
   
   // set bernoulli
-  prng::instance().set_cBern(parameters::instance().get_mu(2) );
+  myPRNG.set_cBern(parameters::instance().get_mu(2) );
 
   // Loop over all pupa in the vector
   for(auto it = pupa.rbegin(); it != pupa.rend(); ++it){
     // If it is your time, swap and remove
-    if(prng::instance().get_cBern() ){
+    if(myPRNG.get_cBern() ){
       std::swap(*it, pupa.back());
       pupa.pop_back();
     } else {
@@ -199,7 +199,7 @@ void Patch::oneDay_pupaDeathAge(){
   
 }
 
-void Patch::oneDay_adultDeathAge(){
+void Patch::oneDay_adultDeathAge(prng& myPRNG){
   
   double probs;
   holdDbl = 1.0 - parameters::instance().get_mu(3);
@@ -209,7 +209,7 @@ void Patch::oneDay_adultDeathAge(){
     // get genotype specific chance of death
     probs = holdDbl * reference::instance().get_omega(it->get_genotype());
     // If it is your time, swap and remove
-    if(prng::instance().get_rBern(1.0-probs) ){
+    if(myPRNG.get_rBern(1.0-probs) ){
       std::swap(*it, adult_male.back());
       adult_male.pop_back();
     } else {
@@ -222,7 +222,7 @@ void Patch::oneDay_adultDeathAge(){
     // get genotype specific chance of death
     probs = holdDbl * reference::instance().get_omega(it->get_genotype());
     // If it is your time, swap and remove
-    if(prng::instance().get_rBern(1.0-probs) ){
+    if(myPRNG.get_rBern(1.0-probs) ){
       std::swap(*it, adult_female.back());
       adult_female.pop_back();
     } else {
@@ -235,12 +235,12 @@ void Patch::oneDay_adultDeathAge(){
 /**************************************
  * Mature
 ***************************************/
-void Patch::oneDay_pupaMaturation(){
+void Patch::oneDay_pupaMaturation(prng& myPRNG){
   
   holdInt = parameters::instance().get_stage_sum(2);
   
   // set bernoulli
-  prng::instance().set_cBern(parameters::instance().get_mu(3));
+  myPRNG.set_cBern(parameters::instance().get_mu(3));
   
   // Loop over all pupa in the vector
   for(auto it = pupa.rbegin(); it != pupa.rend(); ++it){
@@ -249,16 +249,16 @@ void Patch::oneDay_pupaMaturation(){
     if(it->get_age() >= holdInt){
       
       // one extra death probability, in the math
-      if(prng::instance().get_cBern() ){
+      if(myPRNG.get_cBern() ){
         // death!
         std::swap(*it, pupa.back());
         pupa.pop_back();
         
         // gender mill, mwuahahahaha
-      } else if(prng::instance().get_rBern(reference::instance().get_phi(it->get_genotype())) ){
+      } else if(myPRNG.get_rBern(reference::instance().get_phi(it->get_genotype())) ){
         // female!
         // check if it actually makes it
-        if(prng::instance().get_rBern(reference::instance().get_xiF(it->get_genotype())) ){
+        if(myPRNG.get_rBern(reference::instance().get_xiF(it->get_genotype())) ){
           // you become an unmated adult female
           unmated_female.push_back(*it);
         }
@@ -268,7 +268,7 @@ void Patch::oneDay_pupaMaturation(){
       } else {
         // male!
         // see if you actually make it
-        if(prng::instance().get_rBern(reference::instance().get_xiM(it->get_genotype())) ){
+        if(myPRNG.get_rBern(reference::instance().get_xiM(it->get_genotype())) ){
           // you become and adult male
           adult_male.push_back(*it);
         }
@@ -323,7 +323,7 @@ void Patch::oneDay_eggMaturation(){
 /**************************************
  * Mate
 ***************************************/
-void Patch::oneDay_mating(){
+void Patch::oneDay_mating(prng& myPRNG){
   
   if(!adult_male.empty() && !unmated_female.empty() ){
     
@@ -337,12 +337,12 @@ void Patch::oneDay_mating(){
     }
 
     // set sample
-    prng::instance().set_oneSample(genProbs);
+    myPRNG.set_oneSample(genProbs);
 
     // loop over unmated females
     for(auto it = unmated_female.rbegin(); it != unmated_female.rend(); ++it){
       //get and set mate
-      mateName = genNames[prng::instance().get_oneSample()];
+      mateName = genNames[myPRNG.get_oneSample()];
       it->set_mate(mateName);
       // move to real adult females and remove
       adult_female.push_back(*it);
@@ -360,7 +360,7 @@ void Patch::oneDay_mating(){
       // get genotype specific chance of death
       probs = holdDbl * reference::instance().get_omega(it->get_genotype());
       // If it is your time, swap and remove
-      if(prng::instance().get_rBern(1.0-probs) ){
+      if(myPRNG.get_rBern(1.0-probs) ){
         std::swap(*it, unmated_female.back());
         unmated_female.pop_back();
       } else {
@@ -432,7 +432,7 @@ void Patch::oneDay_Releases(){
 /**************************************
  * Migration
 ***************************************/
-void Patch::oneDay_migrationOut(){
+void Patch::oneDay_migrationOut(prng& myPRNG){
   
   // clear old migration
   for(size_t i=0; i < parameters::instance().get_n_patch(); ++i){
@@ -445,15 +445,15 @@ void Patch::oneDay_migrationOut(){
    * MALE
   ****************/
   // get slightly more variance in probability
-  probsMigration = prng::instance().get_rdirichlet(parameters::instance().get_male_migration(patchID)); 
+  probsMigration = myPRNG.get_rdirichlet(parameters::instance().get_male_migration(patchID)); 
   
   // set oneSample
-  prng::instance().set_oneSample(probsMigration);
+  myPRNG.set_oneSample(probsMigration);
   
   // loop over all adult males
   for(auto it = adult_male.rbegin(); it != adult_male.rend(); ++it){
     //get which patch he goes to
-    holdInt = prng::instance().get_oneSample();
+    holdInt = myPRNG.get_oneSample();
     
     // if not this patch
     if(holdInt != patchID){ 
@@ -471,15 +471,15 @@ void Patch::oneDay_migrationOut(){
    * FEMALE
   ****************/
   // get slightly more variance in probability
-  probsMigration = prng::instance().get_rdirichlet(parameters::instance().get_female_migration(patchID));
+  probsMigration = myPRNG.get_rdirichlet(parameters::instance().get_female_migration(patchID));
   
   // reset oneSample for female probs
-  prng::instance().set_oneSample(probsMigration);
+  myPRNG.set_oneSample(probsMigration);
   
   // loop over all females
   for(auto it = adult_female.rbegin(); it != adult_female.rend(); ++it){
     // get which patch she goes to
-    holdInt = prng::instance().get_oneSample();
+    holdInt = myPRNG.get_oneSample();
     
     // if not this patch
     if(holdInt != patchID){
@@ -496,20 +496,20 @@ void Patch::oneDay_migrationOut(){
   /****************
    * BATCH
   ****************/
-  if(prng::instance().get_rBern(parameters::instance().get_batchProbs(patchID)) ){
+  if(myPRNG.get_rBern(parameters::instance().get_batchProbs(patchID)) ){
     
     // which patch will they migrate to
     // set oneSample, then get it
-    prng::instance().set_oneSample(parameters::instance().get_batchLocation(patchID));
-    holdInt = prng::instance().get_oneSample();
+    myPRNG.set_oneSample(parameters::instance().get_batchLocation(patchID));
+    holdInt = myPRNG.get_oneSample();
     
     // set binomial for inside loop
-    prng::instance().set_cBern(parameters::instance().get_batchMale(patchID));
+    myPRNG.set_cBern(parameters::instance().get_batchMale(patchID));
 
     // do male migration
     for(auto mos = adult_male.rbegin(); mos != adult_male.rend(); ++mos){
       // see if it moves
-      if(prng::instance().get_cBern() ){
+      if(myPRNG.get_cBern() ){
         // put him in new patch migration set
         maleMigration[holdInt].push_back(*mos);
         // remove him from here
@@ -519,12 +519,12 @@ void Patch::oneDay_migrationOut(){
     } // end males
     
     // reset binom for females
-    prng::instance().set_cBern(parameters::instance().get_batchFemale(patchID));
+    myPRNG.set_cBern(parameters::instance().get_batchFemale(patchID));
 
     // female batch migration
     for(auto mos = adult_female.rbegin(); mos != adult_female.rend(); ++mos){
       // see if she moves
-      if(prng::instance().get_cBern() ){
+      if(myPRNG.get_cBern() ){
         // put her in the new patch
         femaleMigration[holdInt].push_back(*mos);
         // remove from current patch

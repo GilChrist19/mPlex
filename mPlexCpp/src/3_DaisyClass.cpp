@@ -86,7 +86,7 @@ void Daisy::reset_Patch(){
 /******************************************************************************
  * Lay eggs
 ******************************************************************************/
-void Daisy::oneDay_layEggs(){
+void Daisy::oneDay_layEggs(prng& myPRNG){
 
   for(auto female : adult_female){
 
@@ -94,11 +94,11 @@ void Daisy::oneDay_layEggs(){
     DaisyOffspring(female.get_genotype(), female.get_mate());
     
     // get number of new offspring based on genotype and poisson randomness
-    index = prng::instance().get_rpois(parameters::instance().get_beta()
+    index = myPRNG.get_rpois(parameters::instance().get_beta()
                                               * reference::instance().get_s(female.get_genotype()));
 
     // pull eggs over offspring probs
-    newEggs = prng::instance().get_rmultinom_online(index, finalProbs);
+    newEggs = myPRNG.get_rmultinom_online(index, finalProbs);
 
     
     // create new eggs

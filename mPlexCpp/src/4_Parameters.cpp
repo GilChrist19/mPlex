@@ -25,7 +25,7 @@ void parameters::set_parameters(/* simulation fields */
                                 /* biological parameters */
                                 const std::vector<int>& stage_time_, const double& beta_, const dVec& mu_,
                                 /* patch-specific derived parameters */
-                                const dVec& alpha_, const std::vector<int>& larva_eq_, const std::vector<int>& adult_pop_eq_,
+                                const dVec& alpha_, const iVec& larva_eq_, const iVec& adult_pop_eq_,
                                 // migration
                                 const dMat& male_migration_, const dMat& female_migration_,
                                 // batch parameters

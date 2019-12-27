@@ -7,6 +7,7 @@
 mPlex_runRepetitions(
   seed,
   numReps,
+  numThreads,
   networkParameters,
   reproductionReference,
   patchReleases,
@@ -22,6 +23,8 @@ mPlex_runRepetitions(
 \item{seed}{An integer seed for random number generator}
 
 \item{numReps}{An integer specifying the number of repetitions}
+
+\item{numThreads}{An integer specifying the number of threads to parallelize over}
 
 \item{networkParameters}{A list of simulation parameters}
 

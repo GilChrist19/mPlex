@@ -74,13 +74,13 @@ void Family::reset_Patch(){
 /******************************************************************************
  * Class Functions
 ******************************************************************************/
-void Family::oneDay_layEggs(){
+void Family::oneDay_layEggs(prng& myPRNG){
   
   // loop over mated, adult females
   for(auto female : adult_female){
     
     // get number of new offspring
-    index = prng::instance().get_rpois(parameters::instance().get_beta()
+    index = myPRNG.get_rpois(parameters::instance().get_beta()
                                         * reference::instance().get_s(female.get_genotype()));
     
     // create new eggs

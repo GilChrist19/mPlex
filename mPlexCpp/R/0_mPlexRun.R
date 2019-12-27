@@ -15,6 +15,7 @@
 #' R interface to C++ simulation code.
 #' 
 #' @param seed An integer seed for random number generator
+#' @param numThreads An integer specifying the number of threads to parallelize over
 #' @param networkParameters A list of simulation parameters
 #' @param reproductionReference A list of reproduction and genotype specific parameters
 #' @param patchReleases A list of releases
@@ -26,7 +27,7 @@
 #' @param verbose Boolean, be chatty?
 #' 
 #' @export
-mPlex_oneRun <- function(seed, networkParameters, reproductionReference, patchReleases,
+mPlex_oneRun <- function(seed, numThreads, networkParameters, reproductionReference, patchReleases,
                          migrationMale, migrationFemale, migrationBatch,
                          outputDirectory, reproductionType, verbose){
   
@@ -35,6 +36,7 @@ mPlex_oneRun <- function(seed, networkParameters, reproductionReference, patchRe
   
   # pass all down for simulation
   mPlexCpp:::run_mPlex_Cpp(seed,
+                           numThreads_ = numThreads,
                            networkParameters,
                            reproductionReference,
                            patchReleases,
@@ -56,6 +58,7 @@ mPlex_oneRun <- function(seed, networkParameters, reproductionReference, patchRe
 #' 
 #' @param seed An integer seed for random number generator
 #' @param numReps An integer specifying the number of repetitions
+#' @param numThreads An integer specifying the number of threads to parallelize over
 #' @param networkParameters A list of simulation parameters
 #' @param reproductionReference A list of reproduction and genotype specific parameters
 #' @param patchReleases A list of releases
@@ -67,7 +70,7 @@ mPlex_oneRun <- function(seed, networkParameters, reproductionReference, patchRe
 #' @param verbose Boolean, be chatty?
 #' 
 #' @export
-mPlex_runRepetitions <- function(seed, numReps, networkParameters, reproductionReference,
+mPlex_runRepetitions <- function(seed, numReps, numThreads, networkParameters, reproductionReference,
                                  patchReleases, migrationMale, migrationFemale,
                                  migrationBatch, outputDirectory, reproductionType,
                                  verbose){
@@ -78,6 +81,7 @@ mPlex_runRepetitions <- function(seed, numReps, networkParameters, reproductionR
   # pass all down for simulation
   mPlexCpp:::run_mPlex_Cpp_repetitions(seed,
                                        numReps,
+                                       numThreads_ = numThreads,
                                        networkParameters,
                                        reproductionReference,
                                        patchReleases,

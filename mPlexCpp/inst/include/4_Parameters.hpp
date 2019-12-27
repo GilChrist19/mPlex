@@ -18,6 +18,7 @@
 
 using dMat = std::vector<std::vector<double> >;
 using dVec = std::vector<double>;
+using iVec = std::vector<int>;
 
 
 class parameters final {
@@ -27,13 +28,13 @@ public:
   void                  set_parameters(/* simulation fields */
                                        const int& n_patch_, const int& sim_time_, const int& run_id_,
                                        /* biological parameters */
-                                        const std::vector<int>& stage_time_, const double& beta_, const dVec& mu_,
+                                        const iVec& stage_time_, const double& beta_, const dVec& mu_,
                                        /* patch-specific derived parameters */
-                                       const dVec& alpha_, const std::vector<int>& larva_eq_, const std::vector<int>& adult_pop_eq_,
+                                       const dVec& alpha_, const iVec& larva_eq_, const iVec& adult_pop_eq_,
                                        // migration
                                        const dMat& male_migration_, const dMat& female_migration_,
                                        // batch parameters
-                                       const std::vector<double>& batchProbs_, const dMat& sexProbs_, const dMat& moveMat_);
+                                       const dVec& batchProbs_, const dMat& sexProbs_, const dMat& moveMat_);
   
   
   /* accessors */

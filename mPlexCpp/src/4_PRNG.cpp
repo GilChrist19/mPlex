@@ -9,23 +9,18 @@
 
 #include "4_PRNG.hpp"
 
-
-/* constructor & destructor */
-prng::prng(){};
-prng::~prng(){};
-
-/* utility methods */
-prng& prng::instance(){
-    static prng instance;
-    return instance;
-};
-
-void prng::set_seed(const uint_least32_t &seed){
-  rng.seed(seed);
+///////////////////////////////////////////////////////////////////////////////
+// constructor & destructor
+///////////////////////////////////////////////////////////////////////////////
+prng::prng(const uint_least32_t& seed) : rng(seed){
   runif = std::uniform_real_distribution<double>(0,1);
 };
+prng::~prng(){};
 
-/* continuous random variate sampling */
+
+///////////////////////////////////////////////////////////////////////////////
+// continuous random variate sampling
+///////////////////////////////////////////////////////////////////////////////
 double prng::get_runif(){
   return runif(rng);
 };
@@ -40,7 +35,10 @@ double prng::get_rlnorm(const double &meanlog, const double &sdlog){
   return rlnorm(rng);
 };
 
+
+///////////////////////////////////////////////////////////////////////////////
 // set one sample probs
+///////////////////////////////////////////////////////////////////////////////
 void prng::set_oneSample(const std::vector<double>& prob){
   sample = std::discrete_distribution<size_t> (prob.begin(),prob.end());
 }
@@ -74,7 +72,7 @@ bool prng::get_cBern(){
   return bernoulli(rng);
 };
 
-std::vector<int> prng::get_rmultinom(const int &size, const std::vector<double> prob){
+std::vector<int> prng::get_rmultinom(const int &size, const std::vector<double>& prob){
   std::vector<int>sample(prob.size(),0);
   
   // if there is only one thing to draw from, return it
@@ -94,7 +92,8 @@ std::vector<int> prng::get_rmultinom(const int &size, const std::vector<double> 
 };
 
 /* Startek, M. (2016). An asymptotically optimal, online algorithm for weighted random sampling with replacement, 1–11. Retrieved from http://arxiv.org/abs/1611.00532 */
-std::vector<int> prng::get_rmultinom_online(int size, const std::vector<double>& prob, double switchover){
+std::vector<int> prng::get_rmultinom_online(int size, const std::vector<double>& prob,
+                                            const double& switchover){
 
   std::vector<int> sample(prob.size(),0);
 

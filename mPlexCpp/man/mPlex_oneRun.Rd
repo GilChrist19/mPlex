@@ -6,6 +6,7 @@
 \usage{
 mPlex_oneRun(
   seed,
+  numThreads,
   networkParameters,
   reproductionReference,
   patchReleases,
@@ -19,6 +20,8 @@ mPlex_oneRun(
 }
 \arguments{
 \item{seed}{An integer seed for random number generator}
+
+\item{numThreads}{An integer specifying the number of threads to parallelize over}
 
 \item{networkParameters}{A list of simulation parameters}
 

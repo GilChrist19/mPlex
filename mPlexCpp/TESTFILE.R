@@ -41,7 +41,7 @@ for(i in c(simDir, aggDir)){dir.create(path = i)}
 # Setup Parameters for Network
 ###############################################################################
 
-numPatch <- 1
+numPatch <- 16
 set.seed(10)
 migration <- matrix(data = runif(numPatch*numPatch), nrow = numPatch, ncol = numPatch)
 migration <- migration/rowSums(migration)
@@ -126,7 +126,7 @@ patchReleases[[1]]$maleReleases <- c(holdRel, holdRel2)
 ###############################################################################
 # Calculate parameters and initialize network
 ###############################################################################
-simTime <- 10
+simTime <- 100
 netPar = NetworkParameters(nPatch = numPatch,
                            simTime = simTime,
                            alleloTypes = AllAlleles,
@@ -137,7 +137,9 @@ netPar = NetworkParameters(nPatch = numPatch,
 
 migrationBatch <- basicBatchMigration(numPatches = numPatch)
 
+startTime <- Sys.time()
 mPlex_oneRun(seed = 10,
+             numThreads = 2,
              networkParameters = netPar,
              reproductionReference = reproductionReference,
              patchReleases = patchReleases,
@@ -147,6 +149,7 @@ mPlex_oneRun(seed = 10,
              outputDirectory = simDir,
              reproductionType = "mPlex_mLoci",
              verbose = TRUE)
+difftime(time1 = Sys.time(), time2 = startTime)
 
 
 # setup aggregation key
@@ -178,6 +181,7 @@ detach("package:mPlexCpp", unload=TRUE)
 # repetitions wrapper - no reinitializing memory between reps. 
 mPlex_runRepetitions(seed = 10,
                      numReps = 5, 
+                     numThreads = 4,
                      networkParameters = netPar,
                      reproductionReference = reproductionReference,
                      patchReleases = patchReleases,
@@ -186,7 +190,7 @@ mPlex_runRepetitions(seed = 10,
                      migrationBatch = migrationBatch,
                      outputDirectory = simDir,
                      reproductionType = "mPlex_mLoci",
-                     verbose = FALSE)
+                     verbose = TRUE)
 
 
 

@@ -81,7 +81,7 @@ void oneLocus::reset_Patch(){
 /******************************************************************************
  * Lay eggs
  ******************************************************************************/
-void oneLocus::oneDay_layEggs(){
+void oneLocus::oneDay_layEggs(prng& myPRNG){
 
   for(auto female : adult_female){
 
@@ -89,11 +89,11 @@ void oneLocus::oneDay_layEggs(){
     MultiplexOffspring_oLocus(female.get_genotype(), female.get_mate());
 
     // get number of new offspring based on genotype and poisson randomness
-    index = prng::instance().get_rpois(parameters::instance().get_beta()
+    index = myPRNG.get_rpois(parameters::instance().get_beta()
                                               * reference::instance().get_s(female.get_genotype()));
 
     // pull eggs over offspring probs
-    newEggs = prng::instance().get_rmultinom_online(index, holdProbs1);
+    newEggs = myPRNG.get_rmultinom_online(index, holdProbs1);
 
     // create new eggs
     for(size_t eggIndex=0; eggIndex<newEggs.size(); ++eggIndex){
@@ -177,58 +177,6 @@ void twoLociGenotypes(const Rcpp::ListOf<Rcpp::List>& aTypes, sVec& retGenos, dV
   
 }
 
-// void CreateMosquitoes2Loci(const int& Leq, const int& minAge, const dVec& ageDist,
-//                            const Rcpp::ListOf<Rcpp::List>& aTypes, popVec& returnPop){
-//   
-//   // This only good for things that have 2 loci, but multiple alleles
-// 
-//   // number of loci is the number of sublists in aTypes
-//   size_t numLoci = aTypes.size();
-//   
-//   // holders for things in loop
-//   std::vector<double> probs;
-//   std::vector<std::string> alleles;
-//   
-//   std::vector<std::string> locus1(numLoci), locus2(numLoci);
-//   std::string genotype;
-//   int age;
-//   
-//   
-//   // loop over each age that mosquitoes can be
-//   for(size_t age = 0; age < ageDist.size(); age++){
-//     // loop over number of mosquitoes to create
-//     for(size_t num=0; num < round(Leq * ageDist[age]); num++){
-//       /*********/
-//       // set genotype
-//       /*********/
-//       // loop over each locus
-//       for(size_t loci=0; loci < numLoci; ++ loci){
-//         
-//         probs = Rcpp::as<std::vector<double> >( aTypes[loci]["probs"] );
-//         alleles = Rcpp::as<std::vector<std::string> >( aTypes[loci]["alleles"] );
-//         
-//         // generate each allele
-//         prng::instance().set_oneSample(probs);
-//         locus1[loci] = alleles[prng::instance().get_oneSample()];
-//         locus2[loci] = alleles[prng::instance().get_oneSample()];
-//       }
-//       
-//       // combine alleles into final genotype
-//       for(auto const& s : locus1){ genotype += s; }
-//       for(auto const& s : locus2){ genotype += s; }
-//       
-//       
-//       // add new mosquito to population
-//       returnPop.emplace_back(Mosquito(minAge + age, genotype));
-//       
-//       // clear genotype for next one
-//       genotype.clear();
-//       
-//     } // end loop over number of mosquitoes
-//   } // end loop over age distribution
-//   
-//   
-// }
 
 /**************************************
  * GENERATING FUNCTION

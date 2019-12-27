@@ -24,10 +24,9 @@ BigBrother& BigBrother::instance(){
 // getters/setters
 std::string BigBrother::get_ID(){
   
-  holder = std::to_string(idMem);
-  idMem++;
-  
-  return holder;
+  idMem++; // use 0 as a default for setting stuff
+  return(std::to_string(idMem));
+
 };
 
 

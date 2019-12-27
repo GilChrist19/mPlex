@@ -6,6 +6,7 @@
 \usage{
 run_mPlex_Cpp(
   seed_,
+  numThreads_,
   networkParameters_,
   reproductionReference_,
   patchReleases_,

@@ -13,8 +13,8 @@
 #' }
 #' 
 #' 
-run_mPlex_Cpp <- function(seed_, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, outputDirectory_, reproductionType_, verbose_) {
-    invisible(.Call('_mPlexCpp_run_mPlex_Cpp', PACKAGE = 'mPlexCpp', seed_, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, outputDirectory_, reproductionType_, verbose_))
+run_mPlex_Cpp <- function(seed_, numThreads_, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, outputDirectory_, reproductionType_, verbose_) {
+    invisible(.Call('_mPlexCpp_run_mPlex_Cpp', PACKAGE = 'mPlexCpp', seed_, numThreads_, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, outputDirectory_, reproductionType_, verbose_))
 }
 
 #' Run Multi-Plex Experiment
@@ -29,8 +29,8 @@ run_mPlex_Cpp <- function(seed_, networkParameters_, reproductionReference_, pat
 #' }
 #'
 #'
-run_mPlex_Cpp_repetitions <- function(seed_, numReps_, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, outputDirectory_, reproductionType_, verbose_) {
-    invisible(.Call('_mPlexCpp_run_mPlex_Cpp_repetitions', PACKAGE = 'mPlexCpp', seed_, numReps_, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, outputDirectory_, reproductionType_, verbose_))
+run_mPlex_Cpp_repetitions <- function(seed_, numReps_, numThreads_, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, outputDirectory_, reproductionType_, verbose_) {
+    invisible(.Call('_mPlexCpp_run_mPlex_Cpp_repetitions', PACKAGE = 'mPlexCpp', seed_, numReps_, numThreads_, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, outputDirectory_, reproductionType_, verbose_))
 }
 
 #' Calculate Geodesic Distance - Cosine Method

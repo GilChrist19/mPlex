@@ -18,7 +18,8 @@ public:
   static BigBrother&          instance(); // get instance
   
   // getters/setters
-  std::string                      get_ID();
+  std::string                 get_ID();
+  void                        reset(){idMem = 0;};
   
 private:
   // constructor & destructor
@@ -33,7 +34,6 @@ private:
   
   // only member?
   unsigned long long int idMem;
-  std::string holder;
   
 };
 

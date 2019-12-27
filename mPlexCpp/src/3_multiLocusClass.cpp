@@ -84,7 +84,7 @@ void multiLocus::reset_Patch(){
 /******************************************************************************
  * Lay eggs
  ******************************************************************************/
-void multiLocus::oneDay_layEggs(){
+void multiLocus::oneDay_layEggs(prng& myPRNG){
   
   for(auto female : adult_female){
     
@@ -92,11 +92,11 @@ void multiLocus::oneDay_layEggs(){
     MultiplexOffspring_mLoci(female.get_genotype(), female.get_mate());
     
     // get number of new offspring based on genotype and poisson randomness
-    index = prng::instance().get_rpois(parameters::instance().get_beta()
+    index = myPRNG.get_rpois(parameters::instance().get_beta()
                                               * reference::instance().get_s(female.get_genotype()));
     
     // pull eggs over offspring probs
-    newEggs = prng::instance().get_rmultinom_online(index, finalProbs);
+    newEggs = myPRNG.get_rmultinom_online(index, finalProbs);
     
     // create new eggs
     for(size_t eggIndex=0; eggIndex<newEggs.size(); ++eggIndex){

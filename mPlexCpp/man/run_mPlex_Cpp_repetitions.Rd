@@ -7,6 +7,7 @@
 run_mPlex_Cpp_repetitions(
   seed_,
   numReps_,
+  numThreads_,
   networkParameters_,
   reproductionReference_,
   patchReleases_,

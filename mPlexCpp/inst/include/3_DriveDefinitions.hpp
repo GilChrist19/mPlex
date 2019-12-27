@@ -83,7 +83,7 @@ public:
   Daisy& operator=(Daisy&&);
   
   // functions specific to this class
-  void oneDay_layEggs();
+  void oneDay_layEggs(prng& myPRNG);
   void DaisyOffspring(const std::string& fGen, const std::string& mGen);
   void reset_Patch(); 
   
@@ -147,7 +147,7 @@ public:
   multiLocus& operator=(multiLocus&&);
   
   // functions specific to this class
-  void oneDay_layEggs();
+  void oneDay_layEggs(prng& myPRNG);
   void MultiplexOffspring_mLoci(const std::string& fGen, const std::string& mGen);
   void reset_Patch();
   
@@ -210,7 +210,7 @@ public:
   oneLocus& operator=(oneLocus&&);
   
   // functions specific to this class
-  void oneDay_layEggs();
+  void oneDay_layEggs(prng& myPRNG);
   void MultiplexOffspring_oLocus(const std::string& fGen, const std::string& mGen);
   void reset_Patch();
   
@@ -283,7 +283,7 @@ public:
   Family& operator=(Family&&);
   
   // functions for this class
-  void  oneDay_layEggs();
+  void  oneDay_layEggs(prng& myPRNG);
   void  reset_Patch();
   void  init_output(std::ofstream& ADM_log, std::ofstream& ADF_log);
   void  oneDay_writeOutput(std::ofstream& ADM_log, std::ofstream& ADF_log);
