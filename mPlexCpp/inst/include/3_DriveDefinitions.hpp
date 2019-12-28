@@ -292,6 +292,7 @@ private:
   
   // used in reproduction
   int index;
+  std::string newID;
 
 };
 

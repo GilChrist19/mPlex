@@ -15,7 +15,11 @@
 
 //#include <gperftools/profiler.h>
 
+// I think the plugin includes compiler flags
+// Source: https://wbnicholson.wordpress.com/2014/07/10/parallelization-in-rcpp-via-openmp/
+//  However, do I even need it? I have most of the flags
 #include <omp.h> // for parallel loops
+
 #include "1_Mosquito.hpp"
 #include "2_Patch.hpp"
 #include "3_DriveDefinitions.hpp"
@@ -303,6 +307,8 @@ void run_mPlex_Cpp(const uint_least32_t& seed_,
     if(checkInterrupt()) return;
     
     // Independent daily operations
+    //  use dynamic schedule?
+    //  Could be better once patches aren't all the same size
     #pragma omp parallel for private(myThread)
     for(size_t np=0; np<numPatches; ++np){
       // get unique thread for prng

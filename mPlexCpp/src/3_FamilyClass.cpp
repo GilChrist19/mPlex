@@ -85,7 +85,11 @@ void Family::oneDay_layEggs(prng& myPRNG){
     
     // create new eggs
     for(size_t it=0; it<index; ++it){
-      eggs.emplace_back(Mosquito(0, BigBrother::instance().get_ID()));
+      // protect increment and return of new id
+      #pragma omp critical (newIDLock)
+      newID = BigBrother::instance().get_ID();
+      
+      eggs.emplace_back(Mosquito(0, newID));
       eggs.back().set_parents(female.get_genotype(), female.get_mate());
     } // end making eggs
   } // end loop over females

@@ -139,7 +139,7 @@ migrationBatch <- basicBatchMigration(numPatches = numPatch)
 
 startTime <- Sys.time()
 mPlex_oneRun(seed = 10,
-             numThreads = 4,
+             numThreads = 2,
              networkParameters = netPar,
              reproductionReference = reproductionReference,
              patchReleases = patchReleases,
