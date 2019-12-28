@@ -19,6 +19,7 @@
 // Source: https://wbnicholson.wordpress.com/2014/07/10/parallelization-in-rcpp-via-openmp/
 //  However, do I even need it? I have most of the flags
 #include <omp.h> // for parallel loops
+// [[Rcpp::plugins(openmp)]]
 
 #include "1_Mosquito.hpp"
 #include "2_Patch.hpp"
