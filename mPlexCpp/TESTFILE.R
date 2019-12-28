@@ -126,7 +126,7 @@ patchReleases[[1]]$maleReleases <- c(holdRel, holdRel2)
 ###############################################################################
 # Calculate parameters and initialize network
 ###############################################################################
-simTime <- 100
+simTime <- 1000
 netPar = NetworkParameters(nPatch = numPatch,
                            simTime = simTime,
                            alleloTypes = AllAlleles,
@@ -139,7 +139,7 @@ migrationBatch <- basicBatchMigration(numPatches = numPatch)
 
 startTime <- Sys.time()
 mPlex_oneRun(seed = 10,
-             numThreads = 2,
+             numThreads = 4,
              networkParameters = netPar,
              reproductionReference = reproductionReference,
              patchReleases = patchReleases,
