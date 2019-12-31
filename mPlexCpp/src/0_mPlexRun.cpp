@@ -18,7 +18,9 @@
 // I think the plugin includes compiler flags
 // Source: https://wbnicholson.wordpress.com/2014/07/10/parallelization-in-rcpp-via-openmp/
 //  However, do I even need it? I have most of the flags
+#ifdef _OPENMP
 #include <omp.h> // for parallel loops
+#endif
 // [[Rcpp::plugins(openmp)]]
 
 #include "1_Mosquito.hpp"
@@ -70,8 +72,10 @@ void run_mPlex_Cpp(const uint_least32_t& seed_,
   ////////////////////
   if(verbose_) {Rcpp::Rcout << "Initializing " << numThreads_ << " prngs ... ";};
 
+  #ifdef _OPENMP
   int myThread;
   omp_set_num_threads(numThreads_);
+  #endif
   
   std::vector<prng> randInst;
   randInst.reserve(numThreads_);
@@ -257,7 +261,8 @@ void run_mPlex_Cpp(const uint_least32_t& seed_,
                        + "_Patch_");
   
   // open all streams with file names
-  #pragma omp parallel for private(sHold)
+  //  maybe set schedule as static? That would be best, unsure how auto will do.
+  #pragma omp parallel for default(shared) private(sHold) schedule(auto)
   for(size_t np=0; np<numPatches; ++np){
     // denote patch
     sHold = std::string(3 - std::to_string(np).length(), '0')
@@ -281,7 +286,9 @@ void run_mPlex_Cpp(const uint_least32_t& seed_,
   if(verbose_){Rcpp::Rcout <<  "Initializing output ... ";};
   
   // output is to different files, so parallel
-  #pragma omp parallel for
+  //  patches could be different size, and all things are written, so putting 
+  //  this with dynamic allocation, but not sure if that's beneficial
+  #pragma omp parallel for default(shared) schedule(dynamic)
   for(size_t np=0; np<numPatches; ++np){
     patches[np]->init_output(M_output[patches[np]->get_patchID()], F_output[patches[np]->get_patchID()]);
   }
@@ -310,10 +317,13 @@ void run_mPlex_Cpp(const uint_least32_t& seed_,
     // Independent daily operations
     //  use dynamic schedule?
     //  Could be better once patches aren't all the same size
-    #pragma omp parallel for private(myThread)
+    #pragma omp parallel for default(shared) private(myThread) schedule(dynamic)
     for(size_t np=0; np<numPatches; ++np){
+      #ifdef _OPENMP
       // get unique thread for prng
       myThread = omp_get_thread_num();
+      #endif
+      
       // run today's stuff
       patches[np]->oneDay_popDynamics(randInst[myThread]);
     }
@@ -327,7 +337,8 @@ void run_mPlex_Cpp(const uint_least32_t& seed_,
     }
     
     // Log output
-    #pragma omp parallel for
+    //  Same thoughts as for init_output above
+    #pragma omp parallel for default(shared) schedule(dynamic)
     for(size_t np=0; np<numPatches; ++np){
       // run output
       patches[np]->oneDay_writeOutput(M_output[patches[np]->get_patchID()], F_output[patches[np]->get_patchID()]);
@@ -346,7 +357,8 @@ void run_mPlex_Cpp(const uint_least32_t& seed_,
   
   // close files
   // all independent, do in parallel
-  #pragma omp parallel for
+  // schedule as static? 
+  #pragma omp parallel for default(shared) schedule(auto)
   for(size_t np=0; np<numPatches; ++np){
     M_output[np].close();
     F_output[np].close();
@@ -407,8 +419,10 @@ void run_mPlex_Cpp_repetitions(const uint_least32_t& seed_,
   ////////////////////
   if(verbose_) {Rcpp::Rcout << "Initializing " << numThreads_ << " prngs ... ";};
 
+  #ifdef _OPENMP
   int myThread;
   omp_set_num_threads(numThreads_);
+  #endif
   
   std::vector<prng> randInst;
   randInst.reserve(numThreads_);
@@ -612,7 +626,8 @@ void run_mPlex_Cpp_repetitions(const uint_least32_t& seed_,
     
     // open all streams with file names
     // try in parallel. It's independent, but idk if this is a speedup or just a waste
-    #pragma omp parallel for private(sHold)
+    // maybe schedule as static? 
+    #pragma omp parallel for default(shared) private(sHold) schedule(auto)
     for(size_t np=0; np<numPatches; ++np){
       // denote patch
       sHold = std::string(3 - std::to_string(np).length(), '0')
@@ -636,7 +651,7 @@ void run_mPlex_Cpp_repetitions(const uint_least32_t& seed_,
     if(verbose_){Rcpp::Rcout <<  "Initializing output ... ";};
     
     // output is to different files, so parallel
-    #pragma omp parallel for
+    #pragma omp parallel for default(shared) schedule(dynamic)
     for(size_t np=0; np<numPatches; ++np){
       patches[np]->init_output(M_output[patches[np]->get_patchID()], F_output[patches[np]->get_patchID()]);
     }
@@ -659,10 +674,13 @@ void run_mPlex_Cpp_repetitions(const uint_least32_t& seed_,
       if(checkInterrupt()) return;
 
       // Independent daily operations
-      #pragma omp parallel for private(myThread)
+      #pragma omp parallel for default(shared) private(myThread) schedule(dynamic)
       for(size_t np=0; np<numPatches; ++np){
+        #ifdef _OPENMP
         // get unique thread for prng
         myThread = omp_get_thread_num();
+        #endif
+        
         // run today's stuff
         patches[np]->oneDay_popDynamics(randInst[myThread]);
       }
@@ -676,7 +694,7 @@ void run_mPlex_Cpp_repetitions(const uint_least32_t& seed_,
       }
       
       // Log output
-      #pragma omp parallel for
+      #pragma omp parallel for default(shared) schedule(dynamic)
       for(size_t np=0; np<numPatches; ++np){
         patches[np]->oneDay_writeOutput(M_output[patches[np]->get_patchID()], F_output[patches[np]->get_patchID()]);
       }
@@ -692,7 +710,7 @@ void run_mPlex_Cpp_repetitions(const uint_least32_t& seed_,
     
     // close files
     // all independent, do in parallel
-    #pragma omp parallel for
+    #pragma omp parallel for default(shared) schedule(auto)
     for(size_t np=0; np<numPatches; ++np){
       M_output[np].close();
       F_output[np].close();
@@ -705,7 +723,7 @@ void run_mPlex_Cpp_repetitions(const uint_least32_t& seed_,
     //  This does involve rebuilding the starting mosquitoes
     parameters::instance().reset_t_now();
     BigBrother::instance().reset();
-    #pragma omp parallel for
+    #pragma omp parallel for default(shared) schedule(dynamic)
     for(size_t np=0; np<numPatches; ++np){
       patches[np]->reset_Patch();
     }
