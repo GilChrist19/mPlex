@@ -138,17 +138,17 @@ netPar = NetworkParameters(nPatch = numPatch,
 migrationBatch <- basicBatchMigration(numPatches = numPatch)
 
 startTime <- Sys.time()
-mPlex_oneRun(seed = 10,
-             numThreads = 2,
-             networkParameters = netPar,
-             reproductionReference = reproductionReference,
-             patchReleases = patchReleases,
-             migrationMale = migration,
-             migrationFemale = migration,
-             migrationBatch = migrationBatch,
-             outputDirectory = simDir,
-             reproductionType = "mPlex_mLoci",
-             verbose = TRUE)
+runMPlex(seed = 10,
+         numThreads = 2,
+         networkParameters = netPar,
+         reproductionReference = reproductionReference,
+         patchReleases = patchReleases,
+         migrationMale = migration,
+         migrationFemale = migration,
+         migrationBatch = migrationBatch,
+         outputDirectory = simDir,
+         reproductionType = "mPlex_mLoci",
+         verbose = TRUE)
 difftime(time1 = Sys.time(), time2 = startTime)
 
 
@@ -179,18 +179,18 @@ detach("package:mPlexCpp", unload=TRUE)
 ###############################################################################
 
 # repetitions wrapper - no reinitializing memory between reps. 
-mPlex_runRepetitions(seed = 10,
-                     numReps = 5, 
-                     numThreads = 4,
-                     networkParameters = netPar,
-                     reproductionReference = reproductionReference,
-                     patchReleases = patchReleases,
-                     migrationMale = migration,
-                     migrationFemale = migration,
-                     migrationBatch = migrationBatch,
-                     outputDirectory = simDir,
-                     reproductionType = "mPlex_mLoci",
-                     verbose = TRUE)
+runMPlex(seed = 10,
+         numReps = 2, 
+         numThreads = 2,
+         networkParameters = netPar,
+         reproductionReference = reproductionReference,
+         patchReleases = patchReleases,
+         migrationMale = migration,
+         migrationFemale = migration,
+         migrationBatch = migrationBatch,
+         outputDirectory = simDir,
+         reproductionType = "mPlex_mLoci",
+         verbose = TRUE)
 
 
 

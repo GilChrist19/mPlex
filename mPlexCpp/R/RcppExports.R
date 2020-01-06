@@ -2,22 +2,6 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 #' Run Multi-Plex Experiment
-#' 
-#' Run mPlex experiments, choosing the type of inheritance desired.
-#' 
-#' @examples
-#' \dontrun{
-#' nope
-#' none
-#' sorry
-#' }
-#' 
-#' 
-run_mPlex_Cpp <- function(seed_, numThreads_, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, outputDirectory_, reproductionType_, verbose_) {
-    invisible(.Call('_mPlexCpp_run_mPlex_Cpp', PACKAGE = 'mPlexCpp', seed_, numThreads_, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, outputDirectory_, reproductionType_, verbose_))
-}
-
-#' Run Multi-Plex Experiment
 #'
 #' Run multiple mPlex experiments, choosing the type of inheritance desired.
 #'
@@ -28,9 +12,8 @@ run_mPlex_Cpp <- function(seed_, numThreads_, networkParameters_, reproductionRe
 #' sorry
 #' }
 #'
-#'
-run_mPlex_Cpp_repetitions <- function(seed_, numReps_, numThreads_, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, outputDirectory_, reproductionType_, verbose_) {
-    invisible(.Call('_mPlexCpp_run_mPlex_Cpp_repetitions', PACKAGE = 'mPlexCpp', seed_, numReps_, numThreads_, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, outputDirectory_, reproductionType_, verbose_))
+run_mPlex <- function(seed_, numReps_, numThreads_, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, outputDirectory_, reproductionType_, verbose_) {
+    invisible(.Call('_mPlexCpp_run_mPlex', PACKAGE = 'mPlexCpp', seed_, numReps_, numThreads_, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, outputDirectory_, reproductionType_, verbose_))
 }
 
 #' Calculate Geodesic Distance - Cosine Method
