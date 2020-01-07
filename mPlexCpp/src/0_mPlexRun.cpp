@@ -56,8 +56,8 @@ void run_mPlex(const uint_least32_t& seed_,
                const Rcpp::NumericMatrix& migrationMale_,
                const Rcpp::NumericMatrix& migrationFemale_,
                const Rcpp::List& migrationBatch_,
-               const std::string& outputDirectory_,
                const std::string& reproductionType_,
+               const std::string& outputDirectory_,
                const bool& verbose_){
 
   #ifdef BASE_PROFILER_H_
@@ -92,12 +92,6 @@ void run_mPlex(const uint_least32_t& seed_,
   ////////////////////
   // BEGIN SET REFERENCE
   ////////////////////
-  // check reproduction type
-  if((reproductionType_ != "DaisyDrive") && (reproductionType_ != "mPlex_oLocus")
-       && (reproductionType_ != "mPlex_mLoci") && (reproductionType_ != "Family")){
-    Rcpp::stop("\nreproductionType must match one of these choices:\n DaisyDrive\n mPlex_oLocus\n mPlex_mLoci\n Family\n");
-  }
-    
   if(verbose_) {Rcpp::Rcout << "Setting reference ... ";};
   // set genotype specific parameters than all drives have
   reference::instance().set_reference(reproductionReference_["eta"], reproductionReference_["phi"],

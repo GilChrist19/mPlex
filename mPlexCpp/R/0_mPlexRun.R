@@ -23,19 +23,67 @@
 #' @param migrationMale A matrix specifying male migration rates
 #' @param migrationFemale A matrix specifying female migration rates
 #' @param migrationBatch A list specifing batch migration probabilities, rates, and sex ratios
-#' @param outputDirectory String folder name to write output
 #' @param reproductionType String specifying type of reproduction model
+#' @param outputDirectory String folder name to write output, default is current directory
 #' @param verbose Boolean, be chatty? Default is FALSE
 #' 
 #' @export
 runMPlex <- function(seed = 1, numReps = 1, numThreads = 1,
                      networkParameters, reproductionReference,
                      patchReleases, migrationMale, migrationFemale,
-                     migrationBatch, outputDirectory, reproductionType,
-                     verbose = FALSE){
+                     migrationBatch, reproductionType,
+                     outputDirectory = "./", verbose = FALSE){
   
-  # expand so c++ can find it
+  ##########
+  # Directory Check
+  ##########
   outputDirectory = path.expand(outputDirectory)
+  if(!dir.exists(outputDirectory)) stop("Output directory doesn't exist.")
+  
+  ##########
+  # Migration Check
+  ##########
+  # must be square, must be the same size, size must be equal to the number of patches
+  # dim gets rowxcol dimensions, as.matrix protects for single patch run
+  migTest <- c(dim(as.matrix(migrationMale)), dim(as.matrix(migrationFemale)))
+  if(!all(migTest == netPar$nPatch)) {
+    stop("migrationMale or migrationFemale are not properly specified. \nPlease ensure that both matrices are the same size, and the dimensions are equal to the number of patches in the simulation.")
+  }
+  
+  ##########
+  # Batch Migration Check
+  ##########
+  # this is taken care of in basicBatchMigration()
+  
+  
+  ##########
+  # Reproduction Type Check
+  ##########
+  if(!(reproductionType %in% c("DaisyDrive","mPlex_oLocus","mPlex_mLoci","Family"))){
+    stop("reproductionType must match one of these choices:\n DaisyDrive\n mPlex_oLocus\n mPlex_mLoci\n Family")
+  }
+  
+  
+  ##########
+  # Releases Check
+  ##########
+  
+  
+  
+  
+  ##########
+  # Network Parameters Check
+  ##########
+  # this is mostly taken care of in NetworkParameters()
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
   # pass all down for simulation
   run_mPlex(seed,
@@ -47,8 +95,8 @@ runMPlex <- function(seed = 1, numReps = 1, numThreads = 1,
              migrationMale,
              migrationFemale,
              migrationBatch,
-             outputDirectory,
              reproductionType,
+             outputDirectory,
              verbose)
 }
 

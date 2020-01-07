@@ -115,6 +115,7 @@ Release_basicRepeatedReleases <- function(releaseStart, releaseEnd, releaseInter
 #'
 #' @param batchProbs Probability of a batch migration, either 1 number or vector of length equal to the number of patches
 #' @param sexProbs Population fraction of males and females that migration. Either vector c(M,F) or matrix of 2 columns
+#' @param moveProbs Movement matrix. There must be 0 probability of moving to your own patch. Default is equal movement to all other patches.
 #' @param numPatches Number of patches in the simulation
 #'
 #' @examples
@@ -123,34 +124,78 @@ Release_basicRepeatedReleases <- function(releaseStart, releaseEnd, releaseInter
 #'
 #' @export
 basicBatchMigration <- function(batchProbs = 1e-5, sexProbs = c(0.01, 0.01),
-                                numPatches = 1){
+                                moveProbs, numPatches = 1){
+  
+  ##########
+  # batchProbs
+  ##########
+  # check values of probs
+  if(!all(batchProbs<=1, batchProbs>=0)){
+    stop("Probability of batch migration must be between 0 and 1.")
+  }
   
   # check length of probs
-  if(!all(batchProbs<1)){
-    stop("Probability of batch migration must be less than 1")
-  }
-  if(length(batchProbs) != numPatches){
+  if(length(batchProbs) == 1){
     batchProbs = rep(x = batchProbs, numPatches)
+  } else if(length(batchProbs) != numPatches){
+    stop("Length of batchProbs vector must be 1 or equal to the number of patches.")
   }
   
-  # check length of sexes, make sure less than 1
-  if(!all(sexProbs<1)){
-    stop("Sex specific movement fraction must be less than 1")
+  
+  ##########
+  # sexProbs
+  ##########
+  # check values of sexProbs
+  if(!all(sexProbs<=1, sexProbs>=0)){
+    stop("Sex specific movement fraction must be between 0 and 1")
   }
+  
+  # check dimensions of sexProbs
+  sexProbsError <- c("SexProbs is misspecified.\n",
+    "If 1 number is provided, male/female probabilities are the same for all patches.\n",
+    "If a length 2 vector is provided, male/female probabilities differ, but all patches are the same.\n",
+    "If a matrix is provided, it must have rows equal to the number of patches, and 2 columns.")
+  
   if(is.null(dim(sexProbs))){
-    sexProbsMat = matrix(data = sexProbs, nrow = numPatches, ncol = 2,
+    # ensure dimensions are 1 or 2
+    if(!any(length(sexProbs) == c(1,2))) stop(sexProbsError)
+    
+    sexProbs = matrix(data = sexProbs, nrow = numPatches, ncol = 2,
                          byrow = TRUE, dimnames = list(NULL, c("M","F")))
+    
+  } else if(!all(dim(sexProbs) == c(numPatches, 2))) stop(sexProbsError)
+
+  
+  ##########
+  # moveProbs
+  ##########
+  moveProbsError <- c("moveProbs is misspecified.\n",
+    "The default movement is equal probabilities to all other patches.\n",
+    "If it is user specified, moveProbs must have dimensions equal to the number of patches, ",
+    "all diagonal values must be zero, and the sum of each row must be 1.")
+  
+  if(missing(moveProbs)){
+    # setup movement matrix
+    moveProbs <- matrix(data = 1L, nrow = numPatches, ncol = numPatches)
+    diag(moveProbs) <- 0L
+    moveProbs <- moveProbs/rowSums(x = moveProbs)
+    
+  } else {
+    # dimensions of moveProbs
+    if(!all(dim(as.matrix(moveProbs)) == numPatches) ) stop(moveProbsError)
+    
+    # diagValues
+    if(!all(diag(moveProbs) == 0) ) stop(moveProbsError)
+    
+    # rowSums
+    if(!all(rowSums(as.matrix(moveProbs))) == 1 ) stop(moveProbsError)
   }
 
-  # setup movement matrix
-  moveMat <- matrix(data = 1L, nrow = numPatches, ncol = numPatches)
-  diag(moveMat) <- 0L
-  moveMat <- moveMat/rowSums(x = moveMat)
   
   # return basic batch migration
   return(list("batchProbs" = batchProbs,
-              "sexProbs" = sexProbsMat,
-              "moveProbs" = moveMat)
+              "sexProbs" = sexProbs,
+              "moveProbs" = moveProbs)
   )
 }
 
@@ -175,8 +220,6 @@ basicBatchMigration <- function(batchProbs = 1e-5, sexProbs = c(0.01, 0.01),
 #' @param simTime maximum time to run simulation
 #' @param alleloTypes list of allele probabilities for each patch in the simulation
 #' \code{\link{CreateMosquitoes_Distribution_Genotype}}
-#' @param parallel append process id (see \code{link[base]{Sys.getpid}})
-#' to output files for running in parallel
 #' @param moveVar variance of stochastic movement (not used in diffusion model of migration).
 #' It affects the concentration of probability in the Dirchlet simplex, small
 #' values lead to high variance and large values lead to low variance.
@@ -189,7 +232,7 @@ basicBatchMigration <- function(batchProbs = 1e-5, sexProbs = c(0.01, 0.01),
 #' @param AdPopEQ vector of adult population size at equilibrium
 #' @param runID begin counting runs with this set of parameters from this value
 #'
-#' @return List(nPatch=int, simTime=vec int, parallel=logical, moveVar=numeric,
+#' @return List(nPatch=int, simTime=vec int, moveVar=numeric,
 #' runID=int, stageTime=vec int, beta=int, dayGrowthRate=numeric, AdPopEq=int vec,
 #' alleloTypes=list, genTime=numeric, genGrowthRate=numeric, mu=vec numeric,
 #' thetaAq=vec numeric, alpha=vec numeric, Leq=vec int)
@@ -203,7 +246,6 @@ NetworkParameters <- function(
   nPatch,
   simTime,
   alleloTypes,
-  parallel = FALSE,
   moveVar = 1000,
   tEgg = 1L,
   tLarva = 14L,
@@ -221,7 +263,6 @@ NetworkParameters <- function(
   # fill list
   pars$nPatch = nPatch
   pars$simTime = simTime
-  pars$parallel = parallel
   pars$moveVar = moveVar
   pars$runID = runID
 

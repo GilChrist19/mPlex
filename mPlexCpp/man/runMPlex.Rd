@@ -14,8 +14,8 @@ runMPlex(
   migrationMale,
   migrationFemale,
   migrationBatch,
-  outputDirectory,
   reproductionType,
+  outputDirectory = "./",
   verbose = FALSE
 )
 }
@@ -38,9 +38,9 @@ runMPlex(
 
 \item{migrationBatch}{A list specifing batch migration probabilities, rates, and sex ratios}
 
-\item{outputDirectory}{String folder name to write output}
-
 \item{reproductionType}{String specifying type of reproduction model}
+
+\item{outputDirectory}{String folder name to write output, default is current directory}
 
 \item{verbose}{Boolean, be chatty? Default is FALSE}
 }

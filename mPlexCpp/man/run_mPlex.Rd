@@ -14,8 +14,8 @@ run_mPlex(
   migrationMale_,
   migrationFemale_,
   migrationBatch_,
-  outputDirectory_,
   reproductionType_,
+  outputDirectory_,
   verbose_
 )
 }
