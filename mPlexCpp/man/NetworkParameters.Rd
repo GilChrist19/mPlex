@@ -7,8 +7,6 @@
 NetworkParameters(
   nPatch,
   simTime,
-  alleloTypes,
-  parallel = FALSE,
   moveVar = 1000,
   tEgg = 1L,
   tLarva = 14L,
@@ -24,12 +22,6 @@ NetworkParameters(
 \item{nPatch}{number of \code{\link{Patch}}}
 
 \item{simTime}{maximum time to run simulation}
-
-\item{alleloTypes}{list of allele probabilities for each patch in the simulation
-\code{\link{CreateMosquitoes_Distribution_Genotype}}}
-
-\item{parallel}{append process id (see \code{link[base]{Sys.getpid}})
-to output files for running in parallel}
 
 \item{moveVar}{variance of stochastic movement (not used in diffusion model of migration).
 It affects the concentration of probability in the Dirchlet simplex, small
@@ -47,14 +39,14 @@ values lead to high variance and large values lead to low variance.}
 
 \item{dayGrowthRate}{daily population growth rate (used to calculate equilibrium)}
 
-\item{AdPopEQ}{vector of adult population size at equilibrium}
+\item{AdPopEQ}{a single number or vector of adult population size at equilibrium}
 
 \item{runID}{begin counting runs with this set of parameters from this value}
 }
 \value{
-List(nPatch=int, simTime=vec int, parallel=logical, moveVar=numeric,
+List(nPatch=int, simTime=vec int, moveVar=numeric,
 runID=int, stageTime=vec int, beta=int, dayGrowthRate=numeric, AdPopEq=int vec,
-alleloTypes=list, genTime=numeric, genGrowthRate=numeric, mu=vec numeric,
+genTime=numeric, genGrowthRate=numeric, mu=vec numeric,
 thetaAq=vec numeric, alpha=vec numeric, Leq=vec int)
 }
 \description{

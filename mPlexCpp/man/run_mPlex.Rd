@@ -10,6 +10,7 @@ run_mPlex(
   numThreads_,
   networkParameters_,
   reproductionReference_,
+  initAlleles_,
   patchReleases_,
   migrationMale_,
   migrationFemale_,

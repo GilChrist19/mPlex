@@ -91,6 +91,7 @@ Release_basicRepeatedReleases <- function(releaseStart, releaseEnd, releaseInter
   releaseList = vector(mode="list",length=length(releaseTimes))
   
   # Initialize genotypes and ages
+  if(length(genMos) != length(numMos)) stop("Please specify how many of each genotype of mosquitoes")
   genotypeVector = rep.int(x = genMos, times = numMos)
   ageVector <- sample(x = minAge:maxAge, size = sum(numMos), replace = TRUE, prob = ageDist)
   
@@ -218,8 +219,6 @@ basicBatchMigration <- function(batchProbs = 1e-5, sexProbs = c(0.01, 0.01),
 #'
 #' @param nPatch number of \code{\link{Patch}}
 #' @param simTime maximum time to run simulation
-#' @param alleloTypes list of allele probabilities for each patch in the simulation
-#' \code{\link{CreateMosquitoes_Distribution_Genotype}}
 #' @param moveVar variance of stochastic movement (not used in diffusion model of migration).
 #' It affects the concentration of probability in the Dirchlet simplex, small
 #' values lead to high variance and large values lead to low variance.
@@ -229,12 +228,12 @@ basicBatchMigration <- function(batchProbs = 1e-5, sexProbs = c(0.01, 0.01),
 #' @param beta female egg batch size of wild-type
 #' @param muAd wild-type daily adult mortality (1/muAd is average wild-type lifespan)
 #' @param dayGrowthRate daily population growth rate (used to calculate equilibrium)
-#' @param AdPopEQ vector of adult population size at equilibrium
+#' @param AdPopEQ a single number or vector of adult population size at equilibrium
 #' @param runID begin counting runs with this set of parameters from this value
 #'
 #' @return List(nPatch=int, simTime=vec int, moveVar=numeric,
 #' runID=int, stageTime=vec int, beta=int, dayGrowthRate=numeric, AdPopEq=int vec,
-#' alleloTypes=list, genTime=numeric, genGrowthRate=numeric, mu=vec numeric,
+#' genTime=numeric, genGrowthRate=numeric, mu=vec numeric,
 #' thetaAq=vec numeric, alpha=vec numeric, Leq=vec int)
 #'
 #' @examples
@@ -245,7 +244,6 @@ basicBatchMigration <- function(batchProbs = 1e-5, sexProbs = c(0.01, 0.01),
 NetworkParameters <- function(
   nPatch,
   simTime,
-  alleloTypes,
   moveVar = 1000,
   tEgg = 1L,
   tLarva = 14L,
@@ -257,6 +255,11 @@ NetworkParameters <- function(
   runID = 1L
 ){
 
+  # check required parameters
+  if(any(missing(nPatch),missing(simTime),missing(AdPopEQ))){
+    stop("nPatch, simTime, and AdPopEQ must be provided by the user.")
+  }
+  
   # make empty parameter list
   pars = list()
 
@@ -275,15 +278,13 @@ NetworkParameters <- function(
   # initial parameters
   pars$dayGrowthRate = dayGrowthRate
 
-  if(length(AdPopEQ)!=nPatch){
-    stop("length of AdPopEQ vector must equal nPatch (number of patches)")
+  if(length(AdPopEQ) == 1){
+    AdPopEQ = rep.int(x = AdPopEQ, times = nPatch)
+  } else if(length(AdPopEQ)!=nPatch){
+    stop("length of AdPopEQ vector must be 1 or nPatch (number of patches)")
   }
   pars$AdPopEQ = AdPopEQ
 
-  if(length(alleloTypes)!=nPatch){
-    stop("length of alleloTypes list must equal nPatch (number of patches)")
-  }
-  pars$alleloTypes = alleloTypes
 
   # derived parameters
   pars$genTime = calcAverageGenerationTime(pars$stageTime[c("E","L","P")],muAd)
@@ -296,18 +297,19 @@ NetworkParameters <- function(
                      nm = c("E", "L", "P", "A"))
 
   # Survival probability for each state. Holdover from MGDrivE, useful in the equations
-  pars$thetaAq = setNames(object = c(calcAquaticStageSurvivalProbability(muAq,tEgg),
-                                calcAquaticStageSurvivalProbability(muAq,tLarva),
-                                calcAquaticStageSurvivalProbability(muAq,tPupa)),
-                     nm = c("E","L","P"))
+  pars$thetaAq = c("E"=calcAquaticStageSurvivalProbability(muAq,tEgg),
+                   "L"=calcAquaticStageSurvivalProbability(muAq,tLarva),
+                   "P"=calcAquaticStageSurvivalProbability(muAq,tPupa))
 
   # patch-specific derived parameters
-  pars$alpha = numeric(length = nPatch)
-  pars$Leq = numeric(length = nPatch)
-  for(i in 1:nPatch){
-    pars$alpha[i] = calcDensityDependentDeathRate(beta,pars$thetaAq,pars$stageTime["L"],AdPopEQ[i],pars$genGrowthRate)
-    pars$Leq[i] = calcLarvalPopEquilibrium(pars$alpha[i],pars$genGrowthRate)
-  }
+  pars$alpha = calcDensityDependentDeathRate(beta, pars$thetaAq, pars$stageTime["L"],
+                                             AdPopEQ, pars$genGrowthRate)
+  pars$Leq = calcLarvalPopEquilibrium(pars$alpha,pars$genGrowthRate)
+  
+  
+  # check the list
+  invisible(Map(f = check, pars))
+
 
   return(pars)
 }
@@ -315,6 +317,15 @@ NetworkParameters <- function(
 ########################################################################
 # Equilibrium Parameters
 ########################################################################
+
+# check for positive parameter values
+check <- function(x){
+  if(is.numeric(x)||is.integer(x)){
+    if(any(x < 0)){
+      stop("only nonnegative parameter values allowed")
+    }
+  }
+}
 
 #' Calculate Average Generation Time
 #'
@@ -375,7 +386,7 @@ calcAquaticStageSurvivalProbability <- function(mortalityRate, stageDuration){
 #'
 #' @param fertility number of eggs per oviposition for wild-type females, \eqn{\beta_{k}}
 #' @param thetaAq vector of density-independent survival probabilities of aquatic stages, \eqn{\theta_{e}, \theta_{l}}
-#' @param timeAq vector of lengths of aquatic stages, \eqn{T_{e}, T_{l}, T_{p}}
+#' @param timeAq Just the larval stage time, \eqn{T_l}
 #' @param adultPopSizeEquilibrium adult population size at equilbrium, \eqn{Ad_{eq}}
 #' @param populationGrowthRate population growth in absence of density-dependent mortality \eqn{R_{m}}
 #'

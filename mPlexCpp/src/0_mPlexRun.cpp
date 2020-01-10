@@ -52,6 +52,7 @@ void run_mPlex(const uint_least32_t& seed_,
                const uint_least32_t& numThreads_,
                const Rcpp::List& networkParameters_,
                const Rcpp::List& reproductionReference_,
+               const Rcpp::ListOf<Rcpp::List>& initAlleles_, 
                const Rcpp::List& patchReleases_,
                const Rcpp::NumericMatrix& migrationMale_,
                const Rcpp::NumericMatrix& migrationFemale_,
@@ -101,7 +102,7 @@ void run_mPlex(const uint_least32_t& seed_,
   
   if(reproductionType_ != "Family"){
     // set allele types for initialization etc
-    reference::instance().set_alleleTypes(Rcpp::as<Rcpp::ListOf<Rcpp::List> >(networkParameters_["alleloTypes"]));
+    reference::instance().set_alleleTypes(initAlleles_);
     
     // set mendelian allele reference
     reference::instance().set_mendelian(Rcpp::as<Rcpp::List> (reproductionReference_["mendelian"]),

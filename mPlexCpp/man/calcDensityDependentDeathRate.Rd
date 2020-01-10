@@ -17,7 +17,7 @@ calcDensityDependentDeathRate(
 
 \item{thetaAq}{vector of density-independent survival probabilities of aquatic stages, \eqn{\theta_{e}, \theta_{l}}}
 
-\item{timeAq}{vector of lengths of aquatic stages, \eqn{T_{e}, T_{l}, T_{p}}}
+\item{timeAq}{Just the larval stage time, \eqn{T_l}}
 
 \item{adultPopSizeEquilibrium}{adult population size at equilbrium, \eqn{Ad_{eq}}}
 

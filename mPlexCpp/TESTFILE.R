@@ -56,16 +56,17 @@ alleloTypes[[1]]$probs <- c(1L)
 AllAlleles <- replicate(n = numPatch, expr = alleloTypes, simplify = FALSE)
 
 
-alleloTypes <- vector(mode = "list", length = 1L) #3 loci
+
+
+alleloTypes <- vector(mode = "list", length = 2L) #3 loci
 alleloTypes[[1]]$alleles <- c("W","R")
 alleloTypes[[1]]$probs <- c(1,2)
-# alleloTypes[[2]]$alleles <- c("W","H")
-# alleloTypes[[2]]$probs <- c(0,1)
+alleloTypes[[2]]$alleles <- c("W","R")
+alleloTypes[[2]]$probs <- c(0,1)
 # alleloTypes[[3]]$alleles <- c("W","H")
 # alleloTypes[[3]]$probs <- c(1,0)
 
 AllAlleles <- replicate(n = numPatch, expr = alleloTypes, simplify = FALSE)
-
 
 
 
@@ -84,8 +85,7 @@ AllAlleles <- replicate(n = numPatch, expr = alleloTypes, simplify = FALSE)
 reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.97),
                                                        R = c(0.03),
                                                        S = c(0),
-                                                       d = c(0.00))
-
+                                                       d = c(0))
 
 ###############################################################################
 # Release Setup
@@ -98,11 +98,10 @@ patchReleases = replicate(n = numPatch,
                                       eggReleases = NULL),
                           simplify = FALSE)
 
-
 # Create release object to pass to patches
 holdRel <- Release_basicRepeatedReleases(releaseStart = 100L,
                                          releaseEnd = 110L,
-                                         releaseInterval = 1,
+                                         releaseInterval = 5,
                                          genMos = c("HH"),
                                          numMos = c(25L),
                                          minAge = 16L,
@@ -122,14 +121,12 @@ holdRel2 <- Release_basicRepeatedReleases(releaseStart = 600L,
 
 patchReleases[[1]]$maleReleases <- c(holdRel, holdRel2)
 
-
 ###############################################################################
 # Calculate parameters and initialize network
 ###############################################################################
 simTime <- 1000
 netPar = NetworkParameters(nPatch = numPatch,
                            simTime = simTime,
-                           alleloTypes = AllAlleles,
                            AdPopEQ = patchPops,
                            runID = 1L,
                            dayGrowthRate = 1.1,
@@ -142,6 +139,7 @@ runMPlex(seed = 10,
          numThreads = 2,
          networkParameters = netPar,
          reproductionReference = reproductionReference,
+         initAlleles = AllAlleles,
          patchReleases = patchReleases,
          migrationMale = migration,
          migrationFemale = migration,
@@ -151,6 +149,17 @@ runMPlex(seed = 10,
          verbose = TRUE)
 difftime(time1 = Sys.time(), time2 = startTime)
 
+# FAMILY
+Time difference of 1.676341 mins
+Time difference of 1.09469 mins
+Time difference of 55.25016 secs
+Time difference of 55.38779 secs
+
+#MLOCI
+Time difference of 1.145804 mins
+Time difference of 39.40608 secs
+Time difference of 31.47467 secs
+Time difference of 27.35768 secs
 
 # setup aggregation key
 #  this example sets all genotypes as different

@@ -7,6 +7,7 @@
 basicBatchMigration(
   batchProbs = 1e-05,
   sexProbs = c(0.01, 0.01),
+  moveProbs,
   numPatches = 1
 )
 }
@@ -14,6 +15,8 @@ basicBatchMigration(
 \item{batchProbs}{Probability of a batch migration, either 1 number or vector of length equal to the number of patches}
 
 \item{sexProbs}{Population fraction of males and females that migration. Either vector c(M,F) or matrix of 2 columns}
+
+\item{moveProbs}{Movement matrix. There must be 0 probability of moving to your own patch. Default is equal movement to all other patches.}
 
 \item{numPatches}{Number of patches in the simulation}
 }

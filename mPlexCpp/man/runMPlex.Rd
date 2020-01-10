@@ -10,6 +10,7 @@ runMPlex(
   numThreads = 1,
   networkParameters,
   reproductionReference,
+  initAlleles = NULL,
   patchReleases,
   migrationMale,
   migrationFemale,
@@ -29,6 +30,8 @@ runMPlex(
 \item{networkParameters}{A list of simulation parameters}
 
 \item{reproductionReference}{A list of reproduction and genotype specific parameters}
+
+\item{initAlleles}{A list of length 1 or numPatches specifying the initial genotype distributions}
 
 \item{patchReleases}{A list of releases}
 

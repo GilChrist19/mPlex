@@ -69,9 +69,9 @@ MakeReference_DaisyDrive <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/
     return(cat("All inputs must be the same length!\n",
                "i.e. length(H) == length(R) == length(S) == length(d)"))
   }
-  if(any(H[-length(H)]>1, R>1, S>1, d>1)){
+  if(any(H[-length(H)]>1, R>1, S>1, d>1) || any(H[-length(H)]<0, R<0, S<0, d<0)){
     #last H doesn't matter because it may/may not exist and isnt' used
-    return(cat("All rates must be less than or equal to 1\n"))
+    return(cat("All rates must satisfy 0 <= rate <= 1\n"))
   }
   if(any((d+c(0, H[-length(H)])) > 1)){
     #need the driving piece's haming rate plus the background mutation rate
@@ -86,22 +86,22 @@ MakeReference_DaisyDrive <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/
   
 
   if(!is.null(eta) && any(eta<0)){
-    return(cat("All elements of eta must be greater than 0"))
+    return(cat("All elements of eta must be >= 0"))
   }
   if(!is.null(phi) && any(phi<0)){
-    return(cat("All elements of phi must be greater than 0"))
+    return(cat("All elements of phi must be >= 0"))
   }
   if(!is.null(omega) && any(omega<0)){
-    return(cat("All elements of omega must be greater than 0"))
+    return(cat("All elements of omega must be >= 0"))
   }
   if(!is.null(xiF) && any(xiF<0)){
-    return(cat("All elements of xiF must be greater than 0"))
+    return(cat("All elements of xiF must be >= 0"))
   }
   if(!is.null(xiM) && any(xiM<0)){
-    return(cat("All elements of xiM must be greater than 0"))
+    return(cat("All elements of xiM must be >= 0"))
   }
   if(!is.null(s) && any(s<0)){
-    return(cat("All elements of s must be greater than 0"))
+    return(cat("All elements of s must be >= 0"))
   }
   
 
@@ -267,8 +267,8 @@ MakeReference_Multiplex_mLoci <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0),
     return(cat("All inputs must be the same length!\n",
                "i.e. length(H) == length(R) == length(S) == length(d)"))
   }
-  if(any(H>1, R>1, S>1, d>1)){
-    return(cat("All rates must be less than or equal to 1\n"))
+  if(any(H>1, R>1, S>1, d>1) || any(H<0, R<0, S<0, d<0)){
+    return(cat("All rates must satisfy 0 <= rate <= 1\n"))
   }
   if(any((d+H) > 1)){
     return(cat("Homing rates plus background mutation rates must be <= 1\n",
@@ -281,25 +281,23 @@ MakeReference_Multiplex_mLoci <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0),
   
   
   if(!is.null(eta) && any(eta<0)){
-    return(cat("All elements of eta must be greater than 0"))
+    return(cat("All elements of eta must be >= 0"))
   }
   if(!is.null(phi) && any(phi<0)){
-    return(cat("All elements of phi must be greater than 0"))
+    return(cat("All elements of phi must be >= 0"))
   }
   if(!is.null(omega) && any(omega<0)){
-    return(cat("All elements of omega must be greater than 0"))
+    return(cat("All elements of omega must be >= 0"))
   }
   if(!is.null(xiF) && any(xiF<0)){
-    return(cat("All elements of xiF must be greater than 0"))
+    return(cat("All elements of xiF must be >= 0"))
   }
   if(!is.null(xiM) && any(xiM<0)){
-    return(cat("All elements of xiM must be greater than 0"))
+    return(cat("All elements of xiM must be >= 0"))
   }
   if(!is.null(s) && any(s<0)){
-    return(cat("All elements of s must be greater than 0"))
+    return(cat("All elements of s must be >= 0"))
   }
-  
-  
   
   
   #setup allele letters
@@ -442,8 +440,8 @@ MakeReference_Multiplex_oLocus <- function(H=c(0.9),R=c(0.0), S=R/3, d=c(0.0001)
     return(cat("All inputs must be the same length!\n",
                "i.e. length(H) == length(R) == length(S) == length(d)"))
   }
-  if(any(H>1, R>1, S>1, d>1)){
-    return(cat("All rates must be less than or equal to 1\n"))
+  if(any(H>1, R>1, S>1, d>1) || any(H<0, R<0, S<0, d<0)){
+    return(cat("All rates must satisfy 0 <= rate <= 1\n"))
   }
   if(any((d+H) > 1)){
     return(cat("Homing rates plus background mutation rates must be <= 1\n",
@@ -456,22 +454,22 @@ MakeReference_Multiplex_oLocus <- function(H=c(0.9),R=c(0.0), S=R/3, d=c(0.0001)
   
   
   if(!is.null(eta) && any(eta<0)){
-    return(cat("All elements of eta must be greater than 0"))
+    return(cat("All elements of eta must be >= 0"))
   }
   if(!is.null(phi) && any(phi<0)){
-    return(cat("All elements of phi must be greater than 0"))
+    return(cat("All elements of phi must be >= 0"))
   }
   if(!is.null(omega) && any(omega<0)){
-    return(cat("All elements of omega must be greater than 0"))
+    return(cat("All elements of omega must be >= 0"))
   }
   if(!is.null(xiF) && any(xiF<0)){
-    return(cat("All elements of xiF must be greater than 0"))
+    return(cat("All elements of xiF must be >= 0"))
   }
   if(!is.null(xiM) && any(xiM<0)){
-    return(cat("All elements of xiM must be greater than 0"))
+    return(cat("All elements of xiM must be >= 0"))
   }
   if(!is.null(s) && any(s<0)){
-    return(cat("All elements of s must be greater than 0"))
+    return(cat("All elements of s must be >= 0"))
   }
   
   
