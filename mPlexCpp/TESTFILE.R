@@ -138,6 +138,7 @@ migrationBatch <- basicBatchMigration(numPatches = numPatch)
 startTime <- Sys.time()
 runMPlex(seed = 10,
          numThreads = 2,
+         numReps = 2, 
          networkParameters = netPar,
          reproductionReference = reproductionReference,
          initAlleles = AllAlleles,
@@ -168,11 +169,11 @@ genOI_mLoci_Daisy(outputFile = file.path(aggDir, "0_AggKey.csv"), genotypes = li
 
 
 # aggregate experiment by aggregation key
-SimAggregation(readDirectory = simDir, writeDirectory = aggDir, simTime = netPar$simTime, sampTime = netPar$sampTime)
+simAggregation(readDirectory = simDir, writeDirectory = aggDir, simTime = netPar$simTime, sampTime = netPar$sampTime)
 
 
 # plot for example
-Plot_mPlex(directory = aggDir, whichPatches = NULL, totalPop = TRUE)
+plotmPlexSingle(directory = aggDir, whichPatches = NULL, totalPop = TRUE)
 
 
 # see profiling if done

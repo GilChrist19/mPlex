@@ -40,6 +40,8 @@ eraseDirectory <- function(directory){
 #' @param outputFile Name of file to output. Must end in .csv
 #' @param genotypes A list of each locus containing the genotypes of interest at that locus. Default is all genotypes
 #' @param collapse A vector of each locus containing TRUE/FALSE. If TRUE, the genotypes of interest at that locus are collapsed and the output is the sum of all of them.
+#' 
+#' @importFrom utils write.table
 #'
 #' @export
 genOI_mLoci_Daisy <- function(outputFile, genotypes, collapse){
@@ -86,8 +88,8 @@ genOI_mLoci_Daisy <- function(outputFile, genotypes, collapse){
   }
   
   # write output
-  write.csv(x = outDF, file = outputFile, row.names = FALSE)
-  
+  write.table(x = outDF, file = outputFile, sep = ",", row.names = FALSE)
+
 }
 
 #' Generate genotypes of interest for mPlex-oLocus
@@ -174,7 +176,7 @@ genOI_oLocus <- function(outputFile, alleles, collapse){
   
   
   # write output
-  write.csv(x = outDF, file = outputFile, row.names = FALSE)
+  write.table(x = outDF, file = outputFile, sep = ",", row.names = FALSE)
   
 }
 
@@ -205,9 +207,11 @@ genOI_oLocus <- function(outputFile, alleles, collapse){
 #' @param writeDirectory Directory to save analyzed data. Must have aggregation key in it!
 #' @param simTime Simulation time
 #' @param sampTime How often output was written
+#' 
+#' @importFrom utils read.csv
 #'
 #' @export
-SimAggregation <- function(readDirectory, writeDirectory, simTime, sampTime){
+simAggregation <- function(readDirectory, writeDirectory, simTime, sampTime){
   
   # list all files
   readFiles <- list(list.files(path = readDirectory, pattern = 'M_', full.names = TRUE),
@@ -257,9 +261,10 @@ SimAggregation <- function(readDirectory, writeDirectory, simTime, sampTime){
 #'
 #' @param n number of colors
 #' @param alpha transparency
+#' 
+#' @importFrom grDevices hcl
 #'
-#' @export
-ggCol_utility <- function(n, alpha = 1) {
+ggColUtility <- function(n, alpha = 1) {
   hues = seq(15, 375, length = n + 1)
   hcl(h = hues, l = 65, c = 100, alpha = alpha)[1:n]
 }
@@ -268,35 +273,61 @@ ggCol_utility <- function(n, alpha = 1) {
 #'
 #' Plots the analyzed output of mPlex.
 #'
-#' @usage Plot_mPlex(directory, whichPatches=NULL,totalPop=TRUE)
+#' @usage plotmPlexSingle(directory, whichPatches=NULL,totalPop=TRUE)
 #'
 #' @param directory Path to directory of analyzed output files
 #' @param whichPatches Vector of patches to plot, must be less than 15
 #' @param totalPop Boolean, to plot the total population or not.
+#' @param nonZeroGen Boolean, to plot genotypes that are always zero in simulation
+#' @param lwd Double, specify the line width for plotting
+#' @param alpha Double, specify the opacity for plotting
+#' 
+#' @importFrom graphics box grid layout legend matplot mtext par plot.new title
+#' @importFrom utils tail
 #'
 #' @details This function plots output from the analyze function. totPop is not currently 
 #' used. If there are several repetitions available, it only plots the first one.
 #'
 #' @export
-Plot_mPlex <- function(directory, whichPatches = NULL, totalPop = TRUE){
+plotmPlexSingle <- function(directory, whichPatches = NULL, totalPop = TRUE,
+                            nonZeroGen = FALSE, lwd = 2, alpha = 1){
   
   #keep old plot parameters to resetB later
   oldPar <- par(no.readonly = TRUE)
+  on.exit(expr = par(oldPar)) #reset par()
   
-  #Get the data to plot, remove aggKey
-  dirFiles <- list.files(path = directory, pattern = ".*\\.csv$")
-  dirFiles <- dirFiles[-grep(pattern = "AggKey", x = dirFiles, fixed = TRUE, useBytes = TRUE)]
+  #Get the data to plot, remove aggKey, get lowest rep if there are multiple
+  dirFiles <- list.files(path = directory, pattern = ".*\\.csv$", full.names = TRUE)
+  dirFiles <- grep(pattern = "AggKey", x = dirFiles, fixed = TRUE,
+                   useBytes = TRUE, invert = TRUE, value = TRUE)
+  
+  # 1 - remove path, just in case someone gives folder names with underscores
+  # 2 - split on underscore
+  # 3 - pull out 3rd element, that's the run id
+  # 4 - unlist it into a character vector
+  # 5 - get minimum number. Not exactly sure how this works here
+  minRun <- min(unlist(x = lapply(X = strsplit(x = basename(path = dirFiles),
+                                               split = "_", fixed = TRUE),
+                                  FUN = '[[', 3)))
+  dirFiles <- grep(pattern = paste0("Run_", minRun), x = dirFiles,
+                   fixed = TRUE, useBytes = TRUE, value = TRUE)
+  mFiles <- grep(pattern = "M_", x = dirFiles, value = TRUE, fixed = TRUE, useBytes = TRUE)
+  fFiles <- grep(pattern = "F_", x = dirFiles, value = TRUE, fixed = TRUE, useBytes = TRUE)
+  
   
   #test file to get sizes
-  columnNames <- scan(file = file.path(directory, dirFiles[1]),
+  columnNames <- scan(file = dirFiles[1],
                       what = character(), sep = ",", quiet = TRUE, nlines = 1)
-  testFile <- matrix(data = scan(file = file.path(directory, dirFiles[1]), what = integer(),
+  testFile <- matrix(data = scan(file = dirFiles[1], what = integer(),
                                             sep = ",", skip = 1, quiet = TRUE),
                                 ncol = length(columnNames), byrow = TRUE)
   
   # get genotypes, num patches, etc
+  #  replace 
   patches = unique(x = regmatches(x = dirFiles, m = regexpr(pattern = "Patch_[0-9]+", text = dirFiles)))
-
+  substring(text = patches, first = 6, last = 6) <- " "
+  
+  
   # check if user chose specific patches
   if(length(patches)>15 && is.null(whichPatches)){
     stop("There are more than 15 patches in the simulation.
@@ -321,23 +352,28 @@ Plot_mPlex <- function(directory, whichPatches = NULL, totalPop = TRUE){
   
   # create data list holder, and then fill it
   maleData=femaleData=array(data = 0L, dim = c(nrow(testFile),numGen+1,numPatches),
-                            dimnames = list(NULL, columnNames, patches))
+                            dimnames = list(NULL, columnNames, NULL))
                    
-  for(patch in patches){
-    names = grep(pattern = patch, x = dirFiles, fixed = TRUE, value = TRUE)
-    femaleData[,,patch] = matrix(data = scan(file = file.path(directory, dirFiles[1]), what = integer(),
+  for(patch in 1:length(patches)){
+    femaleData[,,patch] = matrix(data = scan(file = fFiles[patch], what = integer(),
                                             n = numRead, sep = ",", skip = 1, quiet = TRUE),
                                 ncol = numGen+1, byrow = TRUE)
-    maleData[,,patch] = matrix(data = scan(file = file.path(directory, dirFiles[2]), what = integer(),
+    maleData[,,patch] = matrix(data = scan(file = mFiles[patch], what = integer(),
                                            n = numRead, sep = ",", skip = 1, quiet = TRUE),
                                 ncol = numGen+1, byrow = TRUE)
   }
   
+  # if non-zero gens only
+  #   test male and female files, in case of sex-specific drive
+  #   Does only test first patch, which if releases aren't done there, could be wrong.
+  # reset numGen
+  if(!nonZeroGen){genotypes <- genotypes[colSums(maleData[ ,genotypes,1])!=0 | colSums(femaleData[ ,genotypes,1])!=0]}
+  numGen <- length(genotypes)
   
   # not sure how to implement this now, so just not using it :-)
   #if(!totalPop){numGen <- numGen-1}
   
-  col <- ggCol_utility(n = numGen)
+  col <- ggColUtility(n = numGen, alpha = alpha)
   
   #setup plot layout
   lmatrix <- matrix(data = 1:(numPatches*3), nrow = numPatches, ncol = 3, byrow = TRUE)
@@ -356,9 +392,9 @@ Plot_mPlex <- function(directory, whichPatches = NULL, totalPop = TRUE){
   #plot first patch and the legend
   #female
   par(mar = c(2,3,3,1), las = 1, font.lab = 2, font.axis = 2, font.main = 2, cex.main = 1.75)
-  matplot(x = xPlace, y = femaleData[,1+(1:numGen), patches[1]], type = "l", lty = 1,
-          main = "Female Mosquitoes", ylab = "", lwd=2,
-          ylim = c(0, max(femaleData[,1+(1:numGen), patches[1]])),
+  matplot(x = xPlace, y = femaleData[,genotypes, 1], type = "l", lty = 1,
+          main = "Female Mosquitoes", ylab = "", lwd=lwd,
+          ylim = c(0, max(femaleData[,genotypes, 1])),
           xlim = c(0, xLim), yaxs = "i", xaxs = "i",
           col = col, panel.first=grid())
   title(ylab = "Population", line = 2)
@@ -366,46 +402,63 @@ Plot_mPlex <- function(directory, whichPatches = NULL, totalPop = TRUE){
 
   #male
   par(mar = c(2,2,3,1), las = 1)
-  matplot(x = xPlace, y = maleData[,1+(1:numGen),patches[1]], type = "l", lty = 1,
-          main = "Male Mosquitoes", ylab = "", lwd=2,
-          ylim = c(0, max(maleData[,1+(1:numGen), patches[1]])),
+  matplot(x = xPlace, y = maleData[,genotypes,1], type = "l", lty = 1,
+          main = "Male Mosquitoes", ylab = "", lwd=lwd,
+          ylim = c(0, max(maleData[,genotypes, 1])),
           xlim = c(0, xLim), yaxs = "i", xaxs = "i",
           col = col, panel.first=grid())
   mtext(patches[1], side = 4, line = 0.5, las = 0, cex = 0.9, font = 2)
   box(lwd = 2)
   
   #legend
-  par(mar = c(0,0,0,0), font=2)
+  # par(mar = c(0,0,0,0), font=2)
+  # plot.new()
+  # legend(x = "left", legend = genotypes, col = col,
+  #        bty = "n", bg = "transparent",lty = 1, lwd=3,cex = 1)
+  
   plot.new()
-  legend(x = "left", legend = genotypes[1:numGen] , col = col,
-         bty = "n", bg = "transparent",lty = 1, lwd=3,cex = 1)
+  par(font = 2)
+  legend(x = 'left',
+         inset = -0.5, # will have to play with this as widths change
+         seg.len = 0, # length of line denoting the colors
+         x.intersp = 0.6,
+         y.intersp = 0.9, # vertical space between lines
+         #title = 'Genotypes',
+         legend = genotypes,
+         col = col,
+         bty = "n",
+         #bg = "lightblue",
+         xpd = TRUE,
+         pch = 15,
+         pt.cex = 2,
+         # lty = c(1,1,1,1),
+         # lwd=16,
+         cex = 1)
   
   
   ##rest of the patches
   if(numPatches>1){
-    for(patch in patches[-1]){
+    for(patch in 2:numPatches){
       par(mar = c(2,3,1,1), las = 1)
-      matplot(x = xPlace, y = femaleData[,1+(1:numGen), patch], type = "l", lty = 1,
-              ylab = "", lwd=2,
-              ylim = c(0, max(femaleData[,1+(1:numGen), patch])),
+      matplot(x = xPlace, y = femaleData[,genotypes, patch], type = "l", lty = 1,
+              ylab = "", lwd=lwd,
+              ylim = c(0, max(femaleData[,genotypes, patch])),
               xlim = c(0, xLim), yaxs = "i", xaxs = "i",
               col = col, panel.first=grid())
       title(ylab = "Population", line = 2)
       box(lwd = 2)
       
       par(mar = c(2,2,1,1))
-      matplot(x = xPlace, y = maleData[,1+(1:numGen),patch], type = "l", lty = 1,
-              ylab = "", lwd=2,
-              ylim = c(0, max(maleData[,1+(1:numGen), patch])),
+      matplot(x = xPlace, y = maleData[,genotypes,patch], type = "l", lty = 1,
+              ylab = "", lwd=lwd,
+              ylim = c(0, max(maleData[,genotypes, patch])),
               xlim = c(0, xLim), yaxs = "i", xaxs = "i",
               col = col, panel.first=grid())
-      mtext(patch, side = 4, line = 0.5, las = 0, cex = 0.9, font = 2)
+      mtext(patches[patch], side = 4, line = 0.5, las = 0, cex = 0.9, font = 2)
       box(lwd = 2)
     }#end patch loop
   }#end if
   
-  #reset par()
-  par(oldPar)
 }
 
 
