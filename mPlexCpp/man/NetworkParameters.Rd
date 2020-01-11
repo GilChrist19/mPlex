@@ -7,6 +7,7 @@
 NetworkParameters(
   nPatch,
   simTime,
+  sampTime = 1,
   moveVar = 1000,
   tEgg = 1L,
   tLarva = 14L,
@@ -22,6 +23,8 @@ NetworkParameters(
 \item{nPatch}{number of \code{\link{Patch}}}
 
 \item{simTime}{maximum time to run simulation}
+
+\item{sampTime}{how often output is written. Default is 1 (i.e. every day)}
 
 \item{moveVar}{variance of stochastic movement (not used in diffusion model of migration).
 It affects the concentration of probability in the Dirchlet simplex, small
@@ -44,7 +47,7 @@ values lead to high variance and large values lead to low variance.}
 \item{runID}{begin counting runs with this set of parameters from this value}
 }
 \value{
-List(nPatch=int, simTime=vec int, moveVar=numeric,
+List(nPatch=int, simTime=int, sampTime=int, moveVar=numeric,
 runID=int, stageTime=vec int, beta=int, dayGrowthRate=numeric, AdPopEq=int vec,
 genTime=numeric, genGrowthRate=numeric, mu=vec numeric,
 thetaAq=vec numeric, alpha=vec numeric, Leq=vec int)

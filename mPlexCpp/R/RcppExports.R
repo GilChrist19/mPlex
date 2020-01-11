@@ -253,7 +253,7 @@ calcHurdleExpKernel <- function(distMat, rate, p0) {
     .Call('_mPlexCpp_calcHurdleExpKernel', PACKAGE = 'mPlexCpp', distMat, rate, p0)
 }
 
-simAgg <- function(readFiles_, writeFiles_, largeFile_, simTime_, genKey_) {
-    invisible(.Call('_mPlexCpp_simAgg', PACKAGE = 'mPlexCpp', readFiles_, writeFiles_, largeFile_, simTime_, genKey_))
+simAgg <- function(readFiles_, writeFiles_, largeFile_, simTime_, sampTime_, maxRows_, genKey_) {
+    invisible(.Call('_mPlexCpp_simAgg', PACKAGE = 'mPlexCpp', readFiles_, writeFiles_, largeFile_, simTime_, sampTime_, maxRows_, genKey_))
 }
 

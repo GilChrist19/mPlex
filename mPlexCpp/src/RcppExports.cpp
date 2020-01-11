@@ -132,16 +132,18 @@ BEGIN_RCPP
 END_RCPP
 }
 // simAgg
-void simAgg(const std::vector<std::vector<std::string> >& readFiles_, const std::vector<std::vector<std::string> >& writeFiles_, const std::string& largeFile_, const int& simTime_, const Rcpp::List& genKey_);
-RcppExport SEXP _mPlexCpp_simAgg(SEXP readFiles_SEXP, SEXP writeFiles_SEXP, SEXP largeFile_SEXP, SEXP simTime_SEXP, SEXP genKey_SEXP) {
+void simAgg(const std::vector<std::vector<std::string> >& readFiles_, const std::vector<std::vector<std::string> >& writeFiles_, const std::string& largeFile_, const int& simTime_, const int& sampTime_, const int& maxRows_, const Rcpp::List& genKey_);
+RcppExport SEXP _mPlexCpp_simAgg(SEXP readFiles_SEXP, SEXP writeFiles_SEXP, SEXP largeFile_SEXP, SEXP simTime_SEXP, SEXP sampTime_SEXP, SEXP maxRows_SEXP, SEXP genKey_SEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const std::vector<std::vector<std::string> >& >::type readFiles_(readFiles_SEXP);
     Rcpp::traits::input_parameter< const std::vector<std::vector<std::string> >& >::type writeFiles_(writeFiles_SEXP);
     Rcpp::traits::input_parameter< const std::string& >::type largeFile_(largeFile_SEXP);
     Rcpp::traits::input_parameter< const int& >::type simTime_(simTime_SEXP);
+    Rcpp::traits::input_parameter< const int& >::type sampTime_(sampTime_SEXP);
+    Rcpp::traits::input_parameter< const int& >::type maxRows_(maxRows_SEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type genKey_(genKey_SEXP);
-    simAgg(readFiles_, writeFiles_, largeFile_, simTime_, genKey_);
+    simAgg(readFiles_, writeFiles_, largeFile_, simTime_, sampTime_, maxRows_, genKey_);
     return R_NilValue;
 END_RCPP
 }
@@ -156,7 +158,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_mPlexCpp_calcGammaKernel", (DL_FUNC) &_mPlexCpp_calcGammaKernel, 3},
     {"_mPlexCpp_calcExpKernel", (DL_FUNC) &_mPlexCpp_calcExpKernel, 2},
     {"_mPlexCpp_calcHurdleExpKernel", (DL_FUNC) &_mPlexCpp_calcHurdleExpKernel, 3},
-    {"_mPlexCpp_simAgg", (DL_FUNC) &_mPlexCpp_simAgg, 5},
+    {"_mPlexCpp_simAgg", (DL_FUNC) &_mPlexCpp_simAgg, 7},
     {NULL, NULL, 0}
 };
 

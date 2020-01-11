@@ -41,7 +41,7 @@ for(i in c(simDir, aggDir)){dir.create(path = i)}
 # Setup Parameters for Network
 ###############################################################################
 
-numPatch <- 16
+numPatch <- 4
 set.seed(10)
 migration <- matrix(data = runif(numPatch*numPatch), nrow = numPatch, ncol = numPatch)
 migration <- migration/rowSums(migration)
@@ -127,6 +127,7 @@ patchReleases[[1]]$maleReleases <- c(holdRel, holdRel2)
 simTime <- 1000
 netPar = NetworkParameters(nPatch = numPatch,
                            simTime = simTime,
+                           sampTime = 2,
                            AdPopEQ = patchPops,
                            runID = 1L,
                            dayGrowthRate = 1.1,
@@ -167,7 +168,7 @@ genOI_mLoci_Daisy(outputFile = file.path(aggDir, "0_AggKey.csv"), genotypes = li
 
 
 # aggregate experiment by aggregation key
-SimAggregation(readDirectory = simDir, writeDirectory = aggDir, simTime = simTime)
+SimAggregation(readDirectory = simDir, writeDirectory = aggDir, simTime = netPar$simTime, sampTime = netPar$sampTime)
 
 
 # plot for example

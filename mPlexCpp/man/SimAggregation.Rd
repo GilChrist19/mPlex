@@ -4,7 +4,7 @@
 \alias{SimAggregation}
 \title{Aggregate mPlex output}
 \usage{
-SimAggregation(readDirectory, writeDirectory, simTime)
+SimAggregation(readDirectory, writeDirectory, simTime, sampTime)
 }
 \arguments{
 \item{readDirectory}{Directory with simulation output, all male/female/patch/experiment number files.}
@@ -12,6 +12,8 @@ SimAggregation(readDirectory, writeDirectory, simTime)
 \item{writeDirectory}{Directory to save analyzed data. Must have aggregation key in it!}
 
 \item{simTime}{Simulation time}
+
+\item{sampTime}{How often output was written}
 }
 \description{
 This function takes all the files in a directory and aggregates them based on

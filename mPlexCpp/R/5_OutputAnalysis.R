@@ -204,9 +204,10 @@ genOI_oLocus <- function(outputFile, alleles, collapse){
 #' @param readDirectory Directory with simulation output, all male/female/patch/experiment number files.
 #' @param writeDirectory Directory to save analyzed data. Must have aggregation key in it!
 #' @param simTime Simulation time
+#' @param sampTime How often output was written
 #'
 #' @export
-SimAggregation <- function(readDirectory, writeDirectory, simTime){
+SimAggregation <- function(readDirectory, writeDirectory, simTime, sampTime){
   
   # list all files
   readFiles <- list(list.files(path = readDirectory, pattern = 'M_', full.names = TRUE),
@@ -215,6 +216,15 @@ SimAggregation <- function(readDirectory, writeDirectory, simTime){
   # get file with largest size for buffer
   #  Definitely female, so only check them.
   largeFile <- readFiles[[2]][which.max(x = file.size(readFiles[[2]]))]
+  
+  # get number of lines in a file
+  #  this gets used internally to set the buffer size.
+  # maybe break in windows? maybe fine, who knows.
+  # mac prints weird empty characters at beginning. Break into two and subset again.
+  # subtract 1 because of header
+  maxRows <- strsplit(x = system2(command = "wc", args = c("-l", largeFile), stdout = TRUE),
+                      split = " ", fixed = TRUE)[[1]]
+  maxRows <- as.integer(maxRows[maxRows != ""][1])-1
   
   # generate write file names
   writeFiles <- vector(mode = "list", length = 2)
@@ -232,7 +242,8 @@ SimAggregation <- function(readDirectory, writeDirectory, simTime){
   
   # c++ for analysis
   mPlexCpp:::simAgg(readFiles_ = readFiles, writeFiles_ = writeFiles,
-                    largeFile_ = largeFile, simTime_ = simTime, genKey_ = genKey)
+                    largeFile_ = largeFile, simTime_ = simTime, sampTime_ = sampTime,
+                    maxRows_ = maxRows, genKey_ = genKey)
   
 } # end function
 
@@ -306,19 +317,19 @@ Plot_mPlex <- function(directory, whichPatches = NULL, totalPop = TRUE){
   genotypes <- columnNames[-1]
   numPatches <- length(patches)
   numGen <- length(genotypes)
+  numRead <- length(testFile)
   
   # create data list holder, and then fill it
   maleData=femaleData=array(data = 0L, dim = c(nrow(testFile),numGen+1,numPatches),
                             dimnames = list(NULL, columnNames, patches))
                    
-                   
   for(patch in patches){
     names = grep(pattern = patch, x = dirFiles, fixed = TRUE, value = TRUE)
     femaleData[,,patch] = matrix(data = scan(file = file.path(directory, dirFiles[1]), what = integer(),
-                                            sep = ",", skip = 1, quiet = TRUE),
+                                            n = numRead, sep = ",", skip = 1, quiet = TRUE),
                                 ncol = numGen+1, byrow = TRUE)
     maleData[,,patch] = matrix(data = scan(file = file.path(directory, dirFiles[2]), what = integer(),
-                                            sep = ",", skip = 1, quiet = TRUE),
+                                           n = numRead, sep = ",", skip = 1, quiet = TRUE),
                                 ncol = numGen+1, byrow = TRUE)
   }
   
@@ -340,23 +351,25 @@ Plot_mPlex <- function(directory, whichPatches = NULL, totalPop = TRUE){
   
   layout(lmatrix, widths = c(3,3,1))
   
+  xLim <- tail(x = femaleData[ ,1,1], n = 1)
+  xPlace <- femaleData[ ,1,1,drop = FALSE]
   #plot first patch and the legend
-  #male
+  #female
   par(mar = c(2,3,3,1), las = 1, font.lab = 2, font.axis = 2, font.main = 2, cex.main = 1.75)
-  matplot(femaleData[,1+(1:numGen), patches[1]], type = "l", lty = 1,
+  matplot(x = xPlace, y = femaleData[,1+(1:numGen), patches[1]], type = "l", lty = 1,
           main = "Female Mosquitoes", ylab = "", lwd=2,
           ylim = c(0, max(femaleData[,1+(1:numGen), patches[1]])),
-          xlim = c(0, dim(maleData)[1]), yaxs = "i", xaxs = "i",
+          xlim = c(0, xLim), yaxs = "i", xaxs = "i",
           col = col, panel.first=grid())
   title(ylab = "Population", line = 2)
   box(lwd = 2)
 
-  #female
+  #male
   par(mar = c(2,2,3,1), las = 1)
-  matplot(maleData[,1+(1:numGen),patches[1]], type = "l", lty = 1,
+  matplot(x = xPlace, y = maleData[,1+(1:numGen),patches[1]], type = "l", lty = 1,
           main = "Male Mosquitoes", ylab = "", lwd=2,
           ylim = c(0, max(maleData[,1+(1:numGen), patches[1]])),
-          xlim = c(0, dim(maleData)[1]), yaxs = "i", xaxs = "i",
+          xlim = c(0, xLim), yaxs = "i", xaxs = "i",
           col = col, panel.first=grid())
   mtext(patches[1], side = 4, line = 0.5, las = 0, cex = 0.9, font = 2)
   box(lwd = 2)
@@ -372,19 +385,19 @@ Plot_mPlex <- function(directory, whichPatches = NULL, totalPop = TRUE){
   if(numPatches>1){
     for(patch in patches[-1]){
       par(mar = c(2,3,1,1), las = 1)
-      matplot(femaleData[,1+(1:numGen), patch], type = "l", lty = 1,
+      matplot(x = xPlace, y = femaleData[,1+(1:numGen), patch], type = "l", lty = 1,
               ylab = "", lwd=2,
               ylim = c(0, max(femaleData[,1+(1:numGen), patch])),
-              xlim = c(0, dim(maleData)[1]), yaxs = "i", xaxs = "i",
+              xlim = c(0, xLim), yaxs = "i", xaxs = "i",
               col = col, panel.first=grid())
       title(ylab = "Population", line = 2)
       box(lwd = 2)
       
       par(mar = c(2,2,1,1))
-      matplot(maleData[,1+(1:numGen),patch], type = "l", lty = 1,
+      matplot(x = xPlace, y = maleData[,1+(1:numGen),patch], type = "l", lty = 1,
               ylab = "", lwd=2,
               ylim = c(0, max(maleData[,1+(1:numGen), patch])),
-              xlim = c(0, dim(maleData)[1]), yaxs = "i", xaxs = "i",
+              xlim = c(0, xLim), yaxs = "i", xaxs = "i",
               col = col, panel.first=grid())
       mtext(patch, side = 4, line = 0.5, las = 0, cex = 0.9, font = 2)
       box(lwd = 2)

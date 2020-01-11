@@ -26,7 +26,8 @@ public:
   /* utility methods */
   static parameters&    instance();
   void                  set_parameters(/* simulation fields */
-                                       const int& n_patch_, const int& sim_time_, const int& run_id_,
+                                       const int& n_patch_, const int& sim_time_, 
+                                       const int& samp_time_, const int& run_id_,
                                        /* biological parameters */
                                         const iVec& stage_time_, const double& beta_, const dVec& mu_,
                                        /* patch-specific derived parameters */
@@ -42,6 +43,7 @@ public:
   /* simulation fields */
   int               get_n_patch(){return n_patch;};
   int               get_sim_time(){return sim_time;};
+  int               get_samp_time(){return samp_time;};
   int               get_t_now(){return t_now;};
   void              reset_t_now(){t_now = 0;};
   void              increment_t_now(){t_now++;};
@@ -64,10 +66,10 @@ public:
   
   
   /* batch migration parameters */
-  double                get_batchProbs(const size_t patch){return batchProbs[patch];};
-  double                get_batchMale(const size_t patch){return sexProbs[patch][0];};
-  double                get_batchFemale(const size_t patch){return sexProbs[patch][1];};
-  dVec                  get_batchLocation(const size_t patch){return batchLocations[patch];};
+  double            get_batchProbs(const size_t patch){return batchProbs[patch];};
+  double            get_batchMale(const size_t patch){return sexProbs[patch][0];};
+  double            get_batchFemale(const size_t patch){return sexProbs[patch][1];};
+  dVec              get_batchLocation(const size_t patch){return batchLocations[patch];};
   
   
 private:
@@ -87,6 +89,7 @@ private:
   /* simulation fields */
   int                   n_patch;
   int                   sim_time;
+  int                   samp_time;
   int                   t_now;
   int                   run_id;
   dMat                  male_migration;

@@ -21,7 +21,8 @@ parameters& parameters::instance(){
 
 /* set parameters: necessarily ugly, cannot use initializer lists because its not a constructor */
 void parameters::set_parameters(/* simulation fields */
-                                const int& n_patch_, const int& sim_time_,const int& run_id_,
+                                const int& n_patch_, const int& sim_time_,
+                                const int& samp_time_, const int& run_id_,
                                 /* biological parameters */
                                 const std::vector<int>& stage_time_, const double& beta_, const dVec& mu_,
                                 /* patch-specific derived parameters */
@@ -36,6 +37,7 @@ void parameters::set_parameters(/* simulation fields */
   /* simulation fields */
   n_patch = n_patch_;
   sim_time = sim_time_;
+  samp_time = samp_time_;
   t_now = 0; /* starts at 0 because initial condition*/
   male_migration = male_migration_;
   female_migration = female_migration_;

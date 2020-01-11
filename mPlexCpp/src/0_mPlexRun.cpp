@@ -157,7 +157,8 @@ void run_mPlex(const uint_least32_t& seed_,
   }
 
   // now set parameters
-  parameters::instance().set_parameters(networkParameters_["nPatch"],networkParameters_["simTime"],networkParameters_["runID"],
+  parameters::instance().set_parameters(networkParameters_["nPatch"],networkParameters_["simTime"],
+                       networkParameters_["sampTime"],networkParameters_["runID"],
                        networkParameters_["stageTime"],networkParameters_["beta"],networkParameters_["mu"],
                        networkParameters_["alpha"],networkParameters_["Leq"],networkParameters_["AdPopEQ"],
                        mHold, fHold, migrationBatch_["batchProbs"], bsHold, bmHold);
@@ -304,6 +305,7 @@ void run_mPlex(const uint_least32_t& seed_,
     for(size_t np=0; np<numPatches; ++np){
       patches[np]->init_output(M_output[patches[np]->get_patchID()], F_output[patches[np]->get_patchID()]);
     }
+
     
     // increment time to begin
     parameters::instance().increment_t_now();
@@ -316,8 +318,8 @@ void run_mPlex(const uint_least32_t& seed_,
     ////////////////////
     // BEGIN SIMULATION
     ////////////////////
-    Progress pb(tMax-1,verbose_);
-    while(parameters::instance().get_t_now() < tMax){
+    Progress pb(tMax,verbose_);
+    while(parameters::instance().get_t_now() <= tMax){
 
       // test for user interrupt
       if(checkInterrupt()) return;
@@ -346,10 +348,13 @@ void run_mPlex(const uint_least32_t& seed_,
       
       // Log output
       //  Same thoughts as for init_output above
-      #pragma omp parallel for default(shared) schedule(dynamic)
-      for(size_t np=0; np<numPatches; ++np){
-        patches[np]->oneDay_writeOutput(M_output[patches[np]->get_patchID()], F_output[patches[np]->get_patchID()]);
+      if( (parameters::instance().get_t_now() % parameters::instance().get_samp_time()) == 0 ){
+        #pragma omp parallel for default(shared) schedule(dynamic)
+        for(size_t np=0; np<numPatches; ++np){
+          patches[np]->oneDay_writeOutput(M_output[patches[np]->get_patchID()], F_output[patches[np]->get_patchID()]);
+        }
       }
+
 
       // increment time and progress
       parameters::instance().increment_t_now();

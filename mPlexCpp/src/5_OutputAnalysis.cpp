@@ -33,7 +33,8 @@ extern "C" SEXP fwriteMain(SEXP MAT,   //matrix test
 void simAgg(const std::vector<std::vector<std::string> >& readFiles_,
             const std::vector<std::vector<std::string> >& writeFiles_,
             const std::string& largeFile_,
-            const int& simTime_, const Rcpp::List& genKey_){
+            const int& simTime_, const int& sampTime_, const int& maxRows_,
+            const Rcpp::List& genKey_){
   
   ////////////////////
   // Hash Table
@@ -72,10 +73,10 @@ void simAgg(const std::vector<std::vector<std::string> >& readFiles_,
   ////////////////////
   // in data
   std::vector<SimpleMos> inData;
-  inData.reserve(simTime_*250*sizeof(SimpleMos)); // reserve space. We know struct and simtime, base estimate pop size of 250
+  inData.reserve(maxRows_*sizeof(SimpleMos)); // reserve space.
   
   // out data
-  Rcpp::IntegerMatrix outData(simTime_, numGroups+2);
+  Rcpp::IntegerMatrix outData(simTime_/sampTime_ + 1, numGroups+2);
   Rcpp::CharacterVector cNames(Rcpp::unique(Rcpp::as<Rcpp::IntegerVector>(genKey_[1])).sort());
   cNames.push_front("Time");
   cNames.push_back("Other");
@@ -83,7 +84,7 @@ void simAgg(const std::vector<std::vector<std::string> >& readFiles_,
   
   // other stuff
   int oGroup(numGroups+1), group(0);
-  Rcpp::IntegerVector tVec(seq(0,simTime_-1));
+  Rcpp::IntegerVector tVec(seq(0,simTime_/sampTime_) * sampTime_ );
   
   
   ////////////////////
@@ -116,7 +117,7 @@ void simAgg(const std::vector<std::vector<std::string> >& readFiles_,
           group = findIt->second;
         }
         // store in out data
-        outData(it.time, group) += 1;
+        outData(it.time / sampTime_, group) += 1;
       } // end loop over in data
       
       // fill in simTime

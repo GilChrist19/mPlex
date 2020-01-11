@@ -219,6 +219,7 @@ basicBatchMigration <- function(batchProbs = 1e-5, sexProbs = c(0.01, 0.01),
 #'
 #' @param nPatch number of \code{\link{Patch}}
 #' @param simTime maximum time to run simulation
+#' @param sampTime how often output is written. Default is 1 (i.e. every day)
 #' @param moveVar variance of stochastic movement (not used in diffusion model of migration).
 #' It affects the concentration of probability in the Dirchlet simplex, small
 #' values lead to high variance and large values lead to low variance.
@@ -231,7 +232,7 @@ basicBatchMigration <- function(batchProbs = 1e-5, sexProbs = c(0.01, 0.01),
 #' @param AdPopEQ a single number or vector of adult population size at equilibrium
 #' @param runID begin counting runs with this set of parameters from this value
 #'
-#' @return List(nPatch=int, simTime=vec int, moveVar=numeric,
+#' @return List(nPatch=int, simTime=int, sampTime=int, moveVar=numeric,
 #' runID=int, stageTime=vec int, beta=int, dayGrowthRate=numeric, AdPopEq=int vec,
 #' genTime=numeric, genGrowthRate=numeric, mu=vec numeric,
 #' thetaAq=vec numeric, alpha=vec numeric, Leq=vec int)
@@ -244,6 +245,7 @@ basicBatchMigration <- function(batchProbs = 1e-5, sexProbs = c(0.01, 0.01),
 NetworkParameters <- function(
   nPatch,
   simTime,
+  sampTime = 1,
   moveVar = 1000,
   tEgg = 1L,
   tLarva = 14L,
@@ -266,6 +268,7 @@ NetworkParameters <- function(
   # fill list
   pars$nPatch = nPatch
   pars$simTime = simTime
+  pars$sampTime = sampTime
   pars$moveVar = moveVar
   pars$runID = runID
 
