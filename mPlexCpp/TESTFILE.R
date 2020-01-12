@@ -41,7 +41,7 @@ for(i in c(simDir, aggDir)){dir.create(path = i)}
 # Setup Parameters for Network
 ###############################################################################
 
-numPatch <- 4
+numPatch <- 3
 set.seed(10)
 migration <- matrix(data = runif(numPatch*numPatch), nrow = numPatch, ncol = numPatch)
 migration <- migration/rowSums(migration)
@@ -138,7 +138,7 @@ migrationBatch <- basicBatchMigration(numPatches = numPatch)
 startTime <- Sys.time()
 runMPlex(seed = 10,
          numThreads = 2,
-         numReps = 2, 
+         numReps = 3, 
          networkParameters = netPar,
          reproductionReference = reproductionReference,
          initAlleles = AllAlleles,
@@ -174,6 +174,7 @@ simAggregation(readDirectory = simDir, writeDirectory = aggDir, simTime = netPar
 
 # plot for example
 plotmPlexSingle(directory = aggDir, whichPatches = NULL, totalPop = TRUE)
+plotmPlexMult(directory = aggDir,whichPatches = NULL, totalPop = TRUE, nonZeroGen = FALSE)
 
 
 # see profiling if done

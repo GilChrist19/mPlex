@@ -296,6 +296,10 @@ plotmPlexSingle <- function(directory, whichPatches = NULL, totalPop = TRUE,
   oldPar <- par(no.readonly = TRUE)
   on.exit(expr = par(oldPar)) #reset par()
   
+  
+  ####################
+  # Get Files
+  ####################
   #Get the data to plot, remove aggKey, get lowest rep if there are multiple
   dirFiles <- list.files(path = directory, pattern = ".*\\.csv$", full.names = TRUE)
   dirFiles <- grep(pattern = "AggKey", x = dirFiles, fixed = TRUE,
@@ -315,13 +319,9 @@ plotmPlexSingle <- function(directory, whichPatches = NULL, totalPop = TRUE,
   fFiles <- grep(pattern = "F_", x = dirFiles, value = TRUE, fixed = TRUE, useBytes = TRUE)
   
   
-  #test file to get sizes
-  columnNames <- scan(file = dirFiles[1],
-                      what = character(), sep = ",", quiet = TRUE, nlines = 1)
-  testFile <- matrix(data = scan(file = dirFiles[1], what = integer(),
-                                            sep = ",", skip = 1, quiet = TRUE),
-                                ncol = length(columnNames), byrow = TRUE)
-  
+  ####################
+  # Check Patches
+  ####################
   # get genotypes, num patches, etc
   #  replace 
   patches = unique(x = regmatches(x = dirFiles, m = regexpr(pattern = "Patch_[0-9]+", text = dirFiles)))
@@ -345,11 +345,27 @@ plotmPlexSingle <- function(directory, whichPatches = NULL, totalPop = TRUE,
     }
   }
   
+  
+  ####################
+  # scan test file for names and existing genotypes
+  ####################
+  #test file to get sizes
+  columnNames <- scan(file = dirFiles[1],
+                      what = character(), sep = ",", quiet = TRUE, nlines = 1)
+  testFile <- matrix(data = scan(file = dirFiles[1], what = integer(),
+                                            sep = ",", skip = 1, quiet = TRUE),
+                                ncol = length(columnNames), byrow = TRUE)
+  
+  # reuse things
   genotypes <- columnNames[-1]
   numPatches <- length(patches)
   numGen <- length(genotypes)
   numRead <- length(testFile)
   
+  
+  ####################
+  # Read in all data, subset by desired genotypes
+  ####################
   # create data list holder, and then fill it
   maleData=femaleData=array(data = 0L, dim = c(nrow(testFile),numGen+1,numPatches),
                             dimnames = list(NULL, columnNames, NULL))
@@ -363,6 +379,10 @@ plotmPlexSingle <- function(directory, whichPatches = NULL, totalPop = TRUE,
                                 ncol = numGen+1, byrow = TRUE)
   }
   
+  
+  ####################
+  # setup colors and final genotype size
+  ####################
   # if non-zero gens only
   #   test male and female files, in case of sex-specific drive
   #   Does only test first patch, which if releases aren't done there, could be wrong.
@@ -375,6 +395,10 @@ plotmPlexSingle <- function(directory, whichPatches = NULL, totalPop = TRUE,
   
   col <- ggColUtility(n = numGen, alpha = alpha)
   
+  
+  ####################
+  # plot layout
+  ####################
   #setup plot layout
   lmatrix <- matrix(data = 1:(numPatches*3), nrow = numPatches, ncol = 3, byrow = TRUE)
   if(numPatches>1){
@@ -387,6 +411,10 @@ plotmPlexSingle <- function(directory, whichPatches = NULL, totalPop = TRUE,
   
   layout(lmatrix, widths = c(3,3,1))
   
+  
+  ####################
+  # plot!
+  ####################
   xLim <- tail(x = femaleData[ ,1,1], n = 1)
   xPlace <- femaleData[ ,1,1,drop = FALSE]
   #plot first patch and the legend
@@ -439,6 +467,7 @@ plotmPlexSingle <- function(directory, whichPatches = NULL, totalPop = TRUE,
   ##rest of the patches
   if(numPatches>1){
     for(patch in 2:numPatches){
+      # female
       par(mar = c(2,3,1,1), las = 1)
       matplot(x = xPlace, y = femaleData[,genotypes, patch], type = "l", lty = 1,
               ylab = "", lwd=lwd,
@@ -448,6 +477,7 @@ plotmPlexSingle <- function(directory, whichPatches = NULL, totalPop = TRUE,
       title(ylab = "Population", line = 2)
       box(lwd = 2)
       
+      # male
       par(mar = c(2,2,1,1))
       matplot(x = xPlace, y = maleData[,genotypes,patch], type = "l", lty = 1,
               ylab = "", lwd=lwd,
@@ -462,6 +492,251 @@ plotmPlexSingle <- function(directory, whichPatches = NULL, totalPop = TRUE,
 }
 
 
+#' Plot mPlex
+#'
+#' Plots multiple analyzed outputs of mPlex. Good for repetitions.
+#'
+#' @usage plotmPlexMult(directory, whichPatches=NULL,totalPop=TRUE)
+#'
+#' @param directory Path to directory of analyzed output files
+#' @param whichPatches Vector of patches to plot, must be less than 15
+#' @param totalPop Boolean, to plot the total population or not.
+#' @param nonZeroGen Boolean, to plot genotypes that are always zero in simulation
+#' @param lwd Double, specify the line width for plotting
+#' @param alpha Double, specify the opacity for plotting
+#' 
+#' @importFrom graphics matlines
+#'
+#' @details This function plots output from one or more runs of the analyze function. 
+#' totPop is not currently used.
+#'
+#' @export
+plotmPlexMult <- function(directory, whichPatches = NULL, totalPop = TRUE,
+                            nonZeroGen = FALSE, lwd = 2, alpha = 1){
+  
+  #keep old plot parameters to resetB later
+  oldPar <- par(no.readonly = TRUE)
+  on.exit(expr = par(oldPar)) #reset par()
+  
+  
+  ####################
+  # Get Files
+  ####################
+  #Get the data to plot, remove aggKey, get lowest rep if there are multiple
+  dirFiles <- list.files(path = directory, pattern = ".*\\.csv$", full.names = TRUE)
+  dirFiles <- grep(pattern = "AggKey", x = dirFiles, fixed = TRUE,
+                   useBytes = TRUE, invert = TRUE, value = TRUE)
+  
+  # unique runs
+  uRuns <- unique(x = substr(x = basename(dirFiles), start = 7, stop = 9))
+  numReps <- length(uRuns)
+  
+  # list of files to read
+  fileList <- lapply(X = c("M_","F_"), FUN = function(y){
+    lapply(X = uRuns, FUN = function(x){
+      grep(pattern = file.path(y, "Run_", x, fsep = ""), x = dirFiles,
+           fixed = TRUE, value = TRUE, useBytes = TRUE)
+    })
+  })
+  
+  
+  ####################
+  # Check Patches
+  ####################
+  # get genotypes, num patches, etc
+  #  replace 
+  patches = unique(x = regmatches(x = dirFiles, m = regexpr(pattern = "Patch_[0-9]+", text = dirFiles)))
+  substring(text = patches, first = 6, last = 6) <- " "
+  
+  # check if user chose specific patches
+  if(length(patches)>15 && is.null(whichPatches)){
+    stop("There are more than 15 patches in the simulation.
+         Please select less than 15 to plot.")
+  }
+  if(!is.null(whichPatches)){
+    # make sure not too many. I dont' know what that number is, but at some point
+    #  the plotting function breaks down.
+    if(length(whichPatches)>15){
+      stop("Please select less than 15 patches.")
+    }
+    # select the patches, if they select less than the total number of patches.
+    if(length(whichPatches)<=length(patches)){
+      patches = patches[whichPatches]
+    }
+  }
+  
+  
+  ####################
+  # scan test file for names and existing genotypes
+  ####################
+  #test file to get sizes
+  columnNames <- scan(file = dirFiles[1],
+                      what = character(), sep = ",", quiet = TRUE, nlines = 1)
+  testFile <- matrix(data = scan(file = dirFiles[1], what = integer(),
+                                            sep = ",", skip = 1, quiet = TRUE),
+                                ncol = length(columnNames), byrow = TRUE)
+  
+  # reuse things
+  genotypes <- columnNames[-1]
+  numPatches <- length(patches)
+  numGen <- length(genotypes)
+  numRead <- length(testFile)
+  
+  
+  ####################
+  # Read in all data, subset by desired genotypes
+  ####################
+  # create data list holder, and then fill it
+  # first 2 layers are male then female
+  # Underneath is each repetition
+  # Then all patches
+  dataList <- rep(x = list(rep(x = list(array(data = 0L, dim = c(nrow(testFile),numGen+1,numPatches),
+                                         dimnames = list(NULL, columnNames, NULL))), numReps)),
+                  2)
 
+  for(sex in 1:2){
+    for(nRep in 1:numReps){
+      for(patch in 1:length(patches))
+        dataList[[sex]][[nRep]][ , ,patch] <- matrix(data = scan(file = fileList[[sex]][[nRep]][patch],
+                                                                 what = integer(),
+                                                                 n = numRead,
+                                                                 sep = ",",
+                                                                 skip = 1,
+                                                                 quiet = TRUE),
+                                ncol = numGen+1, byrow = TRUE)
+    }
+  }
+  
+  
+  ####################
+  # setup colors and final genotype size
+  ####################
+  # if non-zero gens only
+  #   test male and female files, in case of sex-specific drive
+  #   Does only test first patch, which if releases aren't done there, could be wrong.
+  # reset numGen
+  if(!nonZeroGen){genotypes <- genotypes[colSums(dataList[[1]][[1]][ ,genotypes,1])!=0 | 
+                                           colSums(dataList[[1]][[1]][ ,genotypes,1])!=0]}
+  numGen <- length(genotypes)
+  
+  # not sure how to implement this now, so just not using it :-)
+  #if(!totalPop){numGen <- numGen-1}
+  
+  col <- ggColUtility(n = numGen, alpha = alpha)
+  
+  
+  ####################
+  # plot layout
+  ####################
+  #setup plot layout
+  lmatrix <- matrix(data = 1:(numPatches*3), nrow = numPatches, ncol = 3, byrow = TRUE)
+  if(numPatches>1){
+    #fill in rest of plot labels
+    lmatrix[2:numPatches, c(1,2)] <- matrix(data = 4:(3+2*(numPatches-1)),
+                                            ncol = 2, byrow = TRUE)
+    #legend gets whole right side
+    lmatrix[,3] <- 3
+  }
+  
+  layout(lmatrix, widths = c(3,3,1))
+  
+  
+  ####################
+  # plot!
+  ####################
+  xLim <- tail(x = dataList[[1]][[1]][ ,1,1], n = 1)
+  xPlace <- dataList[[1]][[1]][ ,1,1, drop=FALSE]
+  #plot first patch and the legend
+  #female
+  par(mar = c(2,3,3,1), las = 1, font.lab = 2, font.axis = 2, font.main = 2, cex.main = 1.75)
+  matplot(x = xPlace, y = dataList[[2]][[1]][ ,genotypes,1], type = "l", lty = 1,
+          main = "Female Mosquitoes", ylab = "", lwd=lwd,
+          ylim = c(0, max(dataList[[2]][[1]][ ,genotypes,1])),
+          xlim = c(0, xLim), yaxs = "i", xaxs = "i",
+          col = col, panel.first=grid())
+  # add extra reps to the plot
+  for(nRep in 2:numReps){
+    matlines(x = xPlace, y = dataList[[2]][[nRep]][ ,genotypes,1],
+             type = "l", lty = 1, lwd=lwd, col = col)
+  }
+  title(ylab = "Population", line = 2)
+  box(lwd = 2)
 
+  #male
+  par(mar = c(2,2,3,1), las = 1)
+  matplot(x = xPlace, y = dataList[[1]][[1]][ ,genotypes,1], type = "l", lty = 1,
+          main = "Male Mosquitoes", ylab = "", lwd=lwd,
+          ylim = c(0, max(dataList[[1]][[1]][ ,genotypes,1])),
+          xlim = c(0, xLim), yaxs = "i", xaxs = "i",
+          col = col, panel.first=grid())
+  # add extra reps to the plot
+  for(nRep in 2:numReps){
+    matlines(x = xPlace, y = dataList[[1]][[nRep]][ ,genotypes,1],
+             type = "l", lty = 1, lwd=lwd, col = col)
+  }
+  mtext(patches[1], side = 4, line = 0.5, las = 0, cex = 0.9, font = 2)
+  box(lwd = 2)
+  
+  #legend
+  # par(mar = c(0,0,0,0), font=2)
+  # plot.new()
+  # legend(x = "left", legend = genotypes, col = col,
+  #        bty = "n", bg = "transparent",lty = 1, lwd=3,cex = 1)
+  
+  plot.new()
+  par(font = 2)
+  legend(x = 'left',
+         inset = -0.5, # will have to play with this as widths change
+         seg.len = 0, # length of line denoting the colors
+         x.intersp = 0.6,
+         y.intersp = 0.9, # vertical space between lines
+         #title = 'Genotypes',
+         legend = genotypes,
+         col = col,
+         bty = "n",
+         #bg = "lightblue",
+         xpd = TRUE,
+         pch = 15,
+         pt.cex = 2,
+         # lty = c(1,1,1,1),
+         # lwd=16,
+         cex = 1)
+  
+  
+  ##rest of the patches
+  if(numPatches>1){
+    for(patch in 2:numPatches){
+      # female
+      par(mar = c(2,3,1,1), las = 1)
+      matplot(x = xPlace, y = dataList[[2]][[1]][ ,genotypes, patch], type = "l", lty = 1,
+              ylab = "", lwd=lwd,
+              ylim = c(0, max(dataList[[2]][[1]][ ,genotypes, patch])),
+              xlim = c(0, xLim), yaxs = "i", xaxs = "i",
+              col = col, panel.first=grid())
+      # add extra reps to the plot
+      for(nRep in 2:numReps){
+        matlines(x = xPlace, y = dataList[[2]][[nRep]][ ,genotypes, patch],
+                 type = "l", lty = 1, lwd=lwd, col = col)
+      }
+      title(ylab = "Population", line = 2)
+      box(lwd = 2)
+      
+      # male
+      par(mar = c(2,2,1,1))
+      matplot(x = xPlace, y = dataList[[1]][[1]][ ,genotypes,patch], type = "l", lty = 1,
+              ylab = "", lwd=lwd,
+              ylim = c(0, max(dataList[[1]][[1]][ ,genotypes, patch])),
+              xlim = c(0, xLim), yaxs = "i", xaxs = "i",
+              col = col, panel.first=grid())
+      # add extra reps to the plot
+      for(nRep in 2:numReps){
+        matlines(x = xPlace, y = dataList[[1]][[nRep]][ ,genotypes, patch],
+                 type = "l", lty = 1, lwd=lwd, col = col)
+      }
+      mtext(patches[patch], side = 4, line = 0.5, las = 0, cex = 0.9, font = 2)
+      box(lwd = 2)
+    }#end patch loop
+  }#end if
+  
+}
 
