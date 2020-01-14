@@ -1,0 +1,851 @@
+---
+title: "mPlex Multiple Loci Run Example"
+#output: rmarkdown::pdf_document
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{mPlex-mLoc}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{css, echo = FALSE}
+pre {
+  white-space: pre !important;
+  overflow-y: scroll !important;
+  max-height: 25vh !important;
+}
+
+# reference
+#  https://stackoverflow.com/questions/41135085/how-to-make-vertical-scrollbar-appear-in-rmarkdown-code-chunks-html-view
+```
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  echo = TRUE,
+  hold = TRUE,
+  fig.width = 7,
+  fig.height = 10.5,
+  eval = TRUE
+)
+
+# set seed for reproduibility
+set.seed(seed = 42)
+```
+
+
+## mPlex - Multiple Locus Inheritance Simulation
+
+This vignette goes through setting up and running a *mPlex* simulation using the 
+`mPlex_mLoci` inheritance pattern. This inheritance pattern demonstrates a homing drive 
+that targets multiple independent loci. Here, we will explore 3 examples: a basic simulation, 
+with one locus, and no extra parameters. Next, the same population 
+setup but with a fitness cost on one of the genotypes. Finally, a larger simulation 
+with multiple genotypes to demonstrate more complicated plotting/analysis procedures.
+
+
+### Basic Example
+
+The first example explores homing into one locus with no extra parameters. This 
+is equivalent to the basic homing drive from *MGDrivE*. We will simulate 3 
+populations, two with migration and one independent so that that the file structure 
+becomes more obvious. 
+
+#### Full Code
+
+For reference, here is the full code for our example. It will be explained piece-by-piece below.
+
+```{r, eval=FALSE}
+####################
+# Load libraries
+####################
+library(mPlexCpp)
+
+####################
+# Output Folder
+####################
+outFolder <- "mPlex"
+
+simDir <- file.path(outFolder, "simDir")
+aggDir <- file.path(outFolder, "aggDir")
+for(i in c(outFolder, simDir, aggDir)){ dir.create(i) }
+
+                        
+####################
+# Landscape
+####################
+# a 3-node network with 2% per day migration rate
+#  Remember, rows need to sum to 1.
+sitesNumber <- 3
+moveMat <- matrix(data = c(0.98, 0.02, 0,
+                           0.02, 0.98, 0,
+                           0, 0, 1), nrow = sitesNumber, ncol = sitesNumber, byrow = TRUE)
+
+
+####################
+# Inheritance pattern
+####################
+# 1-locus CRISPR-like drive system, with no extra genotype-specific costs
+#  97% homing rate, 3% resistance rate, no backgorund mutation
+reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.97),
+                                                       R = c(0.03),
+                                                       S = c(0),
+                                                       d = c(0))
+
+
+####################
+# Setup Initial genotype ratios
+####################
+# 1 locus, start completely wild-type
+alleloTypes <- vector(mode = "list", length = 1L) #1 locus
+alleloTypes[[1]]$alleles <- c("W")
+alleloTypes[[1]]$probs <- c(1)
+
+# replicate so each patch starts the same
+AllAlleles <- replicate(n = sitesNumber, expr = alleloTypes, simplify = FALSE)
+
+
+####################
+# Setup releases and batch migration
+####################
+# create Release List
+patchReleases = replicate(n = sitesNumber,
+                          expr = list(maleReleases = NULL,
+                                      femaleReleases = NULL,
+                                      eggReleases = NULL),
+                          simplify = FALSE)
+
+# Create release object to pass to patches
+patchReleases[[1]]$maleReleases <- basicRepeatedReleases(releaseStart = 50,
+                                         releaseEnd = 60,
+                                         releaseInterval = 5,
+                                         genMos = c("HH"),
+                                         numMos = c(25),
+                                         minAge = 16,
+                                         maxAge = 24,
+                                         ageDist = rep(x = 1, times = 24-16+1)/9)
+
+# default migration rate is 0, so no actual batch migration
+migrationBatch <- basicBatchMigration(numPatches = sitesNumber)
+
+
+####################
+# Parameter Setup
+####################
+netPar = NetworkParameters(nPatch = sitesNumber,
+                           simTime = 365,
+                           sampTime = 2,
+                           AdPopEQ = 100,
+                           runID = 1L,
+                           dayGrowthRate = 1.175,
+                           beta = 20, tEgg = 5, tLarva = 6, tPupa = 4, muAd = 0.09)
+
+####################
+# Run Simulation
+####################
+runMPlex(seed = 10,
+         numThreads = 1,
+         numReps = 5, 
+         networkParameters = netPar,
+         reproductionReference = reproductionReference,
+         initAlleles = AllAlleles,
+         patchReleases = patchReleases,
+         migrationMale = moveMat,
+         migrationFemale = moveMat,
+         migrationBatch = migrationBatch,
+         outputDirectory = simDir,
+         reproductionType = "mPlex_mLoci",
+         verbose = FALSE)
+
+
+####################
+# Post Analysis
+####################
+# setup aggregation key
+#  this example sets all genotypes as different
+genOI_mLoci_Daisy(outputFile = file.path(aggDir, "0_AggKey.csv"), 
+                  genotypes = list(NULL), collapse = c(FALSE))
+
+
+# aggregate experiment by aggregation key
+simAggregation(readDirectory = simDir, writeDirectory = aggDir, 
+               simTime = netPar$simTime, sampTime = netPar$sampTime)
+
+
+# plot for example
+plotmPlexSingle(directory = aggDir, whichPatches = NULL, nonZeroGen = FALSE)
+plotmPlexMult(directory = aggDir,whichPatches = NULL, nonZeroGen = FALSE, lwd=0.35,alpha=0.75)
+```
+
+
+#### Load Libraries
+
+```{r}
+####################
+# Load libraries
+####################
+library(mPlexCpp)
+
+```
+
+Step one, load *mPlex*. All of the analysis and basic plotting functions are included in the package. 
+
+#### Setup Folder Directory
+
+```{r}
+####################
+# Output Folder
+####################
+outFolder <- "mPlex"
+
+simDir <- file.path(outFolder, "simDir")
+aggDir <- file.path(outFolder, "aggDir")
+for(i in c(outFolder, simDir, aggDir)){ dir.create(i) }
+
+```
+
+Here, we setup the folder for simulation data. Since this is a local folder, it doesn't exist, and needs to be created. If you already have a folder prepared, make sure it is empty. *mPlex* does not give a warning if there are other things in the folder (to prevent overwriting of data), but will run fine if the folder is not empty.
+
+#### Landscape
+
+For this simulation, we setup a simple landscape to demonstrate mixing and independence between populations. The first 2 populations are connected by a 2% per day migration rate, while the third population is independent of the other two. All populations run indepdently in the simulation, and only exchange adults via this migration matrix. We use the same matrix for both male and female adult migration in our simulation, but that doesn't need to be so.
+
+```{r}
+####################
+# Landscape
+####################
+# a 3-node network with 2% per day migration rate
+#  Remember, rows need to sum to 1.
+sitesNumber <- 3
+moveMat <- matrix(data = c(0.98, 0.02, 0,
+                           0.02, 0.98, 0,
+                           0, 0, 1), nrow = sitesNumber, ncol = sitesNumber, byrow = TRUE)
+
+moveMat
+```
+
+
+#### Inheritance Pattern
+
+*mPlex* currently supports 4 inheritance patterns. The one exemplified here is a CRISPR-style homing into independent loci. For this example, we show only 1 locus. The alleles correspond to:  
+
+  * `W`: Wild-type allele
+  * `H`: Homing allele
+  * `R`: Resistant allele 1
+  * `S`: Resistant allele 2
+
+```{r}
+####################
+# Inheritance pattern
+####################
+# 1-locus CRISPR-like drive system, with no extra genotype-specific costs
+#  97% homing rate, 3% resistance rate, no backgorund mutation
+reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.97),
+                                                       R = c(0.03),
+                                                       S = c(0),
+                                                       d = c(0))
+```
+
+While we use the default parameters, there are several fitness costs that can be applied. Every cost is applied in a genotype-specific manner. The optional fitness costs are:  
+
+  * $\eta$: Male mating fitness against each female  
+  * $\phi$: Sex-ratio at emergence  
+  * $\omega$: Multiplicative modifier of adult mortality (males and females)  
+  * $\xi_F$: Female pupatory success (applies after $\phi$)  
+  * $\xi_M$: Male pupatory success (applies after $\phi$)  
+  * $s$: Fractional increase/decrease in fertility  
+  
+These costs are implemented as hash tables, searched by genotype. Therefore, all genotypes that you wish to provide a cost for must be specified (this gets extremely complicated with larger genotype space), and any genotypes that are misspelled are fine, nothing will crash, but they will not be applied during the simulation.
+  
+
+#### Initial Genotype Ratios
+
+*mPlex* requires the initial allele ratios to be specified. From this, the populations are setup at their age-structed, genotypic equilibriums. These can be specified differently for each patch, or provided as a single, length 1 list, which will be internally replicated so that all patches begin at the same genotype equilibrium. These genotypes do need to match the inheritance pattern supplied above. This is checked in the run script.
+
+
+```{r}
+####################
+# Setup Initial genotype ratios
+####################
+# 1 locus, start completely wild-type
+alleloTypes <- vector(mode = "list", length = 1L) #1 locus
+alleloTypes[[1]]$alleles <- c("W")
+alleloTypes[[1]]$probs <- c(1)
+
+# replicate so each patch starts the same
+AllAlleles <- replicate(n = sitesNumber, expr = alleloTypes, simplify = FALSE)
+```
+
+
+#### Releases and Batch Migration
+
+*mPlex* uses a list specifying the releases by male, female, or egg, their genotypes, and the release schedule. The initial list is `NULL`, and only if there are releases to be performed is anything added. 
+
+
+```{r}
+####################
+# Setup releases and batch migration
+####################
+# create release List
+#  mPlex pulls things out by name
+patchReleases = replicate(n = sitesNumber,
+                          expr = list(maleReleases = NULL,
+                                      femaleReleases = NULL,
+                                      eggReleases = NULL),
+                          simplify = FALSE)
+
+# Create release object to pass to patches
+patchReleases[[1]]$maleReleases <- basicRepeatedReleases(releaseStart = 50,
+                                         releaseEnd = 60,
+                                         releaseInterval = 5,
+                                         genMos = c("HH"),
+                                         numMos = c(25),
+                                         minAge = 16,
+                                         maxAge = 24,
+                                         ageDist = rep(x = 1, times = 24-16+1)/9)
+
+# default migration rate is 0, so no actual batch migration
+migrationBatch <- basicBatchMigration(batchProbs = 0, numPatches = sitesNumber)
+```
+
+Here, we perform `r length(patchReleases[[1]]$maleReleases)` releases of male adults. Each release contains 25 individuals, of genotype `HH`, equally spaced from 16 to 24 days old. 
+
+The final release can be seen below:
+
+```{r}
+# look at male release structure
+patchReleases[[1]]$maleReleases
+```
+
+Additionally, there is the possibility of large-group movement facilitated by humans (using *Aedes* for example, this could be boats or water containers in truck beds, etc.). *mPlex* handles this through `basicBatchMigration()`. For simplicity, we are ignoring this possibility (by setting the probability of it to zero).
+
+```{r}
+# batch migration is disabled by setting the probability to 0
+batchMigration <- basicBatchMigration(batchProbs=0, numPatches=sitesNumber)
+```
+
+
+#### Simulation Parameters
+
+Next, there are several parameters that need to be set for a simulation. The run time, number of populations, and adult population equilibrium are crucial. Each of these must be specified for the aquatic populations to be created. The `AdPopEQ` can be a single number, and all populations then are the same size, or a vector, specifying each population individually. Additionally, the `sampTime` parameter controls how often output is written. 
+
+```{r}
+####################
+# Parameter Setup
+####################
+netPar = NetworkParameters(nPatch = sitesNumber,
+                           simTime = 365,
+                           sampTime = 1,
+                           AdPopEQ = 100,
+                           runID = 1L,
+                           dayGrowthRate = 1.175,
+                           beta = 20, tEgg = 5, tLarva = 6, tPupa = 4, muAd = 0.09)
+```
+
+The biological parameters were chosen for _Aedes aegypti_ in our original simulations. These parameters represent:  
+
+  * `beta`: Daily number of eggs laid per female mosquito
+  * `tEgg`: Number of days spent in the egg stage
+  * `tLarva`: Number of days spent in the larval stage
+  * `tPupa`: Number of days spent in the pupa stage
+  * `dayGrowthRate`: Population growth per generation  
+  * `muAd`: Daily death rate for adult mosquitoes
+
+
+#### Run Simulation
+
+`mPlex` is an individual-based model, and thus only runst stochastically. There are several options to parameterize it:  
+
+  * `seed`: Seed to set mersenne twister
+  * `numThreads`: Internal multithreading
+  * `numReps`: Number of repetitions to perform
+  * `networkParameters`: Parameters setup above, includes life-cycle parameters
+  * `reproductionReference`: Reference specifying everything necessary to calculate genotypes for each generation
+  * `initAlleles`: List specifying the inital allele distribution
+  * `patchReleases`: List specifying releases for each population
+  * `migrationMale/Female`: Matrices specifying sex-specific adult daily movement
+  * `migrationBatch`: List specifying adult batch migration possibilities
+  * `outputDirectory`: Directory two write raw output. All repetitions are written to the same place
+  * `reproductionType`: Flag specifying which inheritance pattern is desired. This is used to check against `reproductionReference`, `initAlleles`, and `patchReleases`
+  * `verbose`: Be chatty? Default is true, but is turned off for vignette building.
+
+```{r}
+####################
+# Run Simulation
+####################
+runMPlex(seed = 10,
+         numThreads = 1,
+         numReps = 5, 
+         networkParameters = netPar,
+         reproductionReference = reproductionReference,
+         initAlleles = AllAlleles,
+         patchReleases = patchReleases,
+         migrationMale = moveMat,
+         migrationFemale = moveMat,
+         migrationBatch = migrationBatch,
+         outputDirectory = simDir,
+         reproductionType = "mPlex_mLoci",
+         verbose = FALSE)
+
+# list folders to show that they have been created
+list.files(path = outFolder)
+list.files(path = simDir)
+```
+
+
+#### Post Processing
+
+*mPlex* outputs 2 *.csv files per patch, so our example simulation has 6 files per repetition. Each file is labeled `{F|M}_Run_XXX_Patch_XXX.csv`, denoting adult male/female output, the patch, and the repetition. These files contain the entire adult population, written at each time point specified by `sampTime`. We can look at the raw output, which differs slightly for males and females.
+
+```{r}
+# read in male and female files
+fDataFrame <- read.csv(file = list.files(path = simDir, full.names = TRUE)[1], 
+                       header = TRUE)
+mDataFrame <- read.csv(file = tail(x = list.files(path = simDir, full.names = TRUE), 
+                                   n = 1), 
+                       header = TRUE)
+
+# look at male file header
+colnames(mDataFrame)
+```
+
+The header in male files (`M_Run_XXX_Patch_XXX.csv`) is shown above. It always contains the Time, Age, and Genotype for every individual in a population. Because genotypes change with inheritance pattern and with the size of each inheritance type, there's not easy way to specify each genotype. Thus, they are summarized as simply `Genotype`. Time zero indicates the initial conditions of the simulation.  
+
+The female files (`F_Run_XXX_Patch_XXX.csv`) are only a little more complicated. Because females only mate once in their lives, their mate choice is kept with their genotype. So, female files have one more column than male files. 
+
+```{r}
+# look at female file header
+colnames(fDataFrame)
+```
+
+We can look at the first few rows of the female file (male files are the same, but minus mates, so we will only look at females.)
+
+```{r}
+head(x = fDataFrame, n = 5)
+```
+
+Notice, at the beginning, none of the females are mated. This is fixed after 1 day. Skipping the rest of the first day (about 50 individuals, since the equilibrium population is 100 and half of those are female), we can see what it looks like after mating is performed.
+
+```{r}
+fDataFrame[50:55,]
+```
+
+Notice that everyone is mated, but it's also day 2. This is because we specified `sampTime` to write output every 2 days. Thus, day 0, then day 2, then day 4, etc.  
+
+This output is hard to use directly, as it is a list of every individual in the population. It is easier if we counted how many of each genotype and stored the data that way. This is done in two steps. The first step is to specify what genotypes are of interest. In this example, there are only 10 possible genotypes, so it's not difficult to view them all. However, when the genotypes get more complicated, this becomes too difficult. 
+
+```{r}
+####################
+# Post Analysis
+####################
+# setup aggregation key
+#  this example sets all genotypes as different
+genOI_mLoci_Daisy(outputFile = file.path(aggDir, "0_AggKey.csv"), 
+                  genotypes = list(NULL), collapse = c(FALSE))
+
+list.files(path = aggDir)
+```
+
+*mPlex* provides 2 functions to generate aggregation keys, `genOI_mLoci_Daisy()` and `genOI_oLocus()`. These functions output a *.csv with the key describing genotypes of interest, and how they are combined when the data is aggregated using `simAggregation()`.  
+
+  * `genotypes` is a list, the same length as the number of loci, specifying genotypes of interest at each locus. The default is that all genotypes are of interest.
+  * `collapse` is a boolean vector, same length as `genotypes`, of whether to keep the genotypes of interest separate or to combine the count. i.e., if you have 3 genotypes of interest, do you want all three kept separate, or do you want the total of all three of those genotypes? The default is to keep them all separate.
+  
+The file name provided, "0_AggKey.csv", is numbered so it is easier for the user to find it (it is always the first file in a folder this way), but must contain "AggKey", as this is how `simAggregation()` finds the file.  
+
+The aggregation key for 1 locus, keeping all genotypes of interest distinct, can be seen below.
+```{r}
+aggKey <- read.csv(file = file.path(aggDir, "0_AggKey.csv"), header = TRUE)
+aggKey
+```
+
+Next, the files are aggregated with `simAggregation()`. 
+
+```{r}
+# aggregate experiment by aggregation key
+simAggregation(readDirectory = simDir, writeDirectory = aggDir, 
+               simTime = netPar$simTime, sampTime = netPar$sampTime)
+
+list.files(path = aggDir)
+```
+
+Because `simAggregation()` takes a key for aggregation, the user can generate multiple keys in different folders, and perform different aggregations of the data. The data is now stored in a condensed format, with one row for each time-step, and columns for every aggregation number in the key generated above. The male/female files are identical in structure now.
+
+```{r}
+# read in male and female files
+fMat <- as.matrix(read.csv(file = list.files(path = aggDir, full.names = TRUE)[2], 
+                       header = TRUE, check.names = FALSE))
+mMat <- as.matrix(read.csv(file = tail(x = list.files(path = aggDir, full.names = TRUE), 
+                                   n = 1), 
+                       header = TRUE, check.names = FALSE))
+
+# look at male and female file headers
+colnames(mMat)
+colnames(fMat)
+```
+
+Looking at the first few rows of each, we see that they have been reduced to counts over each genotype of interest, with an "Other" column holding all individuals that did not fit our key. Here, since we specified all genotypes, there are no "others", but this will occur in more complicated scenarios.
+
+```{r}
+head(x = mMat, n = 3)
+head(x = fMat, n = 3)
+```
+
+
+#### Plotting
+
+*mPlex* comes with two built-in plot functions, `plotmPlexSingle()` and `plotmPlexMult()`.  
+`plotmPlexSingle()` takes the name of one repetition folder, and plots all of the patches in it for both males and females. 
+
+```{r}
+# plot the first repetition
+plotmPlexSingle(directory = aggDir, whichPatches = NULL, nonZeroGen = FALSE)
+```
+
+The left Y-axis is population size, the right Y-axis is patch number, and the X-axis is time. We can see the releases in the first patch, equal for males and females, and follow their migration down the plots from patch 1 to patch 2, with patch 3 remaining completely independent. The total population remains around 250 individuals for males and females, which gives the expected equilibrium value of 500.  The legend shows the aggregation key generated above. This is done because more comlicated experiments will have genotypes too long to display well, or our genotypes of interest will be a combination of multiple genotypes, which will be hard to put in a legend.  
+We can also plot all of our repetitions using `plotmPlexMult()`.  
+
+```{r}
+# plot all 5 repetitions together
+plotmPlexMult(directory = aggDir,whichPatches = NULL, nonZeroGen = FALSE, lwd=0.35,alpha=0.75)
+```
+
+`plotmPlexMult()` takes the name of the main directory, and finds all of the repetitions inside of it. It then plots males and females by patch, the same as `plotmPlexSingle()`, but overlays a trace of every repetition for each patch.
+
+
+```{r, echo=FALSE}
+####################
+# Cleanup before next run
+####################
+unlink(x = outFolder, recursive = TRUE)
+rm(list=ls())
+```
+
+
+
+
+### Small Genotype Example
+
+In this second example, we will provide fitness costs for some of the genotypes, change the initial conditions of the patches, and modify the releases.  
+
+  * `omega`: Adult mortality. We provide a cost so that two of the genotypes are less fit than the wild-type
+    * `HH`: Homozygous homing individuals are only 50% as fit as wild-type
+    * `RR`: Homozygous resistant 1 individuals are 90% as fit as wild-type
+  * `aTypes3`: The third population begins as a mix of `W`, `R`, and `S` alleles, in the provided proportions
+  * `rel2`: A second release is performed in the first patch, integrating `RR` individuals at time = 100
+  * `AdPopEQ`: Patches are now different sizes, with the adult populations set as 100, 200, and 300
+
+```{r, eval=FALSE}
+####################
+# Load libraries
+####################
+library(mPlexCpp)
+
+####################
+# Output Folder
+####################
+outFolder <- "mPlex"
+
+simDir <- file.path(outFolder, "simDir")
+aggDir <- file.path(outFolder, "aggDir")
+for(i in c(outFolder, simDir, aggDir)){ dir.create(i) }
+
+                        
+####################
+# Landscape
+####################
+# a 3-node network with 2% per day migration rate
+#  Remember, rows need to sum to 1.
+sitesNumber <- 3
+moveMat <- matrix(data = c(0.98, 0.02, 0,
+                           0.02, 0.98, 0,
+                           0, 0, 1), nrow = sitesNumber, ncol = sitesNumber, byrow = TRUE)
+
+
+####################
+# Inheritance pattern
+####################
+# 1-locus CRISPR-like drive system, with no extra genotype-specific costs
+#  97% homing rate, 3% resistance rate, no backgorund mutation
+reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.97),
+                                                       R = c(0.03),
+                                                       S = c(0),
+                                                       d = c(0), omega = c("HH"=0.5, "RR" = 0.9))
+
+
+####################
+# Setup Initial genotype ratios
+####################
+# 1 locus, start completely wild-type
+aTypes1 <- vector(mode = "list", length = 1L) #1 locus
+aTypes1[[1]]$alleles <- c("W")
+aTypes1[[1]]$probs <- c(1L)
+aTypes3 <- vector(mode = "list", length = 1L) #1 locus
+aTypes3[[1]]$alleles <- c("W", "R", "S")
+aTypes3[[1]]$probs <- c(0.8, 0.15, 0.05)
+
+# replicate so each patch starts the same
+AllAlleles <- list(aTypes1, aTypes1, aTypes3)
+
+
+####################
+# Setup releases and batch migration
+####################
+# create Release List
+patchReleases = replicate(n = sitesNumber,
+                          expr = list(maleReleases = NULL,
+                                      femaleReleases = NULL,
+                                      eggReleases = NULL),
+                          simplify = FALSE)
+
+# Create release object to pass to patches
+rel1 <- basicRepeatedReleases(releaseStart = 50,
+                                         releaseEnd = 60,
+                                         releaseInterval = 5,
+                                         genMos = c("HH"),
+                                         numMos = c(25),
+                                         minAge = 16,
+                                         maxAge = 24,
+                                         ageDist = rep(x = 1, times = 24-16+1)/9)
+
+rel2 <- basicRepeatedReleases(releaseStart = 100,
+                                         releaseEnd = 110,
+                                         releaseInterval = 5,
+                                         genMos = c("RR"),
+                                         numMos = c(25),
+                                         minAge = 16,
+                                         maxAge = 24,
+                                         ageDist = rep(x = 1, times = 24-16+1)/9)
+
+
+
+
+patchReleases[[1]]$maleReleases <- c(rel1, rel2)
+
+# default migration rate is 0, so no actual batch migration
+migrationBatch <- basicBatchMigration(numPatches = sitesNumber)
+
+
+####################
+# Parameter Setup
+####################
+netPar = NetworkParameters(nPatch = sitesNumber,
+                           simTime = 365*3,
+                           sampTime = 2,
+                           AdPopEQ = c(100, 200, 300),
+                           runID = 1L,
+                           dayGrowthRate = 1.175,
+                           beta = 20, tEgg = 5, tLarva = 6, tPupa = 4, muAd = 0.09)
+
+####################
+# Run Simulation
+####################
+runMPlex(seed = 10,
+         numThreads = 3,
+         numReps = 5, 
+         networkParameters = netPar,
+         reproductionReference = reproductionReference,
+         initAlleles = AllAlleles,
+         patchReleases = patchReleases,
+         migrationMale = moveMat,
+         migrationFemale = moveMat,
+         migrationBatch = migrationBatch,
+         outputDirectory = simDir,
+         reproductionType = "mPlex_mLoci",
+         verbose = FALSE)
+
+
+####################
+# Post Analysis
+####################
+# setup aggregation key
+#  this example sets all genotypes as different
+genOI_mLoci_Daisy(outputFile = file.path(aggDir, "0_AggKey.csv"), 
+                  genotypes = list(NULL), collapse = c(FALSE))
+
+
+# aggregate experiment by aggregation key
+simAggregation(readDirectory = simDir, writeDirectory = aggDir, 
+               simTime = netPar$simTime, sampTime = netPar$sampTime)
+
+
+# plot for example
+plotmPlexSingle(directory = aggDir, whichPatches = NULL, nonZeroGen = FALSE)
+plotmPlexMult(directory = aggDir,whichPatches = NULL, nonZeroGen = FALSE, lwd=0.35,alpha=0.75)
+```
+
+Looking at the aggkey, we can determine what genotypes appear when, and how they take-over the final populations.  
+
+```{r}
+aggKey <- read.csv(file = file.path(aggDir, "0_AggKey.csv"), header = TRUE)
+aggKey
+```
+
+Looking at the first patch, we see releases of 1 very early in the males, which corresponds to the `HH` genotype given in the key. We then see releases of number 5 later on, corresponding to the `RR` releases we performed. We can see how these begin to migrate into the second patch. There is some transition as the green color, 4, rises and falls in the middle. This corresponds to the `HW` heterozygous individuals. Finally, the population is primarily taken over by 2, with some 5 mixed in. These correspond to the `HR` and `RR` individuals. Notice that the population drops significantly once this has happened. This is because of the fitness costs on `HH` and `RR` individuals. The effect of this can be seen in the repetitions plot, where the `HH` individuals died out in one simulation and the population remained `WW`.  
+Notice, in the third patch which is not connected to the first two, the population begins mostly `WW`, with some `RR` and even less `SS` and heterozygous individuals. The population remains fairly constant, but begins to trend upwards as the fitness cost drives `RR` individuals out of the population. If we continued the simulation longer, eventually all of the `R` alleles would drop out of the population.
+
+
+
+
+### Large Genotype Example
+
+In this second example, we will provide fitness costs for some of the genotypes, change the initial conditions of the patches, and modify the releases.  
+
+  * `omega`: Adult mortality. We provide a cost so that two of the genotypes are less fit than the wild-type
+    * `HH`: Homozygous homing individuals are only 50% as fit as wild-type
+    * `RR`: Homozygous resistant 1 individuals are 90% as fit as wild-type
+  * `aTypes3`: The third population begins as a mix of `W`, `R`, and `S` alleles, in the provided proportions
+  * `rel2`: A second release is performed in the first patch, integrating `RR` individuals at time = 100
+  * `AdPopEQ`: Patches are now different sizes, with the adult populations set as 100, 200, and 300
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r, eval=FALSE}
+####################
+# Load libraries
+####################
+library(mPlexCpp)
+
+####################
+# Output Folder
+####################
+outFolder <- "mPlex"
+
+simDir <- file.path(outFolder, "simDir")
+aggDir <- file.path(outFolder, "aggDir")
+for(i in c(outFolder, simDir, aggDir)){ dir.create(i) }
+
+                        
+####################
+# Landscape
+####################
+# a 3-node network with 2% per day migration rate
+#  Remember, rows need to sum to 1.
+sitesNumber <- 3
+moveMat <- matrix(data = c(0.98, 0.02, 0,
+                           0.02, 0.98, 0,
+                           0, 0, 1), nrow = sitesNumber, ncol = sitesNumber, byrow = TRUE)
+
+
+####################
+# Inheritance pattern
+####################
+# 1-locus CRISPR-like drive system, with no extra genotype-specific costs
+#  97% homing rate, 3% resistance rate, no backgorund mutation
+reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.97),
+                                                       R = c(0.03),
+                                                       S = c(0),
+                                                       d = c(0), omega = c("HH"=0.5, "RR" = 0.9))
+
+
+####################
+# Setup Initial genotype ratios
+####################
+# 1 locus, start completely wild-type
+aTypes1 <- vector(mode = "list", length = 1L) #1 locus
+aTypes1[[1]]$alleles <- c("W")
+aTypes1[[1]]$probs <- c(1L)
+aTypes3 <- vector(mode = "list", length = 1L) #1 locus
+aTypes3[[1]]$alleles <- c("W", "R", "S")
+aTypes3[[1]]$probs <- c(0.8, 0.15, 0.05)
+
+# replicate so each patch starts the same
+AllAlleles <- list(aTypes1, aTypes1, aTypes3)
+
+
+####################
+# Setup releases and batch migration
+####################
+# create Release List
+patchReleases = replicate(n = sitesNumber,
+                          expr = list(maleReleases = NULL,
+                                      femaleReleases = NULL,
+                                      eggReleases = NULL),
+                          simplify = FALSE)
+
+# Create release object to pass to patches
+rel1 <- basicRepeatedReleases(releaseStart = 50,
+                                         releaseEnd = 60,
+                                         releaseInterval = 5,
+                                         genMos = c("HH"),
+                                         numMos = c(25),
+                                         minAge = 16,
+                                         maxAge = 24,
+                                         ageDist = rep(x = 1, times = 24-16+1)/9)
+
+rel2 <- basicRepeatedReleases(releaseStart = 100,
+                                         releaseEnd = 110,
+                                         releaseInterval = 5,
+                                         genMos = c("RR"),
+                                         numMos = c(25),
+                                         minAge = 16,
+                                         maxAge = 24,
+                                         ageDist = rep(x = 1, times = 24-16+1)/9)
+
+
+
+
+patchReleases[[1]]$maleReleases <- c(rel1, rel2)
+
+# default migration rate is 0, so no actual batch migration
+migrationBatch <- basicBatchMigration(numPatches = sitesNumber)
+
+
+####################
+# Parameter Setup
+####################
+netPar = NetworkParameters(nPatch = sitesNumber,
+                           simTime = 365*3,
+                           sampTime = 2,
+                           AdPopEQ = c(100, 200, 300),
+                           runID = 1L,
+                           dayGrowthRate = 1.175,
+                           beta = 20, tEgg = 5, tLarva = 6, tPupa = 4, muAd = 0.09)
+
+####################
+# Run Simulation
+####################
+runMPlex(seed = 10,
+         numThreads = 3,
+         numReps = 5, 
+         networkParameters = netPar,
+         reproductionReference = reproductionReference,
+         initAlleles = AllAlleles,
+         patchReleases = patchReleases,
+         migrationMale = moveMat,
+         migrationFemale = moveMat,
+         migrationBatch = migrationBatch,
+         outputDirectory = simDir,
+         reproductionType = "mPlex_mLoci",
+         verbose = FALSE)
+
+
+####################
+# Post Analysis
+####################
+# setup aggregation key
+#  this example sets all genotypes as different
+genOI_mLoci_Daisy(outputFile = file.path(aggDir, "0_AggKey.csv"), 
+                  genotypes = list(NULL), collapse = c(FALSE))
+
+
+# aggregate experiment by aggregation key
+simAggregation(readDirectory = simDir, writeDirectory = aggDir, 
+               simTime = netPar$simTime, sampTime = netPar$sampTime)
+
+
+# plot for example
+plotmPlexSingle(directory = aggDir, whichPatches = NULL, nonZeroGen = FALSE)
+plotmPlexMult(directory = aggDir,whichPatches = NULL, nonZeroGen = FALSE, lwd=0.35,alpha=0.75)
+```

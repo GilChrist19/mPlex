@@ -417,12 +417,14 @@ plotmPlexSingle <- function(directory, whichPatches = NULL, totalPop = TRUE,
   ####################
   xLim <- tail(x = femaleData[ ,1,1], n = 1)
   xPlace <- femaleData[ ,1,1,drop = FALSE]
+  fMax <- max(femaleData[ ,-1, ]) * 1.1  # first column is time, remove, and then make a bit larger
+  mMax <- max(maleData[ ,-1, ]) * 1.1
   #plot first patch and the legend
   #female
   par(mar = c(2,3,3,1), las = 1, font.lab = 2, font.axis = 2, font.main = 2, cex.main = 1.75)
   matplot(x = xPlace, y = femaleData[,genotypes, 1], type = "l", lty = 1,
           main = "Female Mosquitoes", ylab = "", lwd=lwd,
-          ylim = c(0, max(femaleData[,genotypes, 1])),
+          ylim = c(0, fMax),
           xlim = c(0, xLim), yaxs = "i", xaxs = "i",
           col = col, panel.first=grid())
   title(ylab = "Population", line = 2)
@@ -432,7 +434,7 @@ plotmPlexSingle <- function(directory, whichPatches = NULL, totalPop = TRUE,
   par(mar = c(2,2,3,1), las = 1)
   matplot(x = xPlace, y = maleData[,genotypes,1], type = "l", lty = 1,
           main = "Male Mosquitoes", ylab = "", lwd=lwd,
-          ylim = c(0, max(maleData[,genotypes, 1])),
+          ylim = c(0, mMax),
           xlim = c(0, xLim), yaxs = "i", xaxs = "i",
           col = col, panel.first=grid())
   mtext(patches[1], side = 4, line = 0.5, las = 0, cex = 0.9, font = 2)
@@ -447,9 +449,9 @@ plotmPlexSingle <- function(directory, whichPatches = NULL, totalPop = TRUE,
   plot.new()
   par(font = 2)
   legend(x = 'left',
-         inset = -0.5, # will have to play with this as widths change
+         inset = 0, # will have to play with this as widths change
          seg.len = 0, # length of line denoting the colors
-         x.intersp = 0.6,
+         x.intersp = 0.9,
          y.intersp = 0.9, # vertical space between lines
          #title = 'Genotypes',
          legend = genotypes,
@@ -471,7 +473,7 @@ plotmPlexSingle <- function(directory, whichPatches = NULL, totalPop = TRUE,
       par(mar = c(2,3,1,1), las = 1)
       matplot(x = xPlace, y = femaleData[,genotypes, patch], type = "l", lty = 1,
               ylab = "", lwd=lwd,
-              ylim = c(0, max(femaleData[,genotypes, patch])),
+              ylim = c(0, fMax),
               xlim = c(0, xLim), yaxs = "i", xaxs = "i",
               col = col, panel.first=grid())
       title(ylab = "Population", line = 2)
@@ -481,7 +483,7 @@ plotmPlexSingle <- function(directory, whichPatches = NULL, totalPop = TRUE,
       par(mar = c(2,2,1,1))
       matplot(x = xPlace, y = maleData[,genotypes,patch], type = "l", lty = 1,
               ylab = "", lwd=lwd,
-              ylim = c(0, max(maleData[,genotypes, patch])),
+              ylim = c(0, mMax),
               xlim = c(0, xLim), yaxs = "i", xaxs = "i",
               col = col, panel.first=grid())
       mtext(patches[patch], side = 4, line = 0.5, las = 0, cex = 0.9, font = 2)
@@ -646,12 +648,22 @@ plotmPlexMult <- function(directory, whichPatches = NULL, totalPop = TRUE,
   ####################
   xLim <- tail(x = dataList[[1]][[1]][ ,1,1], n = 1)
   xPlace <- dataList[[1]][[1]][ ,1,1, drop=FALSE]
+  
+  # loop through each sublist of dataList
+  #  loop through patch lists
+  #  get max, after removing time
+  yLim <- lapply(X = dataList, FUN = function(x){
+                  max(unlist(
+                    lapply(X = x, FUN = function(y){ max(y[ , -1, ]) })
+                  )) * 1.1
+                })
+  
   #plot first patch and the legend
   #female
   par(mar = c(2,3,3,1), las = 1, font.lab = 2, font.axis = 2, font.main = 2, cex.main = 1.75)
   matplot(x = xPlace, y = dataList[[2]][[1]][ ,genotypes,1], type = "l", lty = 1,
           main = "Female Mosquitoes", ylab = "", lwd=lwd,
-          ylim = c(0, max(dataList[[2]][[1]][ ,genotypes,1])),
+          ylim = c(0, yLim[[2]]),
           xlim = c(0, xLim), yaxs = "i", xaxs = "i",
           col = col, panel.first=grid())
   # add extra reps to the plot
@@ -666,7 +678,7 @@ plotmPlexMult <- function(directory, whichPatches = NULL, totalPop = TRUE,
   par(mar = c(2,2,3,1), las = 1)
   matplot(x = xPlace, y = dataList[[1]][[1]][ ,genotypes,1], type = "l", lty = 1,
           main = "Male Mosquitoes", ylab = "", lwd=lwd,
-          ylim = c(0, max(dataList[[1]][[1]][ ,genotypes,1])),
+          ylim = c(0, yLim[[1]]),
           xlim = c(0, xLim), yaxs = "i", xaxs = "i",
           col = col, panel.first=grid())
   # add extra reps to the plot
@@ -678,17 +690,12 @@ plotmPlexMult <- function(directory, whichPatches = NULL, totalPop = TRUE,
   box(lwd = 2)
   
   #legend
-  # par(mar = c(0,0,0,0), font=2)
-  # plot.new()
-  # legend(x = "left", legend = genotypes, col = col,
-  #        bty = "n", bg = "transparent",lty = 1, lwd=3,cex = 1)
-  
   plot.new()
   par(font = 2)
   legend(x = 'left',
-         inset = -0.5, # will have to play with this as widths change
+         inset = 0, # will have to play with this as widths change
          seg.len = 0, # length of line denoting the colors
-         x.intersp = 0.6,
+         x.intersp = 0.9,
          y.intersp = 0.9, # vertical space between lines
          #title = 'Genotypes',
          legend = genotypes,
@@ -710,7 +717,7 @@ plotmPlexMult <- function(directory, whichPatches = NULL, totalPop = TRUE,
       par(mar = c(2,3,1,1), las = 1)
       matplot(x = xPlace, y = dataList[[2]][[1]][ ,genotypes, patch], type = "l", lty = 1,
               ylab = "", lwd=lwd,
-              ylim = c(0, max(dataList[[2]][[1]][ ,genotypes, patch])),
+              ylim = c(0, yLim[[2]]),
               xlim = c(0, xLim), yaxs = "i", xaxs = "i",
               col = col, panel.first=grid())
       # add extra reps to the plot
@@ -725,7 +732,7 @@ plotmPlexMult <- function(directory, whichPatches = NULL, totalPop = TRUE,
       par(mar = c(2,2,1,1))
       matplot(x = xPlace, y = dataList[[1]][[1]][ ,genotypes,patch], type = "l", lty = 1,
               ylab = "", lwd=lwd,
-              ylim = c(0, max(dataList[[1]][[1]][ ,genotypes, patch])),
+              ylim = c(0, yLim[[1]]),
               xlim = c(0, xLim), yaxs = "i", xaxs = "i",
               col = col, panel.first=grid())
       # add extra reps to the plot
