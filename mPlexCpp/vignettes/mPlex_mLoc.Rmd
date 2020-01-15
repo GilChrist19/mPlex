@@ -29,9 +29,6 @@ knitr::opts_chunk$set(
   fig.height = 10.5,
   eval = TRUE
 )
-
-# set seed for reproduibility
-set.seed(seed = 42)
 ```
 
 
@@ -536,7 +533,7 @@ In this second example, we will provide fitness costs for some of the genotypes,
   * `rel2`: A second release is performed in the first patch, integrating `RR` individuals at time = 100
   * `AdPopEQ`: Patches are now different sizes, with the adult populations set as 100, 200, and 300
 
-```{r, eval=FALSE}
+```{r, eval=TRUE}
 ####################
 # Load libraries
 ####################
@@ -566,7 +563,7 @@ moveMat <- matrix(data = c(0.98, 0.02, 0,
 ####################
 # Inheritance pattern
 ####################
-# 1-locus CRISPR-like drive system, with no extra genotype-specific costs
+# 1-locus CRISPR-like drive system
 #  97% homing rate, 3% resistance rate, no backgorund mutation
 reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.97),
                                                        R = c(0.03),
@@ -685,33 +682,43 @@ aggKey
 Looking at the first patch, we see releases of 1 very early in the males, which corresponds to the `HH` genotype given in the key. We then see releases of number 5 later on, corresponding to the `RR` releases we performed. We can see how these begin to migrate into the second patch. There is some transition as the green color, 4, rises and falls in the middle. This corresponds to the `HW` heterozygous individuals. Finally, the population is primarily taken over by 2, with some 5 mixed in. These correspond to the `HR` and `RR` individuals. Notice that the population drops significantly once this has happened. This is because of the fitness costs on `HH` and `RR` individuals. The effect of this can be seen in the repetitions plot, where the `HH` individuals died out in one simulation and the population remained `WW`.  
 Notice, in the third patch which is not connected to the first two, the population begins mostly `WW`, with some `RR` and even less `SS` and heterozygous individuals. The population remains fairly constant, but begins to trend upwards as the fitness cost drives `RR` individuals out of the population. If we continued the simulation longer, eventually all of the `R` alleles would drop out of the population.
 
+```{r, echo=FALSE}
+####################
+# Cleanup before next run
+####################
+unlink(x = outFolder, recursive = TRUE)
+rm(list=ls())
+```
+
 
 
 
 ### Large Genotype Example
 
-In this second example, we will provide fitness costs for some of the genotypes, change the initial conditions of the patches, and modify the releases.  
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  echo = TRUE,
+  hold = TRUE,
+  fig.width = 7,
+  fig.height = 7,
+  eval = TRUE
+)
+```
 
-  * `omega`: Adult mortality. We provide a cost so that two of the genotypes are less fit than the wild-type
-    * `HH`: Homozygous homing individuals are only 50% as fit as wild-type
-    * `RR`: Homozygous resistant 1 individuals are 90% as fit as wild-type
-  * `aTypes3`: The third population begins as a mix of `W`, `R`, and `S` alleles, in the provided proportions
-  * `rel2`: A second release is performed in the first patch, integrating `RR` individuals at time = 100
-  * `AdPopEQ`: Patches are now different sizes, with the adult populations set as 100, 200, and 300
+In this example, we will explore a drive that targets 3 loci with variable effectiveness. We will put a fitness cost on the `HH` of the third locus, showing how each possible genotype needs to be specified in order for the fitness cost to be applied. Additionally, we'll run the simulation longer, and release different genotypes far enough apart that we can see the spread of each locus through the population. Finally, since the genotype diversity is so much more rich in this simulation, we will expand our analysis and plotting.  
 
+  * `omega`: As these parameters are stored as hashmaps, each possible genotype that we want this cost applied to must be specified. As each locus has 10 possible genotypes, and there are 3 independent loci, that gives us 10^3 different genotypes. We will simplify this by not having any `S` alleles in the population.
+  * `genOI_mLoci_Daisy()`: Since there are many genotypes, we can ask how each locus spreads within the population, and also how many individuals will have a homing allele at any locus.  
+    * First, we will plot all of the genotypes in the simulation, just to express how difficult this becomes to interpret
+    * Second, we will plot everything at the first locus, ignoring the other 2 loci
+    * Third, we will plot everything at the second locus
+    * Fourth, we will plot everything at the third locus
+    * Fifth, we will plot all individuals with an `H` allele at every locus
+    * Sixth, we will plot individuals with an `H` allele at any locus
 
-
-
-
-
-
-
-
-
-
-
-
-```{r, eval=FALSE}
+```{r, eval=TRUE}
 ####################
 # Load libraries
 ####################
@@ -723,7 +730,7 @@ library(mPlexCpp)
 outFolder <- "mPlex"
 
 simDir <- file.path(outFolder, "simDir")
-aggDir <- file.path(outFolder, "aggDir")
+aggDir <- file.path(outFolder, paste0("aggDir", 1:6))
 for(i in c(outFolder, simDir, aggDir)){ dir.create(i) }
 
                         
@@ -732,36 +739,59 @@ for(i in c(outFolder, simDir, aggDir)){ dir.create(i) }
 ####################
 # a 3-node network with 2% per day migration rate
 #  Remember, rows need to sum to 1.
-sitesNumber <- 3
-moveMat <- matrix(data = c(0.98, 0.02, 0,
-                           0.02, 0.98, 0,
-                           0, 0, 1), nrow = sitesNumber, ncol = sitesNumber, byrow = TRUE)
+sitesNumber <- 1
+moveMat <- matrix(data = 1, nrow = sitesNumber, ncol = sitesNumber, byrow = TRUE)
 
 
 ####################
 # Inheritance pattern
 ####################
-# 1-locus CRISPR-like drive system, with no extra genotype-specific costs
-#  97% homing rate, 3% resistance rate, no backgorund mutation
-reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.97),
-                                                       R = c(0.03),
-                                                       S = c(0),
-                                                       d = c(0), omega = c("HH"=0.5, "RR" = 0.9))
+# generate adult lifetime fitness cost
+# Remember, each possible genotype must be specified.
+# lociGenos are the alleles at each locus,
+lociGenos <- c('HH','HR','HW','RR','RW','WW')
+
+# complete genoes are all combinations at all 3 loci, 216 long for 3 genotypes 
+#  and 6 different allele combinations
+completeGenos <- expand.grid(lociGenos,lociGenos,lociGenos)
+
+# find genotypes with HH at the third locus
+#  We are ignoring all the rest of things, all combinations of 2 at each locus, etc.
+#  Because I don't want to write all the code I need to do that.
+locus1 <- grep(pattern = "HH", x = completeGenos$Var1, fixed = TRUE, useBytes = TRUE)
+
+# combine loci names into a single list
+completeGenos <- do.call(what = paste0, args = completeGenos)
+
+# create named vector of fitness cost
+#  since the default fitness is 1, we don't need to specify any genotypes that 
+#  don't have a cost. Thus, only adding the ones with a fitness cost on the 
+#  first locus.
+omega <- setNames(object = rep.int(x = 0.6, times = length(locus1)),
+                  nm = completeGenos[locus1])
+
+# 3-locus CRISPR-like drive system
+#  first locus is high homing, second is medium, third is poor
+reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.95, 0.8, 0.4),
+                                                       R = c(0.05, 0.2, 0.6),
+                                                       S = c(0, 0, 0),
+                                                       d = c(0, 0, 0),
+                                                       omega = omega)
 
 
 ####################
 # Setup Initial genotype ratios
 ####################
-# 1 locus, start completely wild-type
-aTypes1 <- vector(mode = "list", length = 1L) #1 locus
-aTypes1[[1]]$alleles <- c("W")
-aTypes1[[1]]$probs <- c(1L)
-aTypes3 <- vector(mode = "list", length = 1L) #1 locus
-aTypes3[[1]]$alleles <- c("W", "R", "S")
-aTypes3[[1]]$probs <- c(0.8, 0.15, 0.05)
-
+# 3 locus, start completely wild-type
+aTypes <- vector(mode = "list", length = 3L) #3 locus
+aTypes[[1]]$alleles <- c("W")
+aTypes[[1]]$probs <- c(1L)
+aTypes[[2]]$alleles <- c("W")
+aTypes[[2]]$probs <- c(1L)
+aTypes[[3]]$alleles <- c("W")
+aTypes[[3]]$probs <- c(1L)
 # replicate so each patch starts the same
-AllAlleles <- list(aTypes1, aTypes1, aTypes3)
+AllAlleles <- list(aTypes)
 
 
 ####################
@@ -778,25 +808,32 @@ patchReleases = replicate(n = sitesNumber,
 rel1 <- basicRepeatedReleases(releaseStart = 50,
                                          releaseEnd = 60,
                                          releaseInterval = 5,
-                                         genMos = c("HH"),
-                                         numMos = c(25),
+                                         genMos = c("HHWWWW"),
+                                         numMos = 25,
                                          minAge = 16,
                                          maxAge = 24,
                                          ageDist = rep(x = 1, times = 24-16+1)/9)
 
-rel2 <- basicRepeatedReleases(releaseStart = 100,
-                                         releaseEnd = 110,
+rel2 <- basicRepeatedReleases(releaseStart = 400,
+                                         releaseEnd = 410,
                                          releaseInterval = 5,
-                                         genMos = c("RR"),
-                                         numMos = c(25),
+                                         genMos = c("WWHHWW"),
+                                         numMos = 25,
                                          minAge = 16,
                                          maxAge = 24,
                                          ageDist = rep(x = 1, times = 24-16+1)/9)
 
+rel3 <- basicRepeatedReleases(releaseStart = 750,
+                                         releaseEnd = 760,
+                                         releaseInterval = 5,
+                                         genMos = c("WWWWHH"),
+                                         numMos = 25,
+                                         minAge = 16,
+                                         maxAge = 24,
+                                         ageDist = rep(x = 1, times = 24-16+1)/9)
 
+patchReleases[[1]]$maleReleases <- c(rel1, rel2, rel3)
 
-
-patchReleases[[1]]$maleReleases <- c(rel1, rel2)
 
 # default migration rate is 0, so no actual batch migration
 migrationBatch <- basicBatchMigration(numPatches = sitesNumber)
@@ -806,9 +843,9 @@ migrationBatch <- basicBatchMigration(numPatches = sitesNumber)
 # Parameter Setup
 ####################
 netPar = NetworkParameters(nPatch = sitesNumber,
-                           simTime = 365*3,
+                           simTime = 365*6,
                            sampTime = 2,
-                           AdPopEQ = c(100, 200, 300),
+                           AdPopEQ = 250,
                            runID = 1L,
                            dayGrowthRate = 1.175,
                            beta = 20, tEgg = 5, tLarva = 6, tPupa = 4, muAd = 0.09)
@@ -818,7 +855,7 @@ netPar = NetworkParameters(nPatch = sitesNumber,
 ####################
 runMPlex(seed = 10,
          numThreads = 3,
-         numReps = 5, 
+         numReps = 1, 
          networkParameters = netPar,
          reproductionReference = reproductionReference,
          initAlleles = AllAlleles,
@@ -832,20 +869,114 @@ runMPlex(seed = 10,
 
 
 ####################
-# Post Analysis
+# Aggregation Keys
 ####################
-# setup aggregation key
-#  this example sets all genotypes as different
-genOI_mLoci_Daisy(outputFile = file.path(aggDir, "0_AggKey.csv"), 
-                  genotypes = list(NULL), collapse = c(FALSE))
+# Set all genotypes as different
+genOI_mLoci_Daisy(outputFile = file.path(aggDir[1], "0_AggKey.csv"), 
+                  genotypes = list(NULL, NULL, NULL),
+                  collapse = c(FALSE, FALSE, FALSE))
+
+# look at the first locus, ignore everything at the other two
+genOI_mLoci_Daisy(outputFile = file.path(aggDir[2], "0_AggKey.csv"), 
+                  genotypes = list(NULL, NULL, NULL),
+                  collapse = c(FALSE, TRUE, TRUE))
+
+# look at the second locus, ignore other two
+genOI_mLoci_Daisy(outputFile = file.path(aggDir[3], "0_AggKey.csv"), 
+                  genotypes = list(NULL, NULL, NULL),
+                  collapse = c(TRUE, FALSE, TRUE))
+
+# look at the third locus, ignore other two
+genOI_mLoci_Daisy(outputFile = file.path(aggDir[4], "0_AggKey.csv"), 
+                  genotypes = list(NULL, NULL, NULL),
+                  collapse = c(TRUE, TRUE, FALSE))
+
+# H allele at every locus, either 1 H or 2
+genOI_mLoci_Daisy(outputFile = file.path(aggDir[5], "0_AggKey.csv"), 
+                  genotypes = list(c("HH","HR","HW"), c("HH","HR","HW"), c("HH","HR","HW")),
+                  collapse = c(TRUE, TRUE, TRUE))
+
+# H allele at any locus
+#  this will aggregate all of the other loci, so the "other" category will 
+#  contain anything with an H allele at any locus
+genOI_mLoci_Daisy(outputFile = file.path(aggDir[6], "0_AggKey.csv"), 
+                  genotypes = list(c("RR","RW","WW"), c("RR","RW","WW"), c("RR","RW","WW")),
+                  collapse = c(TRUE, TRUE, TRUE))
 
 
+####################
+# Aggregate
+####################
 # aggregate experiment by aggregation key
-simAggregation(readDirectory = simDir, writeDirectory = aggDir, 
+for(x in aggDir){
+  simAggregation(readDirectory = simDir, writeDirectory = x, 
                simTime = netPar$simTime, sampTime = netPar$sampTime)
-
-
-# plot for example
-plotmPlexSingle(directory = aggDir, whichPatches = NULL, nonZeroGen = FALSE)
-plotmPlexMult(directory = aggDir,whichPatches = NULL, nonZeroGen = FALSE, lwd=0.35,alpha=0.75)
+}
 ```
+
+
+
+
+```{r}
+# all genotypes different
+aggKey <- read.csv(file = file.path(aggDir[1], "0_AggKey.csv"), header = TRUE)
+aggKey
+
+plotmPlexSingle(directory = aggDir[1], whichPatches = NULL, nonZeroGen = FALSE)
+```
+
+
+```{r}
+# First locus
+aggKey <- read.csv(file = file.path(aggDir[2], "0_AggKey.csv"), header = TRUE)
+aggKey
+
+plotmPlexSingle(directory = aggDir[2], whichPatches = NULL, nonZeroGen = FALSE)
+```
+
+```{r}
+# second locus
+aggKey <- read.csv(file = file.path(aggDir[3], "0_AggKey.csv"), header = TRUE)
+aggKey
+
+plotmPlexSingle(directory = aggDir[3], whichPatches = NULL, nonZeroGen = FALSE)
+```
+
+```{r}
+# third locus
+aggKey <- read.csv(file = file.path(aggDir[4], "0_AggKey.csv"), header = TRUE)
+aggKey
+
+plotmPlexSingle(directory = aggDir[4], whichPatches = NULL, nonZeroGen = FALSE)
+```
+
+```{r}
+# H at every locus
+aggKey <- read.csv(file = file.path(aggDir[5], "0_AggKey.csv"), header = TRUE)
+aggKey
+
+plotmPlexSingle(directory = aggDir[5], whichPatches = NULL, nonZeroGen = FALSE)
+```
+
+```{r}
+# H at any locus
+aggKey <- read.csv(file = file.path(aggDir[6], "0_AggKey.csv"), header = TRUE)
+aggKey
+
+plotmPlexSingle(directory = aggDir[6], whichPatches = NULL, nonZeroGen = FALSE)
+```
+
+
+
+
+
+
+
+```{r, echo=FALSE}
+####################
+# Cleanup before next run
+####################
+unlink(x = outFolder, recursive = TRUE)
+rm(list=ls())
+```
+
