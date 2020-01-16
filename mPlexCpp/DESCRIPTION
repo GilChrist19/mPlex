@@ -17,3 +17,5 @@ RoxygenNote: 7.0.2
 Roxygen: list(markdown = TRUE)
 SystemRequirements: C++14
 ByteCompile: true
+Suggests: knitr, rmarkdown
+VignetteBuilder: knitr
