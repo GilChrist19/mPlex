@@ -7,6 +7,43 @@
 #                                               /_/   /_/      
 ###############################################################################
 ########################################################################
+# Calculate Parameter Values
+########################################################################
+
+#' Solve for Omega (additional genotype-specific mortality)
+#'
+#' Solves for root of equation of geometrically-distributed lifespan for value of omega.
+#'
+#' @param mu Daily mortality probability (discrete-time hazard, called \code{muAd} in code)
+#' @param lifespanReduction Target reduced lifespan, between 0 and 1
+#' (target average lifespan will be \eqn{\frac{1}{\mu_{Ad}} \times lifespanReduction})
+#'
+#' @importFrom stats uniroot
+#'
+#' @examples
+#' # reduce lifespan by 10%
+#' #  Example mu is an average for Aedes
+#' newOmega <- calcOmega(mu = 0.11, lifespanReduction = 0.90)
+#'
+#' @export
+calcOmega <- function(mu, lifespanReduction){
+
+  # safety check
+  if(lifespanReduction > 1 | lifespanReduction < 0){
+    stop("parameter 'lifespanReduction' must be in interval [0,1]")
+  }
+
+  lifespan <- (1/mu) * lifespanReduction
+
+  calcOmega_f <- function(omega, mu, lifespan){
+    (1/(1-omega+(omega*mu)))-lifespan
+  }
+
+  return(uniroot(f=calcOmega_f, interval=c(0,1), lifespan=lifespan,
+                 mu=mu,maxiter=1e4)$root)
+}
+
+########################################################################
 # Delete files in a directory
 ########################################################################
 eraseDirectory <- function(directory){

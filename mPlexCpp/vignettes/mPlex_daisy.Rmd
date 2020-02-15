@@ -1,0 +1,873 @@
+---
+title: "mPlex Daisy Drive Example"
+#output: rmarkdown::pdf_document
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{mPlex-daisy}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{css, echo = FALSE}
+pre {
+  white-space: pre !important;
+  overflow-y: scroll !important;
+  max-height: 25vh !important;
+}
+
+# reference
+#  https://stackoverflow.com/questions/41135085/how-to-make-vertical-scrollbar-appear-in-rmarkdown-code-chunks-html-view
+```
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  echo = TRUE,
+  hold = TRUE,
+  fig.width = 7,
+  fig.height = 10.5,
+  eval = TRUE
+)
+```
+
+
+## mPlex - Daisy-Chain Inheritance Simulation
+
+The [Daisy Chain gene drive](https://doi.org/10.1073/pnas.1716358116) is a creation 
+of [Keven Esvelt](http://www.sculptingevolution.org/kevin-m-esvelt) and [Martin Nowak](http://www.martinnowak.com/). 
+This drive purportedly provides local control over the spread of a gene drive. As 
+implemented in *mPlex*, the first piece drives the second, the second drives the third, 
+and so on. We have already covered the basics of setting-up, running, and analyzing 
+simulations in *mPlex*, using a [multiplex](mPlex_mLoc.html) inheritance design, so 
+here we explore scenarios using a Daisy-Chain of differing lengths. 
+
+### Daisy-Chain With One Link
+
+The first piece of a Daisy-Chain is not driven by any other piece, therefore it 
+follows standard mendelian behavior. Here, we will explore two scenarios: basic 
+Mendelian inheritance, and Mendelian inheritance demonstrating a heterozygous 
+advantage. These two examples match the first 3 examples provided with [MGDrivE](https://cran.r-project.org/package=MGDrivE), 
+in the *MGDrivE-Examples* vignette. These simulations are performed in 1, well-mixed 
+population. 
+
+#### Basic Mendelian Inheritance
+
+First, we explore a one-piece Daisy-Chain with no fitness costs. 
+
+```{r, eval=TRUE}
+####################
+# Load libraries
+####################
+library(mPlexCpp)
+
+####################
+# Output Folder
+####################
+outFolder <- "mPlex"
+
+simDir <- file.path(outFolder, "simDir")
+aggDir <- file.path(outFolder, "aggDir")
+for(i in c(outFolder, simDir, aggDir)){ dir.create(i) }
+
+                        
+####################
+# Landscape
+####################
+# a 1-node network, ie, just one, well-mixed population
+sitesNumber <- 1
+moveMat <- as.matrix(1)
+
+
+####################
+# Inheritance pattern
+####################
+# a 1-locus Daisy behaves like a Mendelian drive, and we add no extra costs to 
+#  it here, along with no background mutations
+reproductionReference <- MakeReference_DaisyDrive(H = c(0),
+                                                  R = c(0),
+                                                  S = c(0),
+                                                  d = c(0))
+
+
+####################
+# Setup Initial genotype ratios
+####################
+# 1 locus, start completely wild-type
+alleloTypes <- vector(mode = "list", length = 1L) #1 locus
+alleloTypes[[1]]$alleles <- c("W")
+alleloTypes[[1]]$probs <- c(1)
+
+# replicate so each patch starts the same
+AllAlleles <- replicate(n = sitesNumber, expr = alleloTypes, simplify = FALSE)
+
+
+####################
+# Setup releases and batch migration
+####################
+# create Release List
+patchReleases = replicate(n = sitesNumber,
+                          expr = list(maleReleases = NULL,
+                                      femaleReleases = NULL,
+                                      eggReleases = NULL),
+                          simplify = FALSE)
+
+# Create release object to pass to patches
+patchReleases[[1]]$maleReleases <- basicRepeatedReleases(releaseStart = 25,
+                                         releaseEnd = 26,
+                                         releaseInterval = 1,
+                                         genMos = c("HH"),
+                                         numMos = c(10),
+                                         minAge = 16,
+                                         maxAge = 24,
+                                         ageDist = rep(x = 1, times = 24-16+1)/9)
+
+# default migration rate is 0, so no actual batch migration
+migrationBatch <- basicBatchMigration(numPatches = sitesNumber)
+
+
+####################
+# Parameter Setup
+####################
+netPar = NetworkParameters(nPatch = sitesNumber,
+                           simTime = 365,
+                           sampTime = 2,
+                           AdPopEQ = 500,
+                           runID = 1L,
+                           dayGrowthRate = 1.175,
+                           beta = 20, tEgg = 5, tLarva = 6, tPupa = 4, muAd = 0.09)
+
+####################
+# Run Simulation
+####################
+runMPlex(seed = 10,
+         numThreads = 1,
+         numReps = 5, 
+         networkParameters = netPar,
+         reproductionReference = reproductionReference,
+         initAlleles = AllAlleles,
+         patchReleases = patchReleases,
+         migrationMale = moveMat,
+         migrationFemale = moveMat,
+         migrationBatch = migrationBatch,
+         outputDirectory = simDir,
+         reproductionType = "DaisyDrive",
+         verbose = FALSE)
+
+
+####################
+# Post Analysis
+####################
+# setup aggregation key
+#  this example sets all genotypes as different
+genOI_mLoci_Daisy(outputFile = file.path(aggDir, "0_AggKey.csv"), 
+                  genotypes = list(NULL), collapse = c(FALSE))
+
+
+# aggregate experiment by aggregation key
+simAggregation(readDirectory = simDir, writeDirectory = aggDir, 
+               simTime = netPar$simTime, sampTime = netPar$sampTime)
+
+
+# plot for example
+plotmPlexSingle(directory = aggDir, whichPatches = NULL, nonZeroGen = FALSE)
+plotmPlexMult(directory = aggDir,whichPatches = NULL, nonZeroGen = FALSE, lwd=0.35,alpha=0.75)
+```
+
+```{r, eval=TRUE, include = FALSE}
+aggKey <- read.csv(file = file.path(aggDir, "0_AggKey.csv"), header = TRUE, 
+                   stringsAsFactors = FALSE)
+aggKey
+```
+
+Looking at the plots, we see that only 3 genotypes are represented. These represent 
+the three genotypes we expect: 10 is `r aggKey$Key[10]`, 1 is `r aggKey$Key[1]`, 
+and 4 is `r aggKey$Key[4]`, the heterozygote. We see the initial release of `r aggKey$Key[1]` 
+in the males, then the formation of heterozygotes, since it remains at such a low 
+frequency. However, it doesn't die out, becuase there is no fitness cost on any of 
+the pieces.
+
+```{r, echo=FALSE}
+####################
+# Cleanup before next run
+####################
+unlink(x = outFolder, recursive = TRUE)
+rm(list=ls())
+```
+
+
+#### Mendelian Inheritance with a Fitness Cost
+
+Our second exploration will again have Mendelian inheritance, but now with a fitness 
+cost. We apply a 40% fitness cost on the homozygotes, pushing the population to 
+be almost completely heterozygous. Additionally, we will increase the size and number 
+of releases to speed up the process.
+
+```{r, eval=TRUE}
+####################
+# Load libraries
+####################
+library(mPlexCpp)
+
+####################
+# Output Folder
+####################
+outFolder <- "mPlex"
+
+outFolder <- "~/Desktop/OUTPUT/mPlex"
+
+simDir <- file.path(outFolder, "simDir")
+aggDir <- file.path(outFolder, "aggDir")
+for(i in c(outFolder, simDir, aggDir)){ dir.create(i) }
+
+                        
+####################
+# Landscape
+####################
+# a 1-node network, ie, just one, well-mixed population
+sitesNumber <- 1
+moveMat <- as.matrix(1)
+
+
+####################
+# Inheritance pattern
+####################
+# a 1-locus Daisy behaves like a Mendelian drive, but we add an extra cost to 
+#  the homozygotes, along with no background mutations
+
+# These genotypes correspond to ones in the cube. Look at a base cube first,
+#  then set this.
+# homozygotes are 60% as fit as heterozygote over their entire lifetime
+#  Since omega is the adult daily death rate, we use the built-in function to
+#  calculate our desired lifetime cost as applied daily
+dayOmega <- calcOmega(mu = 0.09, lifespanReduction = 0.60)
+omegaNew <- c("HH"=dayOmega, "WW"=dayOmega)
+reproductionReference <- MakeReference_DaisyDrive(H = c(0),
+                                                  R = c(0),
+                                                  S = c(0),
+                                                  d = c(0),
+                                                  omega = omegaNew)
+
+
+####################
+# Setup Initial genotype ratios
+####################
+# 1 locus, start completely wild-type
+alleloTypes <- vector(mode = "list", length = 1L) #1 locus
+alleloTypes[[1]]$alleles <- c("W")
+alleloTypes[[1]]$probs <- c(1)
+
+# replicate so each patch starts the same
+AllAlleles <- replicate(n = sitesNumber, expr = alleloTypes, simplify = FALSE)
+
+
+####################
+# Setup releases and batch migration
+####################
+# create Release List
+patchReleases = replicate(n = sitesNumber,
+                          expr = list(maleReleases = NULL,
+                                      femaleReleases = NULL,
+                                      eggReleases = NULL),
+                          simplify = FALSE)
+
+# Create release object to pass to patches
+releaseVec <- basicRepeatedReleases(releaseStart = 100,
+                                         releaseEnd = 104,
+                                         releaseInterval = 1,
+                                         genMos = c("HH"),
+                                         numMos = c(50),
+                                         minAge = 16,
+                                         maxAge = 24,
+                                         ageDist = rep(x = 1, times = 24-16+1)/9)
+
+patchReleases[[1]]$maleReleases <- releaseVec
+#patchReleases[[1]]$femaleReleases <- releaseVec
+
+# default migration rate is 0, so no actual batch migration
+migrationBatch <- basicBatchMigration(numPatches = sitesNumber)
+
+
+####################
+# Parameter Setup
+####################
+netPar = NetworkParameters(nPatch = sitesNumber,
+                           simTime = 365*2,
+                           sampTime = 2,
+                           AdPopEQ = 50,
+                           runID = 1L,
+                           dayGrowthRate = 1.175,
+                           beta = 20, tEgg = 5, tLarva = 6, tPupa = 4, muAd = 0.09)
+
+####################
+# Run Simulation
+####################
+runMPlex(seed = 10,
+         numThreads = 1,
+         numReps = 5, 
+         networkParameters = netPar,
+         reproductionReference = reproductionReference,
+         initAlleles = AllAlleles,
+         patchReleases = patchReleases,
+         migrationMale = moveMat,
+         migrationFemale = moveMat,
+         migrationBatch = migrationBatch,
+         outputDirectory = simDir,
+         reproductionType = "DaisyDrive",
+         verbose = TRUE)
+
+
+####################
+# Post Analysis
+####################
+# setup aggregation key
+#  this example sets all genotypes as different
+genOI_mLoci_Daisy(outputFile = file.path(aggDir, "0_AggKey.csv"), 
+                  genotypes = list(NULL), collapse = c(FALSE))
+
+
+# aggregate experiment by aggregation key
+simAggregation(readDirectory = simDir, writeDirectory = aggDir, 
+               simTime = netPar$simTime, sampTime = netPar$sampTime)
+
+
+# plot for example
+plotmPlexSingle(directory = aggDir, whichPatches = NULL, nonZeroGen = FALSE)
+plotmPlexMult(directory = aggDir,whichPatches = NULL, nonZeroGen = FALSE, lwd=0.35,alpha=0.75)
+```
+
+```{r, eval=TRUE, include = FALSE}
+aggKey <- read.csv(file = file.path(aggDir, "0_AggKey.csv"), header = TRUE, 
+                   stringsAsFactors = FALSE)
+aggKey
+```
+
+Looking at the plots, we see that only 3 genotypes are represented. These represent 
+the three genotypes we expect: 10 is `r aggKey$Key[10]`, 1 is `r aggKey$Key[1]`, 
+and 4 is `r aggKey$Key[4]`, the heterozygote. We see the initial release of `r aggKey$Key[1]` 
+in the males, then the formation of heterozygotes, since it remains at such a low 
+frequency. However, it doesn't die out, becuase there is no fitness cost on any of 
+the pieces.
+
+```{r, echo=FALSE}
+####################
+# Cleanup before next run
+####################
+unlink(x = outFolder, recursive = TRUE)
+rm(list=ls())
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Small Genotype Example
+
+In this second example, we will provide fitness costs for some of the genotypes, change the initial conditions of the patches, and modify the releases.  
+
+  * `omega`: Adult mortality. We provide a cost so that two of the genotypes are less fit than the wild-type
+    * `HH`: Homozygous homing individuals are only 50% as fit as wild-type
+    * `RR`: Homozygous resistant 1 individuals are 90% as fit as wild-type
+  * `aTypes3`: The third population begins as a mix of `W`, `R`, and `S` alleles, in the provided proportions
+  * `rel2`: A second release is performed in the first patch, integrating `RR` individuals at time = 100
+  * `AdPopEQ`: Patches are now different sizes, with the adult populations set as 100, 200, and 300
+  * `sampTime`: We sample every other day by setting the `sampTime` parameter as 2
+
+```{r, eval=TRUE}
+####################
+# Load libraries
+####################
+library(mPlexCpp)
+
+####################
+# Output Folder
+####################
+outFolder <- "mPlex"
+
+simDir <- file.path(outFolder, "simDir")
+aggDir <- file.path(outFolder, "aggDir")
+for(i in c(outFolder, simDir, aggDir)){ dir.create(i) }
+
+                        
+####################
+# Landscape
+####################
+# a 3-node network with 2% per day migration rate
+#  Remember, rows need to sum to 1.
+sitesNumber <- 3
+moveMat <- matrix(data = c(0.98, 0.02, 0,
+                           0.02, 0.98, 0,
+                           0, 0, 1), nrow = sitesNumber, ncol = sitesNumber, byrow = TRUE)
+
+
+####################
+# Inheritance pattern
+####################
+# 1-locus CRISPR-like drive system
+#  97% homing rate, 3% resistance rate, no backgorund mutation
+reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.97),
+                                                       R = c(0.03),
+                                                       S = c(0),
+                                                       d = c(0), omega = c("HH"=0.5, "RR" = 0.9))
+
+
+####################
+# Setup Initial genotype ratios
+####################
+# 1 locus, start completely wild-type in patches 1 and 2
+#  start with a mixture in patch 3
+aTypes1 <- vector(mode = "list", length = 1L) #1 locus
+aTypes1[[1]]$alleles <- c("W")
+aTypes1[[1]]$probs <- c(1L)
+aTypes3 <- vector(mode = "list", length = 1L) #1 locus
+aTypes3[[1]]$alleles <- c("W", "R", "S")
+aTypes3[[1]]$probs <- c(0.8, 0.15, 0.05)
+
+# replicate so each patch starts the same
+AllAlleles <- list(aTypes1, aTypes1, aTypes3)
+
+
+####################
+# Setup releases and batch migration
+####################
+# create Release List
+patchReleases = replicate(n = sitesNumber,
+                          expr = list(maleReleases = NULL,
+                                      femaleReleases = NULL,
+                                      eggReleases = NULL),
+                          simplify = FALSE)
+
+# Create release object to pass to patches
+rel1 <- basicRepeatedReleases(releaseStart = 50,
+                                         releaseEnd = 60,
+                                         releaseInterval = 5,
+                                         genMos = c("HH"),
+                                         numMos = c(25),
+                                         minAge = 16,
+                                         maxAge = 24,
+                                         ageDist = rep(x = 1, times = 24-16+1)/9)
+
+rel2 <- basicRepeatedReleases(releaseStart = 100,
+                                         releaseEnd = 110,
+                                         releaseInterval = 5,
+                                         genMos = c("RR"),
+                                         numMos = c(25),
+                                         minAge = 16,
+                                         maxAge = 24,
+                                         ageDist = rep(x = 1, times = 24-16+1)/9)
+
+
+
+
+patchReleases[[1]]$maleReleases <- c(rel1, rel2)
+
+# default migration rate is 0, so no actual batch migration
+migrationBatch <- basicBatchMigration(numPatches = sitesNumber)
+
+
+####################
+# Parameter Setup
+####################
+netPar = NetworkParameters(nPatch = sitesNumber,
+                           simTime = 365*3,
+                           sampTime = 2,
+                           AdPopEQ = c(100, 200, 300),
+                           runID = 1L,
+                           dayGrowthRate = 1.175,
+                           beta = 20, tEgg = 5, tLarva = 6, tPupa = 4, muAd = 0.09)
+
+####################
+# Run Simulation
+####################
+runMPlex(seed = 10,
+         numThreads = 1,
+         numReps = 5, 
+         networkParameters = netPar,
+         reproductionReference = reproductionReference,
+         initAlleles = AllAlleles,
+         patchReleases = patchReleases,
+         migrationMale = moveMat,
+         migrationFemale = moveMat,
+         migrationBatch = migrationBatch,
+         outputDirectory = simDir,
+         reproductionType = "mPlex_mLoci",
+         verbose = FALSE)
+
+
+####################
+# Post Analysis
+####################
+# setup aggregation key
+#  this example sets all genotypes as different
+genOI_mLoci_Daisy(outputFile = file.path(aggDir, "0_AggKey.csv"), 
+                  genotypes = list(NULL), collapse = c(FALSE))
+
+
+# aggregate experiment by aggregation key
+simAggregation(readDirectory = simDir, writeDirectory = aggDir, 
+               simTime = netPar$simTime, sampTime = netPar$sampTime)
+
+
+# plot for example
+plotmPlexSingle(directory = aggDir, whichPatches = NULL, nonZeroGen = FALSE)
+plotmPlexMult(directory = aggDir,whichPatches = NULL, nonZeroGen = FALSE, lwd=0.35,alpha=0.75)
+```
+
+Looking at the aggkey, we can determine what genotypes appear when, and how they take-over the final populations.  
+
+```{r}
+aggKey <- read.csv(file = file.path(aggDir, "0_AggKey.csv"), header = TRUE)
+aggKey
+```
+
+Looking at the first patch, we see releases of 1 very early in the males, which corresponds to the `HH` genotype given in the key. We then see releases of number 5 later on, corresponding to the `RR` releases we performed. We can see how these begin to migrate into the second patch. There is some transition as the green color, 4, rises and falls in the middle. This corresponds to the `HW` heterozygous individuals. Finally, the population is primarily taken over by 2, with some 5 mixed in. These correspond to the `HR` and `RR` individuals. Notice that the population drops significantly once this has happened. This is because of the fitness costs on `HH` and `RR` individuals. The effect of this can be seen in the repetitions plot, where the `HH` individuals died out in one simulation and the population remained `WW`.  
+Notice, in the third patch which is not connected to the first two, the population begins mostly `WW`, with some `RR` and even less `SS` and heterozygous individuals. The population remains fairly constant, but begins to trend upwards as the fitness cost drives `RR` individuals out of the population. If we continued the simulation longer, eventually all of the `R` alleles would drop out of the population.
+
+```{r, echo=FALSE}
+####################
+# Cleanup before next run
+####################
+unlink(x = outFolder, recursive = TRUE)
+rm(list=ls())
+```
+
+
+
+
+### Large Genotype Example
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  echo = TRUE,
+  hold = TRUE,
+  fig.width = 7,
+  fig.height = 7,
+  eval = TRUE
+)
+```
+
+In this example, we will explore a drive that targets 3 loci with variable effectiveness. We will put a fitness cost on the `HH` of the first locus, showing how each possible genotype needs to be specified in order for the fitness cost to be applied. Additionally, we'll run the simulation longer, and release different genotypes far enough apart that we can see the spread of each locus through the population. Finally, since the genotype diversity is so much more rich in this simulation, we will expand our analysis and plotting.  
+
+  * `omega`: As these parameters are stored as hashmaps, each possible genotype that we want this cost applied to must be specified. As each locus has 10 possible genotypes, and there are 3 independent loci, that gives us 10^3 different genotypes. We will simplify this by not having any `S` alleles in the population.
+  * `genOI_mLoci_Daisy()`: Since there are many genotypes, we can ask how each locus spreads within the population, and also how many individuals will have a homing allele at any locus.  
+    * First, we will plot all of the genotypes in the simulation, just to express how difficult this becomes to interpret
+    * Second, we will plot everything at the first locus, ignoring the other 2 loci
+    * Third, we will plot everything at the second locus
+    * Fourth, we will plot everything at the third locus
+    * Fifth, we will plot individuals with an `H` allele at every locus
+    * Sixth, we will plot individuals with an `H` allele at any locus
+
+```{r, eval=TRUE}
+####################
+# Load libraries
+####################
+library(mPlexCpp)
+
+####################
+# Output Folder
+####################
+outFolder <- "mPlex"
+
+simDir <- file.path(outFolder, "simDir")
+aggDir <- file.path(outFolder, paste0("aggDir", 1:6))
+for(i in c(outFolder, simDir, aggDir)){ dir.create(i) }
+
+                        
+####################
+# Landscape
+####################
+# a 1-node network
+sitesNumber <- 1
+moveMat <- matrix(data = 1, nrow = sitesNumber, ncol = sitesNumber, byrow = TRUE)
+
+
+####################
+# Inheritance pattern
+####################
+# generate adult lifetime fitness cost
+# Remember, each possible genotype must be specified.
+# lociGenos are the alleles at each locus,
+lociGenos <- c('HH','HR','HW','RR','RW','WW')
+
+# complete genoes are all combinations at all 3 loci, 216 long for 3 genotypes 
+#  and 6 different allele combinations
+completeGenos <- expand.grid(lociGenos,lociGenos,lociGenos)
+
+# find genotypes with HH at the third locus
+#  We are ignoring all the rest of things, all combinations of 2 at each locus, etc.
+#  Because I don't want to write all the code I need to do that.
+locus1 <- grep(pattern = "HH", x = completeGenos$Var1, fixed = TRUE, useBytes = TRUE)
+
+# combine loci names into a single list
+completeGenos <- do.call(what = paste0, args = completeGenos)
+
+# create named vector of fitness cost
+#  since the default fitness is 1, we don't need to specify any genotypes that 
+#  don't have a cost. Thus, only adding the ones with a fitness cost on the 
+#  first locus.
+omega <- setNames(object = rep.int(x = 0.6, times = length(locus1)),
+                  nm = completeGenos[locus1])
+
+# 3-locus CRISPR-like drive system
+#  first locus is high homing, second is medium, third is poor
+reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.95, 0.8, 0.4),
+                                                       R = c(0.05, 0.2, 0.6),
+                                                       S = c(0, 0, 0),
+                                                       d = c(0, 0, 0),
+                                                       omega = omega)
+
+
+####################
+# Setup Initial genotype ratios
+####################
+# 3 locus, start completely wild-type
+aTypes <- vector(mode = "list", length = 3L) #3 locus
+aTypes[[1]]$alleles <- c("W")
+aTypes[[1]]$probs <- c(1L)
+aTypes[[2]]$alleles <- c("W")
+aTypes[[2]]$probs <- c(1L)
+aTypes[[3]]$alleles <- c("W")
+aTypes[[3]]$probs <- c(1L)
+# replicate so each patch starts the same
+AllAlleles <- list(aTypes)
+
+
+####################
+# Setup releases and batch migration
+####################
+# create Release List
+patchReleases = replicate(n = sitesNumber,
+                          expr = list(maleReleases = NULL,
+                                      femaleReleases = NULL,
+                                      eggReleases = NULL),
+                          simplify = FALSE)
+
+# Create release object to pass to patches
+rel1 <- basicRepeatedReleases(releaseStart = 50,
+                                         releaseEnd = 60,
+                                         releaseInterval = 5,
+                                         genMos = c("HHWWWW"),
+                                         numMos = 25,
+                                         minAge = 16,
+                                         maxAge = 24,
+                                         ageDist = rep(x = 1, times = 24-16+1)/9)
+
+rel2 <- basicRepeatedReleases(releaseStart = 400,
+                                         releaseEnd = 410,
+                                         releaseInterval = 5,
+                                         genMos = c("WWHHWW"),
+                                         numMos = 25,
+                                         minAge = 16,
+                                         maxAge = 24,
+                                         ageDist = rep(x = 1, times = 24-16+1)/9)
+
+rel3 <- basicRepeatedReleases(releaseStart = 750,
+                                         releaseEnd = 760,
+                                         releaseInterval = 5,
+                                         genMos = c("WWWWHH"),
+                                         numMos = 25,
+                                         minAge = 16,
+                                         maxAge = 24,
+                                         ageDist = rep(x = 1, times = 24-16+1)/9)
+
+patchReleases[[1]]$maleReleases <- c(rel1, rel2, rel3)
+
+
+# default migration rate is 0, so no actual batch migration
+migrationBatch <- basicBatchMigration(numPatches = sitesNumber)
+
+
+####################
+# Parameter Setup
+####################
+netPar = NetworkParameters(nPatch = sitesNumber,
+                           simTime = 365*6,
+                           sampTime = 2,
+                           AdPopEQ = 250,
+                           runID = 1L,
+                           dayGrowthRate = 1.175,
+                           beta = 20, tEgg = 5, tLarva = 6, tPupa = 4, muAd = 0.09)
+
+####################
+# Run Simulation
+####################
+runMPlex(seed = 10,
+         numThreads = 1,
+         numReps = 1, 
+         networkParameters = netPar,
+         reproductionReference = reproductionReference,
+         initAlleles = AllAlleles,
+         patchReleases = patchReleases,
+         migrationMale = moveMat,
+         migrationFemale = moveMat,
+         migrationBatch = migrationBatch,
+         outputDirectory = simDir,
+         reproductionType = "mPlex_mLoci",
+         verbose = FALSE)
+
+
+####################
+# Aggregation Keys
+####################
+# Set all genotypes as different
+genOI_mLoci_Daisy(outputFile = file.path(aggDir[1], "0_AggKey.csv"), 
+                  genotypes = list(NULL, NULL, NULL),
+                  collapse = c(FALSE, FALSE, FALSE))
+
+# look at the first locus, ignore everything at the other two
+genOI_mLoci_Daisy(outputFile = file.path(aggDir[2], "0_AggKey.csv"), 
+                  genotypes = list(NULL, NULL, NULL),
+                  collapse = c(FALSE, TRUE, TRUE))
+
+# look at the second locus, ignore other two
+genOI_mLoci_Daisy(outputFile = file.path(aggDir[3], "0_AggKey.csv"), 
+                  genotypes = list(NULL, NULL, NULL),
+                  collapse = c(TRUE, FALSE, TRUE))
+
+# look at the third locus, ignore other two
+genOI_mLoci_Daisy(outputFile = file.path(aggDir[4], "0_AggKey.csv"), 
+                  genotypes = list(NULL, NULL, NULL),
+                  collapse = c(TRUE, TRUE, FALSE))
+
+# H allele at every locus, either 1 H or 2
+genOI_mLoci_Daisy(outputFile = file.path(aggDir[5], "0_AggKey.csv"), 
+                  genotypes = list(c("HH","HR","HW"), c("HH","HR","HW"), c("HH","HR","HW")),
+                  collapse = c(TRUE, TRUE, TRUE))
+
+# H allele at any locus
+#  this will aggregate all of the other loci, so the "other" category will 
+#  contain anything with an H allele at any locus
+genOI_mLoci_Daisy(outputFile = file.path(aggDir[6], "0_AggKey.csv"), 
+                  genotypes = list(c("RR","RW","WW"), c("RR","RW","WW"), c("RR","RW","WW")),
+                  collapse = c(TRUE, TRUE, TRUE))
+
+
+####################
+# Aggregate
+####################
+# aggregate experiment by aggregation key
+for(x in aggDir){
+  simAggregation(readDirectory = simDir, writeDirectory = x, 
+               simTime = netPar$simTime, sampTime = netPar$sampTime)
+}
+```
+
+
+```{r}
+# all genotypes different
+aggKey <- read.csv(file = file.path(aggDir[1], "0_AggKey.csv"), header = TRUE)
+head(x = aggKey, n = 5)
+tail(x = aggKey, n = 5)
+
+plotmPlexSingle(directory = aggDir[1], whichPatches = NULL, nonZeroGen = FALSE)
+```
+For our first example, we didn't aggregate the genotypes at all and instead plotted all of them independently. Since there are 10 possible genotypes at each locus, and there are 3 loci, there are 10^3 (1000) distinct genotypes. Looking at the top and the bottom 5 genotypes in the aggregation key, we see that the genotypes are numbered 1 to 1000. The plot, as expected, is almost impossible to read.  
+
+Instead, it makes more sense to look at genotypes combined by some metric. So, we'll start by looking at the behavior of each locus individually, ignoring what's happening at the other two.  
+Looking at the first locus, we see that there are 10 unique genotypes, since there are 10 genotypes at each locus, and we're aggregating over the second and third loci. This was accomplished by setting the `collapse` argument in `genOI_mLoci_Daisy()`, so that the first locus is kept distinct, but the second and third are collapsed. 
+
+```{r}
+# First locus
+aggKey <- read.csv(file = file.path(aggDir[2], "0_AggKey.csv"), header = TRUE)
+head(x = aggKey, n = 5)
+tail(x = aggKey, n = 5)
+
+plotmPlexSingle(directory = aggDir[2], whichPatches = NULL, nonZeroGen = FALSE)
+```
+
+This plot is far easier to read. Now that we're only looking at 10 possible genotypes, it's possible to get a sense of what's going on. The pink link, number 10, corresponds to all individuals with `WW` in the first locus. We see a mix of genotype 4, `HW` at the first locus, blend into a mix of genotype 2, `HR` at the first locus, before genotype 5 begins to take over, with a small but significant amount of genotype 7, individuals with `RW` at the first locus. This makes sense, as there is a 40% fitness cost on individuals with `HH` at their first locus.  
+
+Moving on, we can perform the same analysis at the second locus.
+
+```{r}
+# second locus
+aggKey <- read.csv(file = file.path(aggDir[3], "0_AggKey.csv"), header = TRUE)
+head(x = aggKey, n = 5)
+tail(x = aggKey, n = 5)
+
+plotmPlexSingle(directory = aggDir[3], whichPatches = NULL, nonZeroGen = FALSE)
+```
+
+This time, notice how the first 400 days are completely genotype 10, `WW`, at the second locus. This is because no releases at the second locus were performed until day 400, as each locus is independent. After the initial releases, we see a quick but short uptick of genotype 4, `HW` heterozygotes at locus two, which is quickly replaced mostly be genotype 1, `HH` individuals, with a small amount of genotype 2, `HR` heterozygotes. This happens because there is no fitness cost on anything at the second locus, so the `H` allele drives to completion, but it drives less effectively than locus one, 80% effective compared to 95%, thus creating a higher proportion of `R` alleles in the process.  
+
+Finally, we can perform the same analysis on the third locus. Again, this locus has no fitness cost, but it is the least effective of the three, driving only at a 60% rate.
+
+```{r}
+# third locus
+aggKey <- read.csv(file = file.path(aggDir[4], "0_AggKey.csv"), header = TRUE)
+head(x = aggKey, n = 5)
+tail(x = aggKey, n = 5)
+
+plotmPlexSingle(directory = aggDir[4], whichPatches = NULL, nonZeroGen = FALSE)
+```
+
+Prior to the releases at 750 days, we see that genotype 10, `WW` individuals at locus three, are dominant, but also a dip in the population. This comes from the fitness cost associated with the first locus, which reduces the population as it spreads, until enough of the population is resistant that the size begins to bounce back. We don't see this when analyzing locus two because releases were performed at nearly the same time, thus masking this effect with the change in genotypes. Shortly after the release, we see an increase in genotype 4, `HW` heterozygotes, as the `H` allele begins to drive through the population. However, since the drive efficacy is so low, the final population is a mix of genotypes 2, 1, and 5, corresponding to genotypes `HR`, `HH`, and `RR` at locus three.  
+
+While it is interesting to view each locus independently, there are other metrics that are more valuable. If this drive carried different transgenes with it, then having the drive at every locus is the only way to ensure that an individual possesses all of the transgenes. This can be analyzed by specifying all of the genotypes of interest at each locus, using the `genotypes` option in `genOI_mLoci_Daisy()`. This way, our data is aggregated into two groups:  
+
+  * 1: Individuals with any of our desired genotypes at each locus  
+  * other: Individuals that do not have our desired genotypes at all loci  
+  
+This will divide the population into individuals with an `H` allele at all loci, and individuals that do not have an `H` allele at all loci.
+
+```{r}
+# H at every locus
+aggKey <- read.csv(file = file.path(aggDir[5], "0_AggKey.csv"), header = TRUE)
+aggKey
+
+plotmPlexSingle(directory = aggDir[5], whichPatches = NULL, nonZeroGen = FALSE)
+```
+
+Looking at the analysis, we see that there is only a very small window when part of the population has an `H` allele at all loci. We can also see the population drop early on, from when the `HH` genotype was prevalent at the first locus. It is probably the fitness cost from the first locus that prevents the population from containing `H` alleles at all loci.  
+
+Alternatively, the point of multiplexing is that the loci can act as redundancies. In this method, we would put the same transgene at each locus, and then hope that individuals contain an `H` allele at any locus. This might be useful if the population is slightly heterogeneous at each locus, and thus our transgene can't spread to completion at any single locus. By having multiple loci, it's highly likely that an individual will contain the transgene at any one locus, even if not at all of them. Our simulation matches this scenario, as there is a high fitness cost on the first locus, driving the `H` allele out of the population there, and the drive isn't as effective at loci two and three, meaning that it won't spread to completion at either of those loci alone.
+
+```{r}
+# H at any locus
+aggKey <- read.csv(file = file.path(aggDir[6], "0_AggKey.csv"), header = TRUE)
+aggKey
+
+plotmPlexSingle(directory = aggDir[6], whichPatches = NULL, nonZeroGen = FALSE)
+```
+
+However, by targeting three loci with variable abilities and costs, we successfully drive our transgene into the population at nearly a 100% rate. Notice, even at the end there are still some individuals that do not contain the transgene at any locus. The resistant alleles created won't die out, because there is no cost on them in our simulation, but the population is continually mixing and the loci recombine at each generation, hence why the "failed" individuals appear and disappear. This would be reduced with some cost on the `R` allele, or if the first locus had a smaller cost (remember the `H` allele effectively disappears at that locus, so we really only have 2 effective loci here), or if the drives at the second and third loci were more effective. 
+
+
+```{r, echo=FALSE}
+####################
+# Cleanup before next run
+####################
+unlink(x = outFolder, recursive = TRUE)
+rm(list=ls())
+```
+

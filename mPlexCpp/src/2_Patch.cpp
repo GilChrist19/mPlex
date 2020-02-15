@@ -402,8 +402,8 @@ void Patch::oneDay_Releases(){
     
     for(size_t it = 0; it < releaseF.back().pop_ages.size(); ++it){
       
-      adult_female.push_back(Mosquito(releaseF.back().pop_ages[it],
-                                         releaseF.back().pop_names[it])
+      unmated_female.push_back(Mosquito(releaseF.back().pop_ages[it],
+                                        releaseF.back().pop_names[it])
                                 );
     } // end loop over releases
     
