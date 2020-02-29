@@ -9,6 +9,7 @@ basicRepeatedReleases(
   releaseEnd,
   releaseInterval,
   genMos,
+  genMosMate = NULL,
   numMos,
   minAge,
   maxAge,
@@ -31,6 +32,8 @@ basicRepeatedReleases(
 \item{maxAge}{Integer specifying the maximum age of Mosquiotes}
 
 \item{ageDist}{Distribution for ages of Mosquitoes. Must be length(maxAge-minAge+1)}
+
+\item{genMostMate}{List of genotypes for new Mosquitoes' mates, default is NULL}
 }
 \value{
 List of release dates and the population to be released on that day.
@@ -51,11 +54,12 @@ the age distribution of the mosquitoes to be released.
 # to setup for 3 patches but only release in the first with a defined release schedule:
 
 patchReleases = replicate(n = 3,
-                          expr = list(maleReleases = NULL,femaleReleases = NULL,larvaeReleases=NULL),
+                          expr = list(maleReleases = NULL,femaleReleases = NULL,
+                          eggReleases=NULL,matedFemaleReleases = NULL),
                           simplify = FALSE)
 
 set.seed(42)
-patchReleases[[1]]$femaleReleases = Release_basicRepeatedReleases(releaseStart = 5,
+patchReleases[[1]]$femaleReleases = basicRepeatedReleases(releaseStart = 5,
 releaseEnd = 30,
 releaseInterval = 5,
 genMos = c("A", "B", "C"),
@@ -65,7 +69,7 @@ maxAge = 10,
 ageDist = rep(x = 1, times = 10-1+1)/(10-1+1)) #uniform distribution of ages
 
 set.seed(42)
-patchReleases[[1]]$maleReleases = Release_basicRepeatedReleases(releaseStart = 50,
+patchReleases[[1]]$maleReleases = basicRepeatedReleases(releaseStart = 50,
 releaseEnd = 60,
 releaseInterval = 1,
 genMos = c("A", "B", "C"),
@@ -75,10 +79,21 @@ maxAge = 10,
 ageDist = c(0,0,0,0,0,1)) #all mosqutioes will be 10
 
 set.seed(42)
-patchReleases[[1]]$larvaeReleases = Release_basicRepeatedReleases(releaseStart = 1,
+patchReleases[[1]]$larvaeReleases = basicRepeatedReleases(releaseStart = 1,
 releaseEnd = 5,
 releaseInterval = 1,
 genMos = c("A", "B", "C"),
+numMos = c(10, 20, 30),
+minAge = 5,
+maxAge = 10,
+ageDist = c(0,1,0,1,0,0)) #half of mosquitoes are 6, half are 8
+
+set.seed(42)
+patchReleases[[1]]$matedFemaleReleases = basicRepeatedReleases(releaseStart = 1,
+releaseEnd = 5,
+releaseInterval = 1,
+genMos = c("A", "B", "C"),
+genMosMate =c("B","B","C")
 numMos = c(10, 20, 30),
 minAge = 5,
 maxAge = 10,

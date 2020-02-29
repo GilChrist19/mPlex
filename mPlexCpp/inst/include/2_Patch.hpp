@@ -47,6 +47,23 @@ using release_event = struct release_event {
 
 };
 
+using release_mate = struct release_mate {
+  
+  // 4 things needed, genotype, mates, age, and release time
+  sVec  pop_names;
+  sVec  mate_names;
+  iVec  pop_ages;
+  int   release_time;
+
+  // constructor and destructor
+  release_mate(const sVec& pop_names_, const sVec& mate_names_, const iVec& pop_ages_, const int& release_time_) : 
+    pop_names(pop_names_), mate_names(mate_names_), pop_ages(pop_ages_), release_time(release_time_) {};
+  ~release_mate() {};
+  
+};
+
+
+
 /**************************************
  * patch class declaration
 **************************************/
@@ -58,7 +75,8 @@ public:
   Patch(const int& patchID_,
         const Rcpp::List& maleReleases_,
         const Rcpp::List& femaleReleases_,
-        const Rcpp::List& eggReleases_);
+        const Rcpp::List& eggReleases_,
+        const Rcpp::List& matedFemaleReleases_);
   virtual ~Patch();
 
   /* delete all copy semantics: ensures we get legible compile-time errors if we do something stupid */
@@ -149,10 +167,12 @@ protected:
   std::vector<release_event> releaseM0; //male initial releases
   std::vector<release_event> releaseF0; //female initial releases
   std::vector<release_event> releaseE0; //larval initial releases
+  std::vector<release_mate> releaseMF0; //mated female initial relaeses
   
   std::vector<release_event> releaseM; //male releases
   std::vector<release_event> releaseF; //female releases
   std::vector<release_event> releaseE; //larval releases
+  std::vector<release_mate> releaseMF; //mated female relaeses
   
 };
 

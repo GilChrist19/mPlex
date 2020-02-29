@@ -16,7 +16,8 @@
 Patch::Patch(const int& patchID_,
              const Rcpp::List& maleReleases_,
              const Rcpp::List& femaleReleases_,
-             const Rcpp::List& eggReleases_)
+             const Rcpp::List& eggReleases_,
+             const Rcpp::List& matedFemaleReleases_)
 {
   
   // patch ID
@@ -73,12 +74,27 @@ Patch::Patch(const int& patchID_,
     });
   }
   
+  // mated female releases
+  if(matedFemaleReleases_.size()>0){
+    mR = matedFemaleReleases_.size();
+    releaseMF.reserve(mR);
+    for(size_t i=0; i<mR; i++){
+      releaseMF.emplace_back(release_mate(Rcpp::as<Rcpp::List>(matedFemaleReleases_[i])["genVec"],
+                                          Rcpp::as<Rcpp::List>(matedFemaleReleases_[i])["mateVec"],
+                                          Rcpp::as<Rcpp::List>(matedFemaleReleases_[i])["ageVec"],
+                                          Rcpp::as<Rcpp::List>(matedFemaleReleases_[i])["tRelease"]
+      ));
+    }
+    std::sort(releaseMF.begin(), releaseMF.end(), [](release_mate a, release_mate b){
+      return a.release_time > b.release_time;
+    });
+  }
   
   // Things to hold for reset
   releaseM0 = releaseM;
   releaseF0 = releaseF;
   releaseE0 = releaseE;
-  
+  releaseMF0 = releaseMF;
   
   // set migration size objects
   maleMigration.resize(parameters::instance().get_n_patch());
@@ -386,8 +402,7 @@ void Patch::oneDay_Releases(){
     for(size_t it = 0; it < releaseM.back().pop_ages.size(); ++it){
       
       adult_male.push_back(Mosquito(releaseM.back().pop_ages[it],
-                                       releaseM.back().pop_names[it])
-                              );
+                                    releaseM.back().pop_names[it]) );
     } // end loop over released mosquitoes
     
     // remove release
@@ -399,12 +414,10 @@ void Patch::oneDay_Releases(){
   ****************/
   if( (!releaseF.empty()) && (releaseF.back().release_time <= parameters::instance().get_t_now()) ){
     
-    
     for(size_t it = 0; it < releaseF.back().pop_ages.size(); ++it){
       
       unmated_female.push_back(Mosquito(releaseF.back().pop_ages[it],
-                                        releaseF.back().pop_names[it])
-                                );
+                                        releaseF.back().pop_names[it]) );
     } // end loop over releases
     
     // remove release
@@ -416,15 +429,30 @@ void Patch::oneDay_Releases(){
   ****************/
   if( (!releaseE.empty()) && (releaseE.back().release_time <= parameters::instance().get_t_now()) ){
     
-    
     for(size_t it = 0; it < releaseE.back().pop_ages.size(); ++it){
       
       eggs.push_back(Mosquito(releaseE.back().pop_ages[it],
-                                         releaseE.back().pop_names[it]));
+                              releaseE.back().pop_names[it]) );
     } // end loop over releases
     
     // remove release
     releaseE.pop_back();
+  } // end larva release
+  
+  /****************
+   * Mated Female release
+  ****************/
+  if( (!releaseMF.empty()) && (releaseMF.back().release_time <= parameters::instance().get_t_now()) ){
+    
+    for(size_t it = 0; it < releaseMF.back().pop_ages.size(); ++it){
+      
+      adult_female.push_back(Mosquito(releaseMF.back().pop_ages[it],
+                                      releaseMF.back().pop_names[it],
+                                      releaseMF.back().mate_names[it]) );
+    } // end loop over releases
+    
+    // remove release
+    releaseMF.pop_back();
   } // end larva release
   
 }

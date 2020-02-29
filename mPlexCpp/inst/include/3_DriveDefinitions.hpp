@@ -70,7 +70,8 @@ public:
   Daisy(const int& patchID_,
         const Rcpp::List& maleReleases_,
         const Rcpp::List& femaleReleases_,
-        const Rcpp::List& larvaeReleases_);
+        const Rcpp::List& larvaeReleases_,
+        const Rcpp::List& matedFemaleReleases_);
   // destructor
   virtual ~Daisy();
   
@@ -132,9 +133,10 @@ public:
   
   // constructor
   multiLocus(const int& patchID_,
-              const Rcpp::List& maleReleases_,
-              const Rcpp::List& femaleReleases_,
-              const Rcpp::List& larvaeReleases_);
+             const Rcpp::List& maleReleases_,
+             const Rcpp::List& femaleReleases_,
+             const Rcpp::List& larvaeReleases_,
+             const Rcpp::List& matedFemaleReleases_);
   // destructor
   virtual ~multiLocus();
   
@@ -195,9 +197,10 @@ public:
   
   // constructor
   oneLocus(const int& patchID_,
-             const Rcpp::List& maleReleases_,
-             const Rcpp::List& femaleReleases_,
-             const Rcpp::List& larvaeReleases_);
+           const Rcpp::List& maleReleases_,
+           const Rcpp::List& femaleReleases_,
+           const Rcpp::List& larvaeReleases_,
+           const Rcpp::List& matedFemaleReleases_);
   // destructor
   virtual ~oneLocus();
   
@@ -269,9 +272,10 @@ public:
   
   //Constructor and destructor
   Family(const int& patchID_,
-        const Rcpp::List& maleReleases_,
-        const Rcpp::List& femaleReleases_,
-        const Rcpp::List& larvaeReleases_);
+         const Rcpp::List& maleReleases_,
+         const Rcpp::List& femaleReleases_,
+         const Rcpp::List& larvaeReleases_,
+         const Rcpp::List& matedFemaleReleases_);
   virtual ~Family();
   
   // delete copy constructor and assignment operator

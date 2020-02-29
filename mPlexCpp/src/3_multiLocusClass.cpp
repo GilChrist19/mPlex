@@ -16,10 +16,12 @@
 multiLocus::multiLocus(const int& patchID_,
                        const Rcpp::List& maleReleases_,
                        const Rcpp::List& femaleReleases_,
-                       const Rcpp::List& eggReleases_) : Patch::Patch(patchID_,
-                                                                       maleReleases_,
-                                                                       femaleReleases_,
-                                                                       eggReleases_)
+                       const Rcpp::List& eggReleases_,
+                       const Rcpp::List& matedFemaleReleases_) : Patch::Patch(patchID_,
+                                                                              maleReleases_,
+                                                                              femaleReleases_,
+                                                                              eggReleases_,
+                                                                              matedFemaleReleases_)
 {
 
    /****************
@@ -79,6 +81,7 @@ void multiLocus::reset_Patch(){
   releaseM = releaseM0;
   releaseF = releaseF0;
   releaseE = releaseE0;
+  releaseMF = releaseMF0;
 }
 
 /******************************************************************************

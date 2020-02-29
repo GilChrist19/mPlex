@@ -195,7 +195,8 @@ void run_mPlex(const uint_least32_t& seed_,
       patches.emplace_back(std::make_unique<Daisy>(np,
                                                    patchRelease["maleReleases"],
                                                    patchRelease["femaleReleases"],
-                                                   patchRelease["eggReleases"]));
+                                                   patchRelease["eggReleases"],
+                                                   patchRelease["matedFemaleReleases"]));
       
     } else if(reproductionType_ == "mPlex_oLocus"){
       
@@ -204,7 +205,8 @@ void run_mPlex(const uint_least32_t& seed_,
       patches.emplace_back(std::make_unique<oneLocus>(np,
                                                    patchRelease["maleReleases"],
                                                    patchRelease["femaleReleases"],
-                                                   patchRelease["eggReleases"]));
+                                                   patchRelease["eggReleases"],
+                                                   patchRelease["matedFemaleReleases"]));
       
     } else if(reproductionType_ == "mPlex_mLoci"){
       
@@ -213,7 +215,8 @@ void run_mPlex(const uint_least32_t& seed_,
       patches.emplace_back(std::make_unique<multiLocus>(np,
                                                    patchRelease["maleReleases"],
                                                    patchRelease["femaleReleases"],
-                                                   patchRelease["eggReleases"]));
+                                                   patchRelease["eggReleases"],
+                                                   patchRelease["matedFemaleReleases"]));
       
     } else if(reproductionType_ == "Family"){
       
@@ -222,7 +225,8 @@ void run_mPlex(const uint_least32_t& seed_,
       patches.emplace_back(std::make_unique<Family>(np,
                                                     patchRelease["maleReleases"],
                                                     patchRelease["femaleReleases"],
-                                                    patchRelease["eggReleases"]));
+                                                    patchRelease["eggReleases"],
+                                                    patchRelease["matedFemaleReleases"]));
       
     }
     

@@ -45,6 +45,7 @@ numPatch <- 3
 set.seed(10)
 migration <- matrix(data = runif(numPatch*numPatch), nrow = numPatch, ncol = numPatch)
 migration <- migration/rowSums(migration)
+migration <- diag(1)
 
 patchPops = rep(1000L,numPatch)
 
@@ -58,15 +59,15 @@ AllAlleles <- replicate(n = numPatch, expr = alleloTypes, simplify = FALSE)
 
 
 
-alleloTypes <- vector(mode = "list", length = 2L) #3 loci
-alleloTypes[[1]]$alleles <- c("W","R")
-alleloTypes[[1]]$probs <- c(1,2)
-alleloTypes[[2]]$alleles <- c("W","R")
-alleloTypes[[2]]$probs <- c(0,1)
-# alleloTypes[[3]]$alleles <- c("W","H")
-# alleloTypes[[3]]$probs <- c(1,0)
-
-AllAlleles <- replicate(n = numPatch, expr = alleloTypes, simplify = FALSE)
+# alleloTypes <- vector(mode = "list", length = 2L) #3 loci
+# alleloTypes[[1]]$alleles <- c("W","R")
+# alleloTypes[[1]]$probs <- c(1,2)
+# alleloTypes[[2]]$alleles <- c("W","R")
+# alleloTypes[[2]]$probs <- c(0,1)
+# # alleloTypes[[3]]$alleles <- c("W","H")
+# # alleloTypes[[3]]$probs <- c(1,0)
+# 
+# AllAlleles <- replicate(n = numPatch, expr = alleloTypes, simplify = FALSE)
 
 
 
@@ -82,9 +83,9 @@ AllAlleles <- replicate(n = numPatch, expr = alleloTypes, simplify = FALSE)
 #                                                          d = c(0, 0))
 
 # This sets up a basic CRISPR drive, with perfect homing and no resistance or backgorund mutation
-reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.97),
-                                                       R = c(0.03),
-                                                       S = c(0),
+reproductionReference <- MakeReference_Multiplex_mLoci(cRate = c(0),
+                                                       hRate = c(0.03),
+                                                       rRate = c(0),
                                                        d = c(0))
 
 ###############################################################################
@@ -95,31 +96,42 @@ reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.97),
 patchReleases = replicate(n = numPatch,
                           expr = list(maleReleases = NULL,
                                       femaleReleases = NULL,
-                                      eggReleases = NULL),
+                                      eggReleases = NULL,
+                                      matedFemaleReleases = NULL),
                           simplify = FALSE)
 
 # Create release object to pass to patches
-holdRel <- Release_basicRepeatedReleases(releaseStart = 100L,
-                                         releaseEnd = 110L,
-                                         releaseInterval = 5,
-                                         genMos = c("HH"),
-                                         numMos = c(25L),
-                                         minAge = 16L,
-                                         maxAge = 24L,
-                                         ageDist = rep(x = 1, times = 24-16+1)/9)
+# holdRel <- basicRepeatedReleases(releaseStart = 100L,
+#                                          releaseEnd = 110L,
+#                                          releaseInterval = 5,
+#                                          genMos = c("HH"),
+#                                          numMos = c(25L),
+#                                          minAge = 16L,
+#                                          maxAge = 24L,
+#                                          ageDist = rep(x = 1, times = 24-16+1)/9)
+# 
+# 
+# holdRel2 <- basicRepeatedReleases(releaseStart = 600L,
+#                                           releaseEnd = 610L,
+#                                           releaseInterval = 2L,
+#                                           genMos = c("RR"),
+#                                           numMos = c(10L),
+#                                           minAge = 16L,
+#                                           maxAge = 24L,
+#                                           ageDist = rep(x = 1, times = 24-16+1)/9)
+# 
+# 
+# patchReleases[[2]]$maleReleases <- c(holdRel, holdRel2)
 
-
-holdRel2 <- Release_basicRepeatedReleases(releaseStart = 600L,
-                                          releaseEnd = 610L,
-                                          releaseInterval = 2L,
-                                          genMos = c("RR"),
-                                          numMos = c(10L),
-                                          minAge = 16L,
-                                          maxAge = 24L,
-                                          ageDist = rep(x = 1, times = 24-16+1)/9)
-
-
-patchReleases[[1]]$maleReleases <- c(holdRel, holdRel2)
+patchReleases[[1]]$matedFemaleReleases <- basicRepeatedReleases(releaseStart = 10,
+                                                                releaseEnd = 20,
+                                                                releaseInterval = 1,
+                                                                genMos = c("RR"),
+                                                                genMosMate = c("HH"),
+                                                                numMos = c(100L),
+                                                                minAge = 16L,
+                                                                maxAge = 24L,
+                                                                ageDist = rep(x = 1, times = 24-16+1)/9)
 
 ###############################################################################
 # Calculate parameters and initialize network
@@ -135,10 +147,10 @@ netPar = NetworkParameters(nPatch = numPatch,
 
 migrationBatch <- basicBatchMigration(numPatches = numPatch)
 
-startTime <- Sys.time()
+#startTime <- Sys.time()
 runMPlex(seed = 10,
          numThreads = 2,
-         numReps = 3, 
+         numReps = 1, 
          networkParameters = netPar,
          reproductionReference = reproductionReference,
          initAlleles = AllAlleles,
@@ -149,7 +161,7 @@ runMPlex(seed = 10,
          outputDirectory = simDir,
          reproductionType = "mPlex_mLoci",
          verbose = TRUE)
-difftime(time1 = Sys.time(), time2 = startTime)
+#difftime(time1 = Sys.time(), time2 = startTime)
 
 # FAMILY
 Time difference of 1.676341 mins

@@ -42,7 +42,7 @@ and so on. We have already covered the basics of setting-up, running, and analyz
 simulations in *mPlex*, using a [multiplex](mPlex_mLoc.html) inheritance design, so 
 here we explore scenarios using a Daisy-Chain of differing lengths. 
 
-### Daisy-Chain With One Link
+### Daisy-Chain with One Link
 
 The first piece of a Daisy-Chain is not driven by any other piece, therefore it 
 follows standard mendelian behavior. Here, we will explore two scenarios: basic 
@@ -214,8 +214,6 @@ library(mPlexCpp)
 ####################
 outFolder <- "mPlex"
 
-outFolder <- "~/Desktop/OUTPUT/mPlex"
-
 simDir <- file.path(outFolder, "simDir")
 aggDir <- file.path(outFolder, "aggDir")
 for(i in c(outFolder, simDir, aggDir)){ dir.create(i) }
@@ -273,8 +271,8 @@ patchReleases = replicate(n = sitesNumber,
 
 # Create release object to pass to patches
 releaseVec <- basicRepeatedReleases(releaseStart = 100,
-                                         releaseEnd = 104,
-                                         releaseInterval = 1,
+                                         releaseEnd = 100,
+                                         releaseInterval = 0,
                                          genMos = c("HH"),
                                          numMos = c(50),
                                          minAge = 16,
@@ -282,7 +280,7 @@ releaseVec <- basicRepeatedReleases(releaseStart = 100,
                                          ageDist = rep(x = 1, times = 24-16+1)/9)
 
 patchReleases[[1]]$maleReleases <- releaseVec
-#patchReleases[[1]]$femaleReleases <- releaseVec
+patchReleases[[1]]$femaleReleases <- releaseVec
 
 # default migration rate is 0, so no actual batch migration
 migrationBatch <- basicBatchMigration(numPatches = sitesNumber)
@@ -294,7 +292,7 @@ migrationBatch <- basicBatchMigration(numPatches = sitesNumber)
 netPar = NetworkParameters(nPatch = sitesNumber,
                            simTime = 365*2,
                            sampTime = 2,
-                           AdPopEQ = 50,
+                           AdPopEQ = 500,
                            runID = 1L,
                            dayGrowthRate = 1.175,
                            beta = 20, tEgg = 5, tLarva = 6, tPupa = 4, muAd = 0.09)
@@ -314,7 +312,7 @@ runMPlex(seed = 10,
          migrationBatch = migrationBatch,
          outputDirectory = simDir,
          reproductionType = "DaisyDrive",
-         verbose = TRUE)
+         verbose = FALSE)
 
 
 ####################
@@ -342,12 +340,9 @@ aggKey <- read.csv(file = file.path(aggDir, "0_AggKey.csv"), header = TRUE,
 aggKey
 ```
 
-Looking at the plots, we see that only 3 genotypes are represented. These represent 
-the three genotypes we expect: 10 is `r aggKey$Key[10]`, 1 is `r aggKey$Key[1]`, 
-and 4 is `r aggKey$Key[4]`, the heterozygote. We see the initial release of `r aggKey$Key[1]` 
-in the males, then the formation of heterozygotes, since it remains at such a low 
-frequency. However, it doesn't die out, becuase there is no fitness cost on any of 
-the pieces.
+Notice the different final genotype ratios, where `r aggKey$Key[4]`, the heterozygote, 
+is the dominant species. Compare this to the third simulation from *MGDrivE*, as an 
+indication of agreement between the two models.
 
 ```{r, echo=FALSE}
 ####################
@@ -356,6 +351,666 @@ the pieces.
 unlink(x = outFolder, recursive = TRUE)
 rm(list=ls())
 ```
+
+
+### Daisy-Chain with Two Links
+
+A two-piece Daisy-Chain implies one locus with a Cas9, inherited in a Mendelian 
+fashion as shown above, driving a second, unlinked, locus through the population. 
+This is exactly the same as the [split-drive](https://elifesciences.org/articles/51701) 
+system from the [Akbari](https://www.akbarilab.com/) lab. Here, we reproduce the 
+analysis from that paper, and then explore a novel suppression system based on 
+the split-drive construct.
+
+#### Split-Drive Replacement
+
+We simulate a two-node landscape, where we perform releases in one population, 
+and see how much it spreads into the other. Metrics of interest from the paper 
+were the length of time the transgene (linked to the gRNA locus) was above 80% in 
+the released population, and the extent to which either the Cas9 locus or the transgene 
+spread into the second population. Here, we perform a similar analysis, looking for 
+all individuals carrying the transgene, and then looking for all individuals without 
+a modified allele. "Modified" allele is being taken to mean the transgene or any 
+NHEJ events in the wild-type, where the transgene isn't present but it is also not 
+the natural allele anymore.  
+
+```{r, eval=TRUE}
+####################
+# Load libraries
+####################
+library(mPlexCpp)
+
+####################
+# Output Folder
+####################
+outFolder <- "mPlex"
+
+simDir <- file.path(outFolder, "simDir")
+aggDir <- file.path(outFolder, paste0("aggDir", 1:2))
+for(i in c(outFolder, simDir, aggDir)){ dir.create(i) }
+
+                        
+####################
+# Landscape
+####################
+# a 2-node network, with 1% migration per adult generation
+#  * So, 26.11111 is the total generation time, and not the expected adult life-span
+#  I'm not sure I agree with this, but it is what was used in the paper, so we will 
+#  use it here.
+sitesNumber <- 2
+stayProbability <- 0.01 / 26.11111 # This is an entire generation, not the adult
+moveMat <- matrix(data = c(1-stayProbability,stayProbability,stayProbability,1-stayProbability),
+                  nrow = sitesNumber, ncol = sitesNumber)
+
+
+####################
+# Inheritance pattern
+####################
+# a 2-locus Daisy
+cCost <- 0.078
+fCost <- 0.11 * 0.09  # this is modified to the expected adult age
+sNew <- c('HHHH'=1-2*cCost, 'HWHH'=1-cCost, 'HHHR'=1-2*cCost, 'HWHR'=1-cCost,
+          'HHHS'=1-2*cCost, 'HWHS'=1-cCost, 'HHHW'=1-2*cCost, 'HWHW'=1-cCost,
+          'HHRR'=1-2*cCost, 'HWRR'=1-cCost, 'HHRS'=1-2*cCost, 'HWRS'=1-cCost,
+          'HHRW'=1-2*cCost, 'HWRW'=1-cCost, 'HHSS'=1-2*cCost, 'HWSS'=1-cCost,
+          'HHSW'=1-2*cCost, 'HWSW'=1-cCost, 'HHWW'=1-2*cCost, 'HWWW'=1-cCost)
+oNew <- c('HHHH'=1-fCost, 'HRHH'=1-fCost, 'HSHH'=1-fCost, 'HWHH'=1-fCost, 
+          'RRHH'=1-fCost, 'RSHH'=1-fCost, 'RWHH'=1-fCost, 'SSHH'=1-fCost,
+          'SWHH'=1-fCost, 'WWHH'=1-fCost, 'HHHS'=1-fCost, 'HRHS'=1-fCost,
+          'HSHS'=1-fCost, 'HWHS'=1-fCost, 'RRHS'=1-fCost, 'RSHS'=1-fCost,
+          'RWHS'=1-fCost, 'SSHS'=1-fCost, 'SWHS'=1-fCost, 'WWHS'=1-fCost,
+          'HHSS'=1-fCost, 'HRSS'=1-fCost, 'HSSS'=1-fCost, 'HWSS'=1-fCost,
+          'RRSS'=1-fCost, 'RSSS'=1-fCost, 'RWSS'=1-fCost, 'SSSS'=1-fCost,
+          'SWSS'=1-fCost, 'WWSS'=1-fCost)
+reproductionReference <- MakeReference_DaisyDrive(H = c(0.63425,0),
+                                                  R = c(0.03611666,0),
+                                                  S = c(0.18058333,0),
+                                                  d = c(0,0),
+                                                  s = sNew,
+                                                  omega = oNew)
+
+# parameter translation notes
+#  The probabilities aren't calculated the same in MGDrivE and mPlex.
+#  Here are the conversion equations, MGDrive = mPlex
+#  H: Cut*Hom = H*(1-R-S)
+#  R: Cut*(1-Hom)*rRate = H*R
+#  S: Cut*(1-Hom)*(1-rRate) = H*S
+#
+# For this publication, these conversions imply:
+#  Female Rates
+#  H: 0.788
+#  R: 0.0337
+#  S: 0.1685
+#  Male Rates
+#  H: 0.4805
+#  R: 0.0385333
+#  S: 0.192666
+
+
+####################
+# Setup Initial genotype ratios
+####################
+# 2 locus, start completely wild-type
+alleloTypes <- vector(mode = "list", length = 2L) #2 locus
+alleloTypes[[1]]$alleles <- c("W")
+alleloTypes[[1]]$probs <- c(1)
+alleloTypes[[2]]$alleles <- c("W")
+alleloTypes[[2]]$probs <- c(1)
+
+# replicate so each patch starts the same
+AllAlleles <- replicate(n = sitesNumber, expr = alleloTypes, simplify = FALSE)
+
+
+####################
+# Setup releases and batch migration
+####################
+# create Release List
+patchReleases = replicate(n = sitesNumber,
+                          expr = list(maleReleases = NULL,
+                                      femaleReleases = NULL,
+                                      eggReleases = NULL),
+                          simplify = FALSE)
+
+# Create release object to pass to patches
+releaseVec <- basicRepeatedReleases(releaseStart = 100,
+                                         releaseEnd = 163,
+                                         releaseInterval = 7,
+                                         genMos = c("HHHH"),
+                                         numMos = c(250),
+                                         minAge = 16,
+                                         maxAge = 24,
+                                         ageDist = rep(x = 1, times = 24-16+1)/9)
+
+patchReleases[[1]]$maleReleases <- releaseVec
+
+# default migration rate is 0, so no actual batch migration
+migrationBatch <- basicBatchMigration(numPatches = sitesNumber)
+
+
+####################
+# Parameter Setup
+####################
+netPar = NetworkParameters(nPatch = sitesNumber,
+                           simTime = 365*12,
+                           sampTime = 2,
+                           AdPopEQ = 250,
+                           runID = 1L,
+                           dayGrowthRate = 1.175,
+                           beta = 20, tEgg = 5, tLarva = 6, tPupa = 4, muAd = 0.09)
+
+####################
+# Run Simulation
+####################
+runMPlex(seed = 10,
+         numThreads = 2,
+         numReps = 5, 
+         networkParameters = netPar,
+         reproductionReference = reproductionReference,
+         initAlleles = AllAlleles,
+         patchReleases = patchReleases,
+         migrationMale = moveMat,
+         migrationFemale = moveMat,
+         migrationBatch = migrationBatch,
+         outputDirectory = simDir,
+         reproductionType = "DaisyDrive",
+         verbose = FALSE)
+
+
+####################
+# Post Analysis
+####################
+# setup aggregation key
+#  this example sets all genotypes as different
+genOI_mLoci_Daisy(outputFile = file.path(aggDir[1], "0_AggKey.csv"), 
+                  genotypes = list(NULL,c('HH','HR','HS','HW')), collapse = c(TRUE,TRUE))
+genOI_mLoci_Daisy(outputFile = file.path(aggDir[2], "0_AggKey.csv"), 
+                  genotypes = list(c('WW'),NULL), collapse = c(TRUE,TRUE))
+
+# aggregate experiment by aggregation key
+for(agg in aggDir){
+  simAggregation(readDirectory = simDir, writeDirectory = agg, 
+               simTime = netPar$simTime, sampTime = netPar$sampTime)
+}
+
+# plot for example
+for(agg in aggDir){
+  plotmPlexMult(directory = agg,whichPatches = NULL, nonZeroGen = FALSE, lwd=0.75,alpha=0.75)
+}
+```
+
+Initially, there are several differences between *MGDrivE* and *mPlex* that we need 
+to acknowledge. Drives are parameterized differently between models, reflecting 
+the prevailing ideologies at the times of construction. Notes about transforming 
+between parameter sets are provided in the above code. Additionally, *MGDrivE* has 
+sex-specific parameters, which *mPlex* does not. Therefore, we have used the average 
+of those parameters above, providing a slightly different result.  
+  
+The first plot shows all individuals with the transgene at the gRNA locus, either 
+heterozygous or homozygous for it. Note the quick spread, taking over almost the 
+entire population is under a year. This is in agreement with the published results. 
+However, the transgene handily spreads into the second population, and doesn't begin 
+to decline appreciably for almsot 10 years. This is in constrast to the original 
+publication, where the transgene hardly spread into the second population, and was 
+outnumbered by other alleles within 6 years.  
+  
+The second plot analyzes the individuals who carry any modified allele at the Cas9 
+locus, be that the released allele, or any form of NHEJ event. The high initial spike 
+is from the transgene release, and the slow decay later is due to fitness costs 
+against the gRNAs and one NHEJ allele. There is a distinct lack of spread into the 
+second population. This is an improvement over the published results, possibly stemming 
+from the distorted generation of alleles, which have different costs in males and females, 
+or from the smaller population size (250 individuals here, compared 
+to 10000 in the publication), or simply a plotting artifact (the publication performs 
+allele counts, where here we count individuals as wholes).
+
+```{r, echo=FALSE}
+####################
+# Cleanup before next run
+####################
+unlink(x = outFolder, recursive = TRUE)
+rm(list=ls())
+```
+
+
+#### Split-Drive Suppression
+
+This is an extension of the original split-drive that now targets population 
+suppression instead of population replacement. The drive functions in the same way, 
+but now targets a female-fertility gene, such that there is a massive reproductive 
+cost on females with the transgene. Additionally, as this drive is still speculative, 
+the drive performance is increased to a nominal value that is not yet achievable, 
+but should be by the final implementation. Additionally, the biological parameters 
+describing the mosquito life-cycle have been modified, to reflect different conditions 
+for growth.  
+  
+The metrics are similar in this instance. As the goal is population suppression, 
+we will check how much the population declines in the first population. In the 
+second population, we hope it declines very little, and will look for the spread 
+of modified alleles.
+
+```{r, eval=TRUE}
+####################
+# Load libraries
+####################
+library(mPlexCpp)
+
+####################
+# Output Folder
+####################
+outFolder <- "mPlex"
+
+simDir <- file.path(outFolder, "simDir")
+aggDir <- file.path(outFolder, paste0("aggDir", 1:2))
+for(i in c(outFolder, simDir, aggDir)){ dir.create(i) }
+
+                        
+####################
+# Landscape
+####################
+# a 2-node network, with 1% migration per adult generation
+#  * So, 26.11111 is the total generation time, and not the expected adult life-span
+#  I'm not sure I agree with this, but it is what was used in the paper, so we will 
+#  use it here.
+sitesNumber <- 2
+stayProbability <- 0.01 * 0.09
+moveMat <- matrix(data = c(1-stayProbability,stayProbability,stayProbability,1-stayProbability),
+                  nrow = sitesNumber, ncol = sitesNumber)
+
+
+####################
+# Inheritance pattern
+####################
+# a 2-locus Daisy
+cCost <- 0.078
+fCost <- 0.11 * 0.09  # this is modified to the expected adult age
+sNew <- c('HHHH'=0, 'HRHH'=0, 'HSHH'=0, 'HWHH'=0, 'RRHH'=0, 'RSHH'=0, 'RWHH'=0,
+          'SSHH'=0, 'SWHH'=0, 'WWHH'=0, 'HHHS'=0, 'HRHS'=0, 'HSHS'=0, 'HWHS'=0,
+          'RRHS'=0, 'RSHS'=0, 'RWHS'=0, 'SSHS'=0, 'SWHS'=0, 'WWHS'=0, 'HHHW'=0,
+          'HRHW'=0, 'HSHW'=0, 'HWHW'=0, 'RRHW'=0, 'RSHW'=0, 'RWHW'=0, 'SSHW'=0,
+          'SWHW'=0, 'WWHW'=0, 'HHSS'=0, 'HRSS'=0, 'HSSS'=0, 'HWSS'=0, 'RRSS'=0,
+          'RSSS'=0, 'RWSS'=0, 'SSSS'=0, 'SWSS'=0, 'WWSS'=0)
+oNew <- c('HHHH'=1-2*cCost-2*fCost, 'HRHH'=1-cCost-2*fCost, 'HSHH'=1-cCost-2*fCost,
+          'HWHH'=1-cCost-2*fCost, 'RRHH'=1-2*fCost, 'RSHH'=1-2*fCost, 'RWHH'=1-2*fCost,
+          'SSHH'=1-2*fCost, 'SWHH'=1-2*fCost, 'WWHH'=1-2*fCost, 'HHHR'=1-2*cCost-fCost,
+          'HRHR'=1-cCost-fCost, 'HSHR'=1-cCost-fCost, 'HWHR'=1-cCost-fCost, 'RRHR'=1-fCost,
+          'RSHR'=1-fCost, 'RWHR'=1-fCost, 'SSHR'=1-fCost, 'SWHR'=1-fCost, 'WWHR'=1-fCost,
+          'HHHS'=1-2*cCost-fCost, 'HRHS'=1-cCost-fCost, 'HSHS'=1-cCost-fCost,
+          'HWHS'=1-cCost-fCost, 'RRHS'=1-fCost, 'RSHS'=1-fCost, 'RWHS'=1-fCost,
+          'SSHS'=1-fCost, 'SWHS'=1-fCost, 'WWHS'=1-fCost, 'HHHW'=1-2*cCost-fCost,
+          'HRHW'=1-cCost-fCost, 'HSHW'=1-cCost-fCost, 'HWHW'=1-cCost-fCost,
+          'RRHW'=1-fCost, 'RSHW'=1-fCost, 'RWHW'=1-fCost, 'SSHW'=1-fCost, 'SWHW'=1-fCost,
+          'WWHW'=1-fCost, 'HHRR'=1-2*cCost, 'HRRR'=1-cCost, 'HSRR'=1-cCost, 'HWRR'=1-cCost,
+          'HHRS'=1-2*cCost, 'HRRS'=1-cCost, 'HSRS'=1-cCost, 'HWRS'=1-cCost,
+          'HHRW'=1-2*cCost, 'HRRW'=1-cCost, 'HSRW'=1-cCost, 'HWRW'=1-cCost,
+          'HHSS'=1-2*cCost, 'HRSS'=1-cCost, 'HSSS'=1-cCost, 'HWSS'=1-cCost,
+          'HHSW'=1-2*cCost, 'HRSW'=1-cCost, 'HSSW'=1-cCost, 'HWSW'=1-cCost,
+          'HHWW'=1-2*cCost, 'HRWW'=1-cCost, 'HSWW'=1-cCost, 'HWWW'=1-cCost)
+reproductionReference <- MakeReference_DaisyDrive(H = c(1,0),
+                                                  R = c(0.00333,0),
+                                                  S = c(0.01666,0),
+                                                  d = c(0,0),
+                                                  s = sNew,
+                                                  omega = oNew)
+
+# parameter translation notes
+#  The probabilities aren't calculated the same in MGDrivE and mPlex.
+#  Here are the conversion equations, MGDrive = mPlex
+#  H: Cut*Hom = H*(1-R-S)
+#  R: Cut*(1-Hom)*rRate = H*R
+#  S: Cut*(1-Hom)*(1-rRate) = H*S
+#
+# For this publication, these conversions imply:
+#  Rates
+#  H: 1
+#  R: 0.00333
+#  S: 0.01666
+
+
+
+####################
+# Setup Initial genotype ratios
+####################
+# 2 locus, start completely wild-type
+alleloTypes <- vector(mode = "list", length = 2L) #2 locus
+alleloTypes[[1]]$alleles <- c("W")
+alleloTypes[[1]]$probs <- c(1)
+alleloTypes[[2]]$alleles <- c("W")
+alleloTypes[[2]]$probs <- c(1)
+
+# replicate so each patch starts the same
+AllAlleles <- replicate(n = sitesNumber, expr = alleloTypes, simplify = FALSE)
+
+
+####################
+# Setup releases and batch migration
+####################
+# create Release List
+patchReleases = replicate(n = sitesNumber,
+                          expr = list(maleReleases = NULL,
+                                      femaleReleases = NULL,
+                                      eggReleases = NULL),
+                          simplify = FALSE)
+
+# Create release object to pass to patches
+#  26 releases performed
+releaseVec <- basicRepeatedReleases(releaseStart = 20,
+                                         releaseEnd = 195,
+                                         releaseInterval = 7,
+                                         genMos = c("HHHH"),
+                                         numMos = c(5000),
+                                         minAge = 16,
+                                         maxAge = 24,
+                                         ageDist = rep(x = 1, times = 24-16+1)/9)
+
+patchReleases[[1]]$maleReleases <- releaseVec
+
+# default migration rate is 0, so no actual batch migration
+migrationBatch <- basicBatchMigration(numPatches = sitesNumber)
+
+
+####################
+# Parameter Setup
+####################
+netPar = NetworkParameters(nPatch = sitesNumber,
+                           simTime = 365*1,
+                           sampTime = 2,
+                           AdPopEQ = 500,
+                           runID = 1L,
+                           dayGrowthRate = 1.175,
+                           beta = 20, tEgg = 2, tLarva = 5, tPupa = 1, muAd = 0.09)
+
+####################
+# Run Simulation
+####################
+runMPlex(seed = 10,
+         numThreads = 2,
+         numReps = 5, 
+         networkParameters = netPar,
+         reproductionReference = reproductionReference,
+         initAlleles = AllAlleles,
+         patchReleases = patchReleases,
+         migrationMale = moveMat,
+         migrationFemale = moveMat,
+         migrationBatch = migrationBatch,
+         outputDirectory = simDir,
+         reproductionType = "DaisyDrive",
+         verbose = FALSE)
+
+
+####################
+# Post Analysis
+####################
+# setup aggregation key
+#  this example sets all genotypes as different
+genOI_mLoci_Daisy(outputFile = file.path(aggDir[1], "0_AggKey.csv"), 
+                  genotypes = list(NULL,NULL), collapse = c(TRUE,TRUE))
+genOI_mLoci_Daisy(outputFile = file.path(aggDir[2], "0_AggKey.csv"), 
+                  genotypes = list('WW','WW'), collapse = c(TRUE,TRUE))
+
+# aggregate experiment by aggregation key
+for(agg in aggDir){
+  simAggregation(readDirectory = simDir, writeDirectory = agg, 
+               simTime = netPar$simTime, sampTime = netPar$sampTime)
+}
+
+# plot for example
+for(agg in aggDir){
+  plotmPlexMult(directory = agg,whichPatches = NULL, nonZeroGen = FALSE, lwd=0.75,alpha=0.75)
+}
+```
+
+The first plot shows the total population over the course of a year. We see the 
+giant releases in the male population, corresponding to the 10x release sizes we 
+performed. Looking at the female population, we clearly see the suppression happening 
+in the first population. There is slight suppression in the second population, but 
+it is hardly noticable.  
+
+The second plot shows the amounts of wild-type individuals against any modified 
+allele at either locus. Again looking at the females due to clarity, we see the 
+initial population suppression, with transgenes and modified alleles taking over 
+the population before fitness costs drive them out. Looking at the second population, 
+we see that there is a sligh transmission of alleles from the first population, 
+but it is significantly lower and also dies out over time.  
+
+It is interesting that this analysis closely matches the exploration performed in 
+*MGDrivE* for this same construct. The population size here is significantly reduced, 
+due to compuational constraints. There is still male/female specific fitness costs, 
+but now there are no sex-specific parameters dictating drive performance, so 
+products are generated equally between males and females. Plotting metrics this time 
+are also simpler, just looking at total population or non-wild-type alleles generated. 
+Either of these two things could be the difference from above.
+
+```{r, echo=FALSE}
+####################
+# Cleanup before next run
+####################
+unlink(x = outFolder, recursive = TRUE)
+rm(list=ls())
+```
+
+
+
+
+
+
+
+
+
+
+### Daisy-Chain with Two Links
+
+A two-piece Daisy-Chain implies one locus with a Cas9, inherited in a Mendelian 
+fashion as shown above, driving a second, unlinked, locus through the population. 
+This is exactly the same as the [split-drive](https://elifesciences.org/articles/51701) 
+system from the [Akbari](https://www.akbarilab.com/) lab. Here, we reproduce the 
+analysis from that paper, and then explore a novel suppression system based on 
+the split-drive construct.
+
+
+
+
+#### Daisy-Chain Gene Drive
+
+This is an extension of the original split-drive that now targets population 
+suppression instead of population replacement. The drive functions in the same way, 
+but now targets a female-fertility gene, such that there is a massive reproductive 
+cost on females with the transgene. Additionally, as this drive is still speculative, 
+the drive performance is increased to a nominal value that is not yet achievable, 
+but should be by the final implementation. Additionally, the biological parameters 
+describing the mosquito life-cycle have been modified, to reflect different conditions 
+for growth.  
+  
+The metrics are similar in this instance. As the goal is population suppression, 
+we will check how much the population declines in the first population. In the 
+second population, we hope it declines very little, and will look for the spread 
+of modified alleles.
+
+```{r, eval=TRUE}
+####################
+# Load libraries
+####################
+library(mPlexCpp)
+
+####################
+# Output Folder
+####################
+outFolder <- "mPlex"
+
+outFolder <- "~/Desktop/OUTPUT/mPlex"
+
+simDir <- file.path(outFolder, "simDir")
+aggDir <- file.path(outFolder, paste0("aggDir", 1:2))
+for(i in c(outFolder, simDir, aggDir)){ dir.create(i) }
+
+                        
+####################
+# Landscape
+####################
+# a 2-node network, with 1% migration per adult generation
+#  * So, 26.11111 is the total generation time, and not the expected adult life-span
+#  I'm not sure I agree with this, but it is what was used in the paper, so we will 
+#  use it here.
+sitesNumber <- 2
+stayProbability <- 0.01 * 0.09
+moveMat <- matrix(data = c(1-stayProbability,stayProbability,stayProbability,1-stayProbability),
+                  nrow = sitesNumber, ncol = sitesNumber)
+
+
+####################
+# Inheritance pattern
+####################
+# a 2-locus Daisy
+cCost <- 0.078
+fCost <- 0.11 * 0.09  # this is modified to the expected adult age
+sNew <- c('HHHH'=0, 'HRHH'=0, 'HSHH'=0, 'HWHH'=0, 'RRHH'=0, 'RSHH'=0, 'RWHH'=0,
+          'SSHH'=0, 'SWHH'=0, 'WWHH'=0, 'HHHS'=0, 'HRHS'=0, 'HSHS'=0, 'HWHS'=0,
+          'RRHS'=0, 'RSHS'=0, 'RWHS'=0, 'SSHS'=0, 'SWHS'=0, 'WWHS'=0, 'HHHW'=0,
+          'HRHW'=0, 'HSHW'=0, 'HWHW'=0, 'RRHW'=0, 'RSHW'=0, 'RWHW'=0, 'SSHW'=0,
+          'SWHW'=0, 'WWHW'=0, 'HHSS'=0, 'HRSS'=0, 'HSSS'=0, 'HWSS'=0, 'RRSS'=0,
+          'RSSS'=0, 'RWSS'=0, 'SSSS'=0, 'SWSS'=0, 'WWSS'=0)
+oNew <- c('HHHH'=1-2*cCost-2*fCost, 'HRHH'=1-cCost-2*fCost, 'HSHH'=1-cCost-2*fCost,
+          'HWHH'=1-cCost-2*fCost, 'RRHH'=1-2*fCost, 'RSHH'=1-2*fCost, 'RWHH'=1-2*fCost,
+          'SSHH'=1-2*fCost, 'SWHH'=1-2*fCost, 'WWHH'=1-2*fCost, 'HHHR'=1-2*cCost-fCost,
+          'HRHR'=1-cCost-fCost, 'HSHR'=1-cCost-fCost, 'HWHR'=1-cCost-fCost, 'RRHR'=1-fCost,
+          'RSHR'=1-fCost, 'RWHR'=1-fCost, 'SSHR'=1-fCost, 'SWHR'=1-fCost, 'WWHR'=1-fCost,
+          'HHHS'=1-2*cCost-fCost, 'HRHS'=1-cCost-fCost, 'HSHS'=1-cCost-fCost,
+          'HWHS'=1-cCost-fCost, 'RRHS'=1-fCost, 'RSHS'=1-fCost, 'RWHS'=1-fCost,
+          'SSHS'=1-fCost, 'SWHS'=1-fCost, 'WWHS'=1-fCost, 'HHHW'=1-2*cCost-fCost,
+          'HRHW'=1-cCost-fCost, 'HSHW'=1-cCost-fCost, 'HWHW'=1-cCost-fCost,
+          'RRHW'=1-fCost, 'RSHW'=1-fCost, 'RWHW'=1-fCost, 'SSHW'=1-fCost, 'SWHW'=1-fCost,
+          'WWHW'=1-fCost, 'HHRR'=1-2*cCost, 'HRRR'=1-cCost, 'HSRR'=1-cCost, 'HWRR'=1-cCost,
+          'HHRS'=1-2*cCost, 'HRRS'=1-cCost, 'HSRS'=1-cCost, 'HWRS'=1-cCost,
+          'HHRW'=1-2*cCost, 'HRRW'=1-cCost, 'HSRW'=1-cCost, 'HWRW'=1-cCost,
+          'HHSS'=1-2*cCost, 'HRSS'=1-cCost, 'HSSS'=1-cCost, 'HWSS'=1-cCost,
+          'HHSW'=1-2*cCost, 'HRSW'=1-cCost, 'HSSW'=1-cCost, 'HWSW'=1-cCost,
+          'HHWW'=1-2*cCost, 'HRWW'=1-cCost, 'HSWW'=1-cCost, 'HWWW'=1-cCost)
+reproductionReference <- MakeReference_DaisyDrive(H = c(1,0),
+                                                  R = c(0.00333,0),
+                                                  S = c(0.01666,0),
+                                                  d = c(0,0),
+                                                  s = sNew,
+                                                  omega = oNew)
+
+# parameter translation notes
+#  The probabilities aren't calculated the same in MGDrivE and mPlex.
+#  Here are the conversion equations, MGDrive = mPlex
+#  H: Cut*Hom = H*(1-R-S)
+#  R: Cut*(1-Hom)*rRate = H*R
+#  S: Cut*(1-Hom)*(1-rRate) = H*S
+#
+# For this publication, these conversions imply:
+#  Rates
+#  H: 1
+#  R: 0.00333
+#  S: 0.01666
+
+
+
+####################
+# Setup Initial genotype ratios
+####################
+# 2 locus, start completely wild-type
+alleloTypes <- vector(mode = "list", length = 2L) #2 locus
+alleloTypes[[1]]$alleles <- c("W")
+alleloTypes[[1]]$probs <- c(1)
+alleloTypes[[2]]$alleles <- c("W")
+alleloTypes[[2]]$probs <- c(1)
+
+# replicate so each patch starts the same
+AllAlleles <- replicate(n = sitesNumber, expr = alleloTypes, simplify = FALSE)
+
+
+####################
+# Setup releases and batch migration
+####################
+# create Release List
+patchReleases = replicate(n = sitesNumber,
+                          expr = list(maleReleases = NULL,
+                                      femaleReleases = NULL,
+                                      eggReleases = NULL),
+                          simplify = FALSE)
+
+# Create release object to pass to patches
+#  26 releases performed
+releaseVec <- basicRepeatedReleases(releaseStart = 20,
+                                         releaseEnd = 195,
+                                         releaseInterval = 7,
+                                         genMos = c("HHHH"),
+                                         numMos = c(5000),
+                                         minAge = 16,
+                                         maxAge = 24,
+                                         ageDist = rep(x = 1, times = 24-16+1)/9)
+
+patchReleases[[1]]$maleReleases <- releaseVec
+
+# default migration rate is 0, so no actual batch migration
+migrationBatch <- basicBatchMigration(numPatches = sitesNumber)
+
+
+####################
+# Parameter Setup
+####################
+netPar = NetworkParameters(nPatch = sitesNumber,
+                           simTime = 365*1,
+                           sampTime = 2,
+                           AdPopEQ = 500,
+                           runID = 1L,
+                           dayGrowthRate = 1.175,
+                           beta = 20, tEgg = 2, tLarva = 5, tPupa = 1, muAd = 0.09)
+
+####################
+# Run Simulation
+####################
+runMPlex(seed = 10,
+         numThreads = 2,
+         numReps = 5, 
+         networkParameters = netPar,
+         reproductionReference = reproductionReference,
+         initAlleles = AllAlleles,
+         patchReleases = patchReleases,
+         migrationMale = moveMat,
+         migrationFemale = moveMat,
+         migrationBatch = migrationBatch,
+         outputDirectory = simDir,
+         reproductionType = "DaisyDrive",
+         verbose = TRUE)
+
+
+####################
+# Post Analysis
+####################
+# setup aggregation key
+#  this example sets all genotypes as different
+genOI_mLoci_Daisy(outputFile = file.path(aggDir[1], "0_AggKey.csv"), 
+                  genotypes = list(NULL,NULL), collapse = c(TRUE,TRUE))
+genOI_mLoci_Daisy(outputFile = file.path(aggDir[2], "0_AggKey.csv"), 
+                  genotypes = list('WW','WW'), collapse = c(TRUE,TRUE))
+
+# aggregate experiment by aggregation key
+for(agg in aggDir){
+  simAggregation(readDirectory = simDir, writeDirectory = agg, 
+               simTime = netPar$simTime, sampTime = netPar$sampTime)
+}
+
+# plot for example
+for(agg in aggDir){
+  plotmPlexMult(directory = agg,whichPatches = NULL, nonZeroGen = FALSE, lwd=0.75,alpha=0.75)
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

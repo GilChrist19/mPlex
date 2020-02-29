@@ -4,15 +4,15 @@
 \alias{MakeReference_Multiplex_oLocus}
 \title{mPlex One Locus Offspring Reference}
 \usage{
-MakeReference_Multiplex_oLocus(H, R, S, d, eta=NULL, phi=NULL,
+MakeReference_Multiplex_oLocus(cRate, hRate, rRate, d, eta=NULL, phi=NULL,
 omega=NULL, xiF=NULL, xiM=NULL, s=NULL)
 }
 \arguments{
-\item{H}{Vector of homing rates for each drive piece}
+\item{cRate}{Vector of cutting rates for each drive piece}
 
-\item{R}{Vector of deleterious allele generation rates}
+\item{hRate}{Vector of homing allele generation rates}
 
-\item{S}{Vector of neutral allele generation rates}
+\item{rRate}{Vector of neutral allele generation rates}
 
 \item{d}{Vector of background mutation rates at each locus}
 
@@ -29,7 +29,7 @@ omega=NULL, xiF=NULL, xiM=NULL, s=NULL)
 \item{s}{Named vector of genotype-dependent fertility reduction}
 }
 \value{
-list of homing and mendelian genotypes and rates
+List of homing and mendelian genotypes and rates.
 }
 \description{
 Create a list specifying the offspring probability distribution.
@@ -39,14 +39,14 @@ This function creates a reference list for \code{\link{MultiplexOffspring_oLocus
 It assumes multiple targeting gRNAs for 1 locus, all targets segregate together.
 The length of each allele is specified by the length of H. R, S, and d must
 be the same length as H, but will generally be the same number replicated that
-many times. It is assumed that S is R/3, but this can be varied.
+many times.
 This function is similar to \code{\link{MakeReference_DaisyDrive}} and
 \code{\link{MakeReference_Multiplex_mLoci}}
 }
 \examples{
-H <- c(0.9,0.4,0.7) # This drive has 3 targets at 1 locus
-R <- c(0.001, 0.002, 0.003)
-S <- c(0.0003, 0.0006, 0.001)
+cRate <- c(0.9,0.4,0.7) # This drive targets 3 loci
+hRate <- c(0.1, 0.2, 0.3)
+rRate <- c(0.003, 0.006, 0.01)
 d <- c(0.0001, 0.0001, 0.0001)
 
 MakeReference_Multiplex_oLocus(H,R,S,d)

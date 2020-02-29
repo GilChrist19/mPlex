@@ -21,6 +21,7 @@ public:
 
   // constructor & destructor
   Mosquito(const int& _age, const std::string& _genotype);
+  Mosquito(const int& _age, const std::string& _genotype, const std::string& _mateGenotype);
   virtual ~Mosquito();
 
   // delete copy constructor and assignment operator

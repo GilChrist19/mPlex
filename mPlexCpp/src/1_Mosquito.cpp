@@ -15,6 +15,8 @@
 
 // constructor & destructor
 Mosquito::Mosquito(const int& _age, const std::string& _genotype) : age(_age),genotype(_genotype){};
+Mosquito::Mosquito(const int& _age, const std::string& _genotype, const std::string& _mateGenotype) : 
+  age(_age),genotype(_genotype),mate(_mateGenotype){};
 Mosquito::~Mosquito(){};
 
 // print function

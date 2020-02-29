@@ -14,12 +14,12 @@
 #'
 #' Create a list specifying the offspring probability distribution.
 #'
-#' @usage MakeReference_DaisyDrive(H, R, S, d, eta=NULL, phi=NULL,
+#' @usage MakeReference_DaisyDrive(cRate, hRate, rRate, d, eta=NULL, phi=NULL,
 #' omega=NULL, xiF=NULL, xiM=NULL, s=NULL)
 #'
-#' @param H Vector of homing rates for each drive piece
-#' @param R Vector of deleterious allele generation rates
-#' @param S Vector of neutral allele generation rates
+#' @param cRate Vector of cutting rates for each drive piece
+#' @param hRate Vector of homing allele generation rates
+#' @param rRate Vector of neutral allele generation rates
 #' @param d Vector of background mutation rates at each locus
 #' @param eta Named vector of mating fitness 
 #' @param phi Named vector of sex ratios at emerence
@@ -29,59 +29,51 @@
 #' @param s Named vector of genotype-dependent fertility reduction
 #'
 #' @details This function creates a reference list for \code{\link{DaisyOffspring}}.
-#' The number of drive elements is specified by the length of H. The final homing
-#' rate doesn't matter, as the last piece of the drive has nothing to drive, but
-#' it must be there for compatibility. R,S, and d must be the same length as H,
-#' but will generally be the same number replicated that many times. It is assumed
-#' that S is R/3, but this can be varied. This function is similar to \code{\link{MakeReference_Multiplex_mLoci}}
+#' The number of drive elements is specified by the length of cRate. The first element 
+#' of each {c,h,r}Rate must be 0, because the first element behaves in a mendelian 
+#' fashion, and the rates of the final piece don't matter, because there is not 
+#' another piece to drive. cRate, hRate, and rRate must be the same length. This 
+#' function is similar to \code{\link{MakeReference_Multiplex_mLoci}}
 #' and \code{\link{MakeReference_Multiplex_oLocus}}
 #'
-#' @return list of homing, cutting, and mendelian genotypes and rates
+#' @return List of homing, cutting, and mendelian genotypes and rates.
 #'
 #' @examples
-#' H <- c(0.9,0.4,0) # This drive has 3 pieces
-#' R <- c(0.001, 0.002, 0.003)
-#' S <- c(0.0003, 0.0006, 0.001)
+#' cRate <- c(0,0.4,0.7) # This drive targets 3 loci
+#' hRate <- c(0, 0.2, 0.3)
+#' rRate <- c(0, 0.006, 0.01)
 #' d <- c(0.0001, 0.0001, 0.0001)
 #'
 #' MakeReference_DaisyDrive(H,R,S,d)
 #'
 #' @export
-MakeReference_DaisyDrive <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/3, d=c(0.0001, 0.0001, 0.0001),
-                                     eta = NULL, phi = NULL, omega = NULL, xiF = NULL, xiM = NULL, s = NULL){
+MakeReference_DaisyDrive <- function(cRate=c(0, 1.0, 1.0), hRate=c(0,1.0,1.0),
+                                          rRate=c(0,0,0), d=c(0.0001, 0.0001, 0.0001),
+                                          eta = NULL, phi = NULL, omega = NULL, xiF = NULL, xiM = NULL, s = NULL){
   
-  #H is homing rate. The length of this vector determines the number of pieces
-  # in the daisy drive. Each drive can have the same or different rates.
+  #cRate is cutting rate. The length of this vector determines the number of loci
+  # in the multiplex drive. Each drive can have the same or different rates.
   
-  #R is the NHEJ rate for deleterious alleles. Must be same length as H,
+  #hRate is the proper hoing rate for H alleles. Must be same length as cRate,
   # can be the same or different values.
   
-  #S is the NHEJ rate for neutral alleles. Must be the same length as H,
+  #rRate is the NHEJ rate for neutral alleles. Must be the same length as cRate,
   # can be the same or different values.
   
-  #d is the background mutation rate. Must be the same length as H, can
+  #d is the background mutation rate. Must be the same length as cRate, can
   # have the same or different values.
   
   
-  
   #Safety checks
-  if(any( c(length(H),length(R), length(S), length(d)) != length(H))){
+  if(any( c(length(cRate),length(hRate), length(rRate), length(d)) != length(cRate))){
     return(cat("All inputs must be the same length!\n",
-               "i.e. length(H) == length(R) == length(S) == length(d)"))
+               "i.e. length(cRate) == length(hRate) == length(rRate) == length(d)"))
   }
-  if(any(H[-length(H)]>1, R>1, S>1, d>1) || any(H[-length(H)]<0, R<0, S<0, d<0)){
-    #last H doesn't matter because it may/may not exist and isnt' used
+  if(any(cRate>1, hRate>1, rRate>1, d>1) || any(cRate<0, hRate<0, rRate<0, d<0)){
     return(cat("All rates must satisfy 0 <= rate <= 1\n"))
   }
-  if(any((d+c(0, H[-length(H)])) > 1)){
-    #need the driving piece's haming rate plus the background mutation rate
-    #  of the piece being driven into.
-    return(cat("Homing rates plus background mutation rates must be <= 1\n",
-               "i.e. H+d <= 1\n"))
-  }
-  if(any((R+S) > 1)){
-    return(cat("Negative and neutral repair rates must sum to <= 1\n",
-               "i.s. R+S <= 1"))
+  if(any(c(cRate[1],hRate[1],rRate[1]) != 0)){
+    return(cat("First element is Mendelian, so all rates must be 0.\n"))
   }
   
 
@@ -105,42 +97,40 @@ MakeReference_DaisyDrive <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/
   }
   
 
-  
   #setup allele letters
   #W = Wild-type
   #H = Homing
-  #R = Deleterious resistant
-  #S = Neutral resistant
+  #R = Neutral resistant
+  #S = Deleterious resistant
   gtype <- c("W", "H", "R", "S")
-  Hshift <- c(0, H[-length(H)]) #because each pieces relies on the efficiency of the previous piece
-  
+
   #matrix to hold homing probs, then fill it
-  homingProbs <- matrix(data = 0, nrow = 4, ncol = length(H), dimnames = list(gtype, NULL))
-  cuttingProbs <- matrix(data = 0, nrow = 3, ncol = length(H), dimnames = list(gtype[-2], NULL))
+  homingProbs <- matrix(data = 0, nrow = 4, ncol = length(cRate), dimnames = list(gtype, NULL))
+  cuttingProbs <- matrix(data = 0, nrow = 3, ncol = length(cRate), dimnames = list(gtype[-2], NULL))
   
-  homingProbs[1, ] <- 1-d-Hshift #chance to stay W is 1-homing-background mutation
-  homingProbs[2, ] <- Hshift*(1-R-S) #chance to become homing is H*1-H*R-H*S
-  homingProbs[3, ] <- Hshift*R   #NHEJ caused resistance, detrimentalt allele
-  homingProbs[4, ] <- d+Hshift*S #good resistant allele, from NHEJ and background mutation rate
+  homingProbs[1, ] <- (1-d)*(1-cRate) #chance to stay W is (1-background mutation) * (1-cutting rate)
+  homingProbs[2, ] <- (1-d)*cRate*hRate #chance to become H is (1-background)*cutting*homing
+  homingProbs[3, ] <- d + (1-d)*cRate*(1-hRate)*rRate #NHEJ caused good resistance, 
+  homingProbs[4, ] <- (1-d)*cRate*(1-hRate)*(1-rRate) #bad resistant allele, from NHEJ and background mutation rate
   
-  cuttingProbs[1, ] <- 1-d-Hshift*(R+S) #chance to stay W, 1-homingrate*mutations-background
-  cuttingProbs[2, ] <- Hshift*R #chance to become R, cutting*NHEJ deleterious rate
-  cuttingProbs[3, ] <- Hshift*S+d #become S, cutting*NHEJ neutral + background
+  cuttingProbs[1, ] <- (1-d)*(1-cRate) #chance to stay W is (1-background mutation) * (1-cutting rate)
+  cuttingProbs[2, ] <- d + (1-d)*cRate*rRate #NHEJ caused good resistance, 
+  cuttingProbs[3, ] <- (1-d)*cRate*(1-rRate) #bad resistant allele, from NHEJ and background mutation rate
   
   
   #set up lists to hold probabilities
-  mendProbsList <- vector(mode = "list", length = length(H))
-  cutProbsList <- vector(mode = "list", length = length(H))
-  homProbsList <- vector(mode = "list", length = length(H))
+  mendProbsList <- vector(mode = "list", length = length(cRate))
+  cutProbsList <- vector(mode = "list", length = length(cRate))
+  homProbsList <- vector(mode = "list", length = length(cRate))
   
-  mendAlleleList <- vector(mode = "list", length = length(H))
-  cutAlleleList <- vector(mode = "list", length = length(H))
-  homAlleleList <- vector(mode = "list", length = length(H))
+  mendAlleleList <- vector(mode = "list", length = length(cRate))
+  cutAlleleList <- vector(mode = "list", length = length(cRate))
+  homAlleleList <- vector(mode = "list", length = length(cRate))
   
   #fill the lists
-  for(i in 1:length(H)){
-    mendProbsList[[i]]$W <- setNames(object = c(1-d[i], d[i]), nm = c("W", "S"))
-    mendProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "S"))
+  for(i in 1:length(cRate)){
+    mendProbsList[[i]]$W <- setNames(object = c(1-d[i], d[i]), nm = c("W", "R"))
+    mendProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "R"))
     mendProbsList[[i]]$R <- setNames(object = 1, nm = "R")
     mendProbsList[[i]]$S <- setNames(object = 1, nm = "S")
     
@@ -152,7 +142,7 @@ MakeReference_DaisyDrive <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/
     }
     
     cutProbsList[[i]]$W <- cuttingProbs[ ,i]
-    cutProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "S"))
+    cutProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "R"))
     cutProbsList[[i]]$R <- setNames(object = 1, nm = "R")
     cutProbsList[[i]]$S <- setNames(object = 1, nm = "S")
     
@@ -164,7 +154,7 @@ MakeReference_DaisyDrive <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/
     }
     
     homProbsList[[i]]$W <- homingProbs[ ,i]
-    homProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "S"))
+    homProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "R"))
     homProbsList[[i]]$R <- setNames(object = 1, nm = "R")
     homProbsList[[i]]$S <- setNames(object = 1, nm = "S")
     
@@ -175,7 +165,6 @@ MakeReference_DaisyDrive <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/
       homAlleleList[[i]][[j]] <- names(homProbsList[[i]][[j]])
     }
   }
-  
   
   
   #set genotype-specific parameters
@@ -213,12 +202,12 @@ MakeReference_DaisyDrive <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/
 #'
 #' Create a list specifying the offspring probability distribution.
 #'
-#' @usage MakeReference_Multiplex_mLoci(H, R, S, d, eta=NULL, phi=NULL,
+#' @usage MakeReference_Multiplex_mLoci(cRate, hRate, rRate, d, eta=NULL, phi=NULL,
 #' omega=NULL, xiF=NULL, xiM=NULL, s=NULL)
 #'
-#' @param H Vector of homing rates for each drive piece
-#' @param R Vector of deleterious allele generation rates
-#' @param S Vector of neutral allele generation rates
+#' @param cRate Vector of cutting rates for each drive piece
+#' @param hRate Vector of homing allele generation rates
+#' @param rRate Vector of neutral allele generation rates
 #' @param d Vector of background mutation rates at each locus
 #' @param eta Named vector of mating fitness 
 #' @param phi Named vector of sex ratios at emerence
@@ -229,54 +218,46 @@ MakeReference_DaisyDrive <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/
 #'
 #' @details This function creates a reference list for \code{\link{MultiplexOffspring_mLoci}}.
 #' Each drive element targets one locus. Each locus is independent of the rest.
-#' The number of targets is specified by the length of H. R,S, and d must
+#' The number of targets is specified by the length of H. R, S, and d must
 #' be the same length as H, but will generally be the same number replicated that
-#' many times. It is assumed that S is R/3, but this can be varied.
-#' This function is similar to \code{\link{MakeReference_DaisyDrive}} and
+#' many times. This function is similar to \code{\link{MakeReference_DaisyDrive}} and
 #' \code{\link{MakeReference_Multiplex_oLocus}}
 #'
-#' @return list of homing and mendelian genotypes and rates
+#' @return List of homing and mendelian genotypes and rates.
 #'
 #' @examples
-#' H <- c(0.9,0.4,0.7) # This drive targets 3 loci
-#' R <- c(0.001, 0.002, 0.003)
-#' S <- c(0.0003, 0.0006, 0.001)
+#' cRate <- c(0.9,0.4,0.7) # This drive targets 3 loci
+#' hRate <- c(0.1, 0.2, 0.3)
+#' rRate <- c(0.003, 0.006, 0.01)
 #' d <- c(0.0001, 0.0001, 0.0001)
 #'
-#' MakeReference_Multiplex_mLoci(H,R,S,d)
+#' MakeReference_Multiplex_mLoci(cRate,hRate,rRate,d)
 #'
 #' @export
-MakeReference_Multiplex_mLoci <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0), S=R/3, d=c(0.0001, 0.0001, 0.0001),
+MakeReference_Multiplex_mLoci <- function(cRate=c(1.0, 1.0, 1.0), hRate=c(1.0,1.0,1.0),
+                                          rRate=c(0,0,0), d=c(0.0001, 0.0001, 0.0001),
                                           eta = NULL, phi = NULL, omega = NULL, xiF = NULL, xiM = NULL, s = NULL){
   
-  #H is homing rate. The length of this vector determines the number of loci
+  #cRate is cutting rate. The length of this vector determines the number of loci
   # in the multiplex drive. Each drive can have the same or different rates.
   
-  #R is the NHEJ rate for deleterious alleles. Must be same length as H,
+  #hRate is the proper hoing rate for H alleles. Must be same length as cRate,
   # can be the same or different values.
   
-  #S is the NHEJ rate for neutral alleles. Must be the same length as H,
+  #rRate is the NHEJ rate for neutral alleles. Must be the same length as cRate,
   # can be the same or different values.
   
-  #d is the background mutation rate. Must be the same length as H, can
+  #d is the background mutation rate. Must be the same length as cRate, can
   # have the same or different values.
   
   
   #Safety checks
-  if(any( c(length(H),length(R), length(S), length(d)) != length(H))){
+  if(any( c(length(cRate),length(hRate), length(rRate), length(d)) != length(cRate))){
     return(cat("All inputs must be the same length!\n",
-               "i.e. length(H) == length(R) == length(S) == length(d)"))
+               "i.e. length(cRate) == length(hRate) == length(rRate) == length(d)"))
   }
-  if(any(H>1, R>1, S>1, d>1) || any(H<0, R<0, S<0, d<0)){
+  if(any(cRate>1, hRate>1, rRate>1, d>1) || any(cRate<0, hRate<0, rRate<0, d<0)){
     return(cat("All rates must satisfy 0 <= rate <= 1\n"))
-  }
-  if(any((d+H) > 1)){
-    return(cat("Homing rates plus background mutation rates must be <= 1\n",
-               "i.e. H+d <= 1\n"))
-  }
-  if(any((R+S) > 1)){
-    return(cat("Negative and neutral repair rates must sum to <= 1\n",
-               "i.s. R+S <= 1"))
   }
   
   
@@ -303,30 +284,31 @@ MakeReference_Multiplex_mLoci <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0),
   #setup allele letters
   #W = Wild-type
   #H = Homing
-  #R = Deleterious resistant
-  #S = Neutral resistant
+  #R = Neutral resistant
+  #S = Deleterious resistant
   gtype <- c("W", "H", "R", "S")
   
   #matrix to hold homing probs, then fill it
-  homingProbs <- matrix(data = 0, nrow = 4, ncol = length(H), dimnames = list(gtype, NULL))
+  homingProbs <- matrix(data = 0, nrow = 4, ncol = length(cRate), dimnames = list(gtype, NULL))
   
-  homingProbs[1, ] <- 1-d-H #chance to stay W is 1-homing-background mutation
-  homingProbs[2, ] <- H*(1-R-S) #chance to become homing is H*1-H*R-H*S
-  homingProbs[3, ] <- H*R   #NHEJ caused resistance, detrimentalt allele
-  homingProbs[4, ] <- d+H*S #good resistant allele, from NHEJ and background mutation rate
+  homingProbs[1, ] <- (1-d)*(1-cRate) #chance to stay W is (1-background mutation) * (1-cutting rate)
+  homingProbs[2, ] <- (1-d)*cRate*hRate #chance to become H is (1-background)*cutting*homing
+  homingProbs[3, ] <- d + (1-d)*cRate*(1-hRate)*rRate #NHEJ caused good resistance, 
+  homingProbs[4, ] <- (1-d)*cRate*(1-hRate)*(1-rRate) #bad resistant allele, from NHEJ and background mutation rate
+  
   
   #set up lists to hold probabilities
-  mendProbsList <- vector(mode = "list", length = length(H))
-  homProbsList <- vector(mode = "list", length = length(H))
+  mendProbsList <- vector(mode = "list", length = length(cRate))
+  homProbsList <- vector(mode = "list", length = length(cRate))
   
-  mendAlleleList <- vector(mode = "list", length = length(H))
-  homAlleleList <- vector(mode = "list", length = length(H))
+  mendAlleleList <- vector(mode = "list", length = length(cRate))
+  homAlleleList <- vector(mode = "list", length = length(cRate))
   
   #fill the lists
-  for(i in 1:length(H)){
+  for(i in 1:length(cRate)){
     #Mendelian Probabilities
-    mendProbsList[[i]]$W <- setNames(object = c(1-d[i], d[i]), nm = c("W", "S"))
-    mendProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "S"))
+    mendProbsList[[i]]$W <- setNames(object = c(1-d[i], d[i]), nm = c("W", "R"))
+    mendProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "R"))
     mendProbsList[[i]]$R <- setNames(object = 1, nm = "R")
     mendProbsList[[i]]$S <- setNames(object = 1, nm = "S")
     
@@ -339,7 +321,7 @@ MakeReference_Multiplex_mLoci <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0),
     
     #Homing Probabilities
     homProbsList[[i]]$W <- homingProbs[ ,i]
-    homProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "S"))
+    homProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "R"))
     homProbsList[[i]]$R <- setNames(object = 1, nm = "R")
     homProbsList[[i]]$S <- setNames(object = 1, nm = "S")
     
@@ -386,12 +368,12 @@ MakeReference_Multiplex_mLoci <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0),
 #'
 #' Create a list specifying the offspring probability distribution.
 #'
-#' @usage MakeReference_Multiplex_oLocus(H, R, S, d, eta=NULL, phi=NULL,
+#' @usage MakeReference_Multiplex_oLocus(cRate, hRate, rRate, d, eta=NULL, phi=NULL,
 #' omega=NULL, xiF=NULL, xiM=NULL, s=NULL)
 #'
-#' @param H Vector of homing rates for each drive piece
-#' @param R Vector of deleterious allele generation rates
-#' @param S Vector of neutral allele generation rates
+#' @param cRate Vector of cutting rates for each drive piece
+#' @param hRate Vector of homing allele generation rates
+#' @param rRate Vector of neutral allele generation rates
 #' @param d Vector of background mutation rates at each locus
 #' @param eta Named vector of mating fitness 
 #' @param phi Named vector of sex ratios at emerence
@@ -404,52 +386,44 @@ MakeReference_Multiplex_mLoci <- function(H=c(0.9, 0.4, 0.7),R=c(0.0, 0.0, 0.0),
 #' It assumes multiple targeting gRNAs for 1 locus, all targets segregate together.
 #' The length of each allele is specified by the length of H. R, S, and d must
 #' be the same length as H, but will generally be the same number replicated that
-#' many times. It is assumed that S is R/3, but this can be varied.
+#' many times. 
 #' This function is similar to \code{\link{MakeReference_DaisyDrive}} and
 #' \code{\link{MakeReference_Multiplex_mLoci}}
 #'
-#' @return list of homing and mendelian genotypes and rates
+#' @return List of homing and mendelian genotypes and rates.
 #'
 #' @examples
-#' H <- c(0.9,0.4,0.7) # This drive has 3 targets at 1 locus
-#' R <- c(0.001, 0.002, 0.003)
-#' S <- c(0.0003, 0.0006, 0.001)
+#' cRate <- c(0.9,0.4,0.7) # This drive targets 3 loci
+#' hRate <- c(0.1, 0.2, 0.3)
+#' rRate <- c(0.003, 0.006, 0.01)
 #' d <- c(0.0001, 0.0001, 0.0001)
 #'
 #' MakeReference_Multiplex_oLocus(H,R,S,d)
 #'
 #' @export
-MakeReference_Multiplex_oLocus <- function(H=c(0.9),R=c(0.0), S=R/3, d=c(0.0001),
+MakeReference_Multiplex_oLocus <- function(cRate=c(1.0, 1.0, 1.0), hRate=c(1.0,1.0,1.0),
+                                           rRate=c(0,0,0), d=c(0.0001, 0.0001, 0.0001),
                                            eta = NULL, phi = NULL, omega = NULL, xiF = NULL, xiM = NULL, s = NULL){
-  #H is homing rate. The length of this vector determines the number of loci
+  #cRate is cutting rate. The length of this vector determines the number of loci
   # in the multiplex drive. Each drive can have the same or different rates.
   
-  #R is the NHEJ rate for deleterious alleles. Must be same length as H,
+  #hRate is the proper hoing rate for H alleles. Must be same length as cRate,
   # can be the same or different values.
   
-  #S is the NHEJ rate for neutral alleles. Must be the same length as H,
+  #rRate is the NHEJ rate for neutral alleles. Must be the same length as cRate,
   # can be the same or different values.
   
-  #d is the background mutation rate. Must be the same length as H, can
+  #d is the background mutation rate. Must be the same length as cRate, can
   # have the same or different values.
   
   
-  
   #Safety checks
-  if(any( c(length(H),length(R), length(S), length(d)) != length(H))){
+  if(any( c(length(cRate),length(hRate), length(rRate), length(d)) != length(cRate))){
     return(cat("All inputs must be the same length!\n",
-               "i.e. length(H) == length(R) == length(S) == length(d)"))
+               "i.e. length(cRate) == length(hRate) == length(rRate) == length(d)"))
   }
-  if(any(H>1, R>1, S>1, d>1) || any(H<0, R<0, S<0, d<0)){
+  if(any(cRate>1, hRate>1, rRate>1, d>1) || any(cRate<0, hRate<0, rRate<0, d<0)){
     return(cat("All rates must satisfy 0 <= rate <= 1\n"))
-  }
-  if(any((d+H) > 1)){
-    return(cat("Homing rates plus background mutation rates must be <= 1\n",
-               "i.e. H+d <= 1\n"))
-  }
-  if(any((R+S) > 1)){
-    return(cat("Negative and neutral repair rates must sum to <= 1\n",
-               "i.s. R+S <= 1"))
   }
   
   
@@ -473,35 +447,34 @@ MakeReference_Multiplex_oLocus <- function(H=c(0.9),R=c(0.0), S=R/3, d=c(0.0001)
   }
   
   
-  
-  
   #setup allele letters
   #W = Wild-type
   #H = Homing
-  #R = Deleterious resistant
-  #S = Neutral resistant
+  #R = Neutral resistant
+  #S = Deleterious resistant
   gtype <- c("W", "H", "R", "S")
   
   #matrix to hold homing probs, then fill it
-  homingProbs <- matrix(data = 0, nrow = 4, ncol = length(H), dimnames = list(gtype, NULL))
+  homingProbs <- matrix(data = 0, nrow = 4, ncol = length(cRate), dimnames = list(gtype, NULL))
   
-  homingProbs[1, ] <- 1-d-H #chance to stay W is 1-homing-background mutation
-  homingProbs[2, ] <- H*(1-R-S) #chance to become homing is H*1-H*R-H*S
-  homingProbs[3, ] <- H*R   #NHEJ caused resistance, detrimentalt allele
-  homingProbs[4, ] <- d+H*S #good resistant allele, from NHEJ and background mutation rate
+  homingProbs[1, ] <- (1-d)*(1-cRate) #chance to stay W is (1-background mutation) * (1-cutting rate)
+  homingProbs[2, ] <- (1-d)*cRate*hRate #chance to become H is (1-background)*cutting*homing
+  homingProbs[3, ] <- d + (1-d)*cRate*(1-hRate)*rRate #NHEJ caused good resistance, 
+  homingProbs[4, ] <- (1-d)*cRate*(1-hRate)*(1-rRate) #bad resistant allele, from NHEJ and background mutation rate
+  
   
   #set up lists to hold probabilities
-  mendProbsList <- vector(mode = "list", length = length(H))
-  homProbsList <- vector(mode = "list", length = length(H))
+  mendProbsList <- vector(mode = "list", length = length(cRate))
+  homProbsList <- vector(mode = "list", length = length(cRate))
   
-  mendAlleleList <- vector(mode = "list", length = length(H))
-  homAlleleList <- vector(mode = "list", length = length(H))
+  mendAlleleList <- vector(mode = "list", length = length(cRate))
+  homAlleleList <- vector(mode = "list", length = length(cRate))
   
   #fill the lists
-  for(i in 1:length(H)){
+  for(i in 1:length(cRate)){
     #Mendelian Probabilities
-    mendProbsList[[i]]$W <- setNames(object = c(1-d[i], d[i]), nm = c("W", "S"))
-    mendProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "S"))
+    mendProbsList[[i]]$W <- setNames(object = c(1-d[i], d[i]), nm = c("W", "R"))
+    mendProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "R"))
     mendProbsList[[i]]$R <- setNames(object = 1, nm = "R")
     mendProbsList[[i]]$S <- setNames(object = 1, nm = "S")
     
@@ -514,7 +487,7 @@ MakeReference_Multiplex_oLocus <- function(H=c(0.9),R=c(0.0), S=R/3, d=c(0.0001)
     
     #Homing Probabilities
     homProbsList[[i]]$W <- homingProbs[ ,i]
-    homProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "S"))
+    homProbsList[[i]]$H <- setNames(object = c(1-d[i], d[i]), nm = c("H", "R"))
     homProbsList[[i]]$R <- setNames(object = 1, nm = "R")
     homProbsList[[i]]$S <- setNames(object = 1, nm = "S")
     
@@ -525,8 +498,6 @@ MakeReference_Multiplex_oLocus <- function(H=c(0.9),R=c(0.0), S=R/3, d=c(0.0001)
       homAlleleList[[i]][[j]] <- names(homProbsList[[i]][[j]])
     }
   }
-  
-  
   
   
   #set genotype-specific parameters
