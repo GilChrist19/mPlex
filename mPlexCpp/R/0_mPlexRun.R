@@ -137,22 +137,25 @@ runMPlex <- function(seed = 1, numReps = 1, numThreads = 1,
     stop("length of patchReleases list must equal the number of patches")
   }
   
-  # only do this if not family inheritance
-  if(!(reproductionType %in% c("Family"))){
+  # check if they are/aren't all null, 
+  #  if no releases, skip this.
+  # also, if family inheritance, skip this
+  allNull <- all(unlist(x = lapply(X = patchReleases, FUN = function(x){lapply(X = x, FUN = is.null)}),
+                     use.names = FALSE) == TRUE)
+  if(!allNull && !(reproductionType %in% c("Family"))){
     # check that the genotypes are the proper length for inheritance
     
     # Get all genotypes from the releases
     #  Need this for both checks, so getting it here
     # 1 - unlist from each patch
-    # 2 - unlist from male/female/eggs
-    # 3 - get genotypes vector only from the genotypes, ages, and time
+    # 2 - unlist from male/female/eggs/mated females - but not their mates!
+    # 3 - get genotypes and mate genotypes vector from the genotypes, ages, and time
     # 4 - unlist all of the genotypes into a basic character vector
     allGenos <- unlist(x = lapply(X = unlist(x = unlist(x = patchReleases,
                                                         recursive = FALSE),
                                              recursive = FALSE),
-                                  FUN = '[[', "genVec"),
+                                  FUN = function(x){c(x[["genVec"]],x[["mateVec"]])}),
                        recursive = TRUE, use.names = FALSE)
-    
     
     # get length of every genotype in the releases
     # 1 - get length of each of the strings in the character vector

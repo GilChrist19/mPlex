@@ -41,11 +41,11 @@ for(i in c(simDir, aggDir)){dir.create(path = i)}
 # Setup Parameters for Network
 ###############################################################################
 
-numPatch <- 3
+numPatch <- 2
 set.seed(10)
 migration <- matrix(data = runif(numPatch*numPatch), nrow = numPatch, ncol = numPatch)
 migration <- migration/rowSums(migration)
-migration <- diag(1)
+migration <- diag(numPatch)
 
 patchPops = rep(1000L,numPatch)
 
@@ -123,6 +123,9 @@ patchReleases = replicate(n = numPatch,
 # 
 # patchReleases[[2]]$maleReleases <- c(holdRel, holdRel2)
 
+
+
+
 patchReleases[[1]]$matedFemaleReleases <- basicRepeatedReleases(releaseStart = 10,
                                                                 releaseEnd = 20,
                                                                 releaseInterval = 1,
@@ -133,10 +136,21 @@ patchReleases[[1]]$matedFemaleReleases <- basicRepeatedReleases(releaseStart = 1
                                                                 maxAge = 24L,
                                                                 ageDist = rep(x = 1, times = 24-16+1)/9)
 
+
+
+patchReleases[[2]]$maleReleases <- basicRepeatedReleases(releaseStart = 10,
+                                          releaseEnd = 20,
+                                          releaseInterval = 1,
+                                          genMos = c("RR"),
+                                          numMos = c(100L),
+                                          minAge = 16L,
+                                          maxAge = 24L,
+                                          ageDist = rep(x = 1, times = 24-16+1)/9)
+
 ###############################################################################
 # Calculate parameters and initialize network
 ###############################################################################
-simTime <- 1000
+simTime <- 100
 netPar = NetworkParameters(nPatch = numPatch,
                            simTime = simTime,
                            sampTime = 2,
@@ -162,18 +176,6 @@ runMPlex(seed = 10,
          reproductionType = "mPlex_mLoci",
          verbose = TRUE)
 #difftime(time1 = Sys.time(), time2 = startTime)
-
-# FAMILY
-Time difference of 1.676341 mins
-Time difference of 1.09469 mins
-Time difference of 55.25016 secs
-Time difference of 55.38779 secs
-
-#MLOCI
-Time difference of 1.145804 mins
-Time difference of 39.40608 secs
-Time difference of 31.47467 secs
-Time difference of 27.35768 secs
 
 # setup aggregation key
 #  this example sets all genotypes as different
