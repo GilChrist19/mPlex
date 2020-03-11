@@ -13,7 +13,7 @@
 #include <progress.hpp>
 #include <progress_bar.hpp>
 
-//#include <gperftools/profiler.h>
+// #include <gperftools/profiler.h>
 
 // I think the plugin includes compiler flags
 // Source: https://wbnicholson.wordpress.com/2014/07/10/parallelization-in-rcpp-via-openmp/
@@ -105,20 +105,32 @@ void run_mPlex(const uint_least32_t& seed_,
     reference::instance().set_alleleTypes(initAlleles_);
     
     // set mendelian allele reference
-    reference::instance().set_mendelian(Rcpp::as<Rcpp::List> (reproductionReference_["mendelian"]),
-                                        Rcpp::as<Rcpp::List> (reproductionReference_["mendelianAlleles"]));
+    // reference::instance().set_mendelian(Rcpp::as<Rcpp::List> (reproductionReference_["mendelian"]),
+    //                                     Rcpp::as<Rcpp::List> (reproductionReference_["mendelianAlleles"]));
+    reference::instance().set_mendelian(Rcpp::as<Rcpp::ListOf<Rcpp::List> > (reproductionReference_["mendelian"])["female"],
+                                        Rcpp::as<Rcpp::ListOf<Rcpp::List> > (reproductionReference_["mendelianAlleles"])["female"],
+                                        Rcpp::as<Rcpp::ListOf<Rcpp::List> > (reproductionReference_["mendelian"])["male"],
+                                        Rcpp::as<Rcpp::ListOf<Rcpp::List> > (reproductionReference_["mendelianAlleles"])["male"]);
     if(verbose_) {Rcpp::Rcout << "\tMendelian Done\n";};
     
     // set homing allele reference
-    reference::instance().set_homing(Rcpp::as<Rcpp::List> (reproductionReference_["homing"]),
-                                      Rcpp::as<Rcpp::List> (reproductionReference_["homingAlleles"]));
+    // reference::instance().set_homing(Rcpp::as<Rcpp::List> (reproductionReference_["homing"]),
+    //                                   Rcpp::as<Rcpp::List> (reproductionReference_["homingAlleles"]));
+    reference::instance().set_homing(Rcpp::as<Rcpp::ListOf<Rcpp::List> > (reproductionReference_["homing"])["female"],
+                                     Rcpp::as<Rcpp::ListOf<Rcpp::List> > (reproductionReference_["homingAlleles"])["female"],
+                                     Rcpp::as<Rcpp::ListOf<Rcpp::List> > (reproductionReference_["homing"])["male"],
+                                     Rcpp::as<Rcpp::ListOf<Rcpp::List> > (reproductionReference_["homingAlleles"])["male"]);
     if(verbose_) {Rcpp::Rcout << "\tHoming Done\n";};
   }
 
   // set cutting reference if daisy drive
   if(reproductionType_ == "DaisyDrive"){
-    reference::instance().set_cutting(Rcpp::as<Rcpp::List> (reproductionReference_["cutting"]),
-                                      Rcpp::as<Rcpp::List> (reproductionReference_["cuttingAlleles"]));
+    // reference::instance().set_cutting(Rcpp::as<Rcpp::List> (reproductionReference_["cutting"]),
+    //                                   Rcpp::as<Rcpp::List> (reproductionReference_["cuttingAlleles"]));
+    reference::instance().set_cutting(Rcpp::as<Rcpp::ListOf<Rcpp::List> > (reproductionReference_["cutting"])["female"],
+                                      Rcpp::as<Rcpp::ListOf<Rcpp::List> > (reproductionReference_["cuttingAlleles"])["female"],
+                                      Rcpp::as<Rcpp::ListOf<Rcpp::List> > (reproductionReference_["cutting"])["male"],
+                                      Rcpp::as<Rcpp::ListOf<Rcpp::List> > (reproductionReference_["cuttingAlleles"])["male"]);
     if(verbose_) {Rcpp::Rcout << "\tDaisy set\n";};
   }
   

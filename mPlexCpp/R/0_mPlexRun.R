@@ -95,7 +95,7 @@ runMPlex <- function(seed = 1, numReps = 1, numThreads = 1,
     
     # check that the genotypes are the proper length for inheritance
     # options for reproduction reference are: mendelian, homing, mendelianAlleles, homingAlleles
-    genCheck <- all(lengths(initAlleles) == length(x = reproductionReference$mendelianAlleles))
+    genCheck <- all(lengths(initAlleles) == length(x = reproductionReference$mendelianAlleles$female))
     if(!genCheck) stop("The number of initial alleles does not match the number of alleles present in the reproduction reference.")
     
     
@@ -162,7 +162,7 @@ runMPlex <- function(seed = 1, numReps = 1, numThreads = 1,
     # options for reproduction reference are: mendelian, homing, mendelianAlleles, homingAlleles
     #  times 2 because everything is diploid, this will fail if anyting becomes monoploid
     genLength <- nchar(x = allGenos)
-    genCheck <- all(genLength == (length(x = reproductionReference$mendelianAlleles)*2) )
+    genCheck <- all(genLength == (length(x = reproductionReference$mendelianAlleles$female)*2) )
     if(!genCheck) stop("The genotypes of released individuals do not match the number of alleles present in the reproduction reference.")
     
     

@@ -59,34 +59,70 @@ AllAlleles <- replicate(n = numPatch, expr = alleloTypes, simplify = FALSE)
 
 
 
-# alleloTypes <- vector(mode = "list", length = 2L) #3 loci
+# alleloTypes <- vector(mode = "list", length = 15L) #3 loci
 # alleloTypes[[1]]$alleles <- c("W","R")
 # alleloTypes[[1]]$probs <- c(1,2)
 # alleloTypes[[2]]$alleles <- c("W","R")
 # alleloTypes[[2]]$probs <- c(0,1)
-# # alleloTypes[[3]]$alleles <- c("W","H")
-# # alleloTypes[[3]]$probs <- c(1,0)
+# alleloTypes[[3]]$alleles <- c("W","H")
+# alleloTypes[[3]]$probs <- c(1,0)
+# alleloTypes[[4]]$alleles <- c("W","H")
+# alleloTypes[[4]]$probs <- c(1,1)
+# alleloTypes[[5]]$alleles <- c("W","H")
+# alleloTypes[[5]]$probs <- c(1,0)
+# alleloTypes[[6]]$alleles <- c("W","R")
+# alleloTypes[[6]]$probs <- c(1,2)
+# alleloTypes[[7]]$alleles <- c("W","R")
+# alleloTypes[[7]]$probs <- c(0,1)
+# alleloTypes[[8]]$alleles <- c("W","H")
+# alleloTypes[[8]]$probs <- c(1,1)
+# alleloTypes[[9]]$alleles <- c("W","H")
+# alleloTypes[[9]]$probs <- c(1,2)
+# alleloTypes[[10]]$alleles <- c("W","H")
+# alleloTypes[[10]]$probs <- c(1,1)
+# alleloTypes[[11]]$alleles <- c("W","R")
+# alleloTypes[[11]]$probs <- c(1,2)
+# alleloTypes[[12]]$alleles <- c("W","R")
+# alleloTypes[[12]]$probs <- c(0,1)
+# alleloTypes[[13]]$alleles <- c("W","H")
+# alleloTypes[[13]]$probs <- c(1,0)
+# alleloTypes[[14]]$alleles <- c("W","H")
+# alleloTypes[[14]]$probs <- c(1,1)
+# alleloTypes[[15]]$alleles <- c("W","H")
+# alleloTypes[[15]]$probs <- c(1,0)
+# alleloTypes[[16]]$alleles <- c("W","R")
+# alleloTypes[[16]]$probs <- c(1,2)
+# alleloTypes[[17]]$alleles <- c("W","R")
+# alleloTypes[[17]]$probs <- c(0,1)
+# alleloTypes[[18]]$alleles <- c("W","H")
+# alleloTypes[[18]]$probs <- c(1,1)
+# alleloTypes[[19]]$alleles <- c("W","H")
+# alleloTypes[[19]]$probs <- c(1,2)
+# alleloTypes[[20]]$alleles <- c("W","H")
+# alleloTypes[[20]]$probs <- c(1,1)
 # 
 # AllAlleles <- replicate(n = numPatch, expr = alleloTypes, simplify = FALSE)
 
 
 
 
-# reproductionReference <- MakeReference_DaisyDrive(H = c(0.98, 0.5),
-#                                                   R = c(0.0001, 0.0001),
-#                                                   S = c(0.0003, 0.004),
-#                                                   d = c(0, 0), eta = c("TIME"=4))
-
-# reproductionReference <- MakeReference_Multiplex_oLocus(H = c(0.98, 0.5),
-#                                                          R = c(0.0001, 0.0001),
-#                                                          S = c(0.0003, 0.004),
-#                                                          d = c(0, 0))
+# reproductionReference <- MakeReference_DaisyDrive(cRateM = c(0),
+#                                                   hRateM = c(0),
+#                                                   rRateM = c(0),
+#                                                   dM = c(0), eta = c("TIME"=4))
+# 
+# reproductionReference <- MakeReference_Multiplex_oLocus(cRateM = c(0.98),
+#                                                         hRateM = c(0.1),
+#                                                         rRateM = c(0.3),
+#                                                         dM = c(0))
 
 # This sets up a basic CRISPR drive, with perfect homing and no resistance or backgorund mutation
-reproductionReference <- MakeReference_Multiplex_mLoci(cRate = c(0),
-                                                       hRate = c(0.03),
-                                                       rRate = c(0),
-                                                       d = c(0))
+reproductionReference <- MakeReference_Multiplex_mLoci(cRateM = c(0),
+                                                       hRateM = c(0.03),
+                                                       rRateM = c(0.03),
+                                                       cRateF = c(1),
+                                                       dM = c(0))
+
 
 ###############################################################################
 # Release Setup
@@ -161,9 +197,9 @@ netPar = NetworkParameters(nPatch = numPatch,
 
 migrationBatch <- basicBatchMigration(numPatches = numPatch)
 
-#startTime <- Sys.time()
+startTime <- Sys.time()
 runMPlex(seed = 10,
-         numThreads = 2,
+         numThreads = 1,
          numReps = 1, 
          networkParameters = netPar,
          reproductionReference = reproductionReference,
@@ -175,7 +211,7 @@ runMPlex(seed = 10,
          outputDirectory = simDir,
          reproductionType = "mPlex_mLoci",
          verbose = TRUE)
-#difftime(time1 = Sys.time(), time2 = startTime)
+difftime(time1 = Sys.time(), time2 = startTime)
 
 # setup aggregation key
 #  this example sets all genotypes as different

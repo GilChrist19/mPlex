@@ -170,108 +170,314 @@ double reference::get_s(const std::string& genType){
 /**************************************
  * reproduction parameters
 **************************************/
-void reference::set_mendelian(const Rcpp::ListOf<Rcpp::ListOf<Rcpp::NumericVector> >& probs_,
-                              const Rcpp::ListOf<Rcpp::ListOf<Rcpp::StringVector> >& alleles_){
+// set mendelian inheritance
+void reference::set_mendelian(const Rcpp::ListOf<Rcpp::ListOf<Rcpp::NumericVector> >& probsF_,
+                              const Rcpp::ListOf<Rcpp::ListOf<Rcpp::StringVector> >& allelesF_,
+                              const Rcpp::ListOf<Rcpp::ListOf<Rcpp::NumericVector> >& probsM_,
+                              const Rcpp::ListOf<Rcpp::ListOf<Rcpp::StringVector> >& allelesM_){
 
   // set size of outer vector
-  mendelian_probs.resize(probs_.size());
-  mendelian_alleles.resize(alleles_.size());;
+  //  All should be the same size
+  mendelian_probs_f.resize(probsF_.size());
+  mendelian_alleles_f.resize(allelesF_.size());
+  mendelian_probs_m.resize(probsF_.size());
+  mendelian_alleles_m.resize(allelesF_.size());
    
   // holder objects to make life easier in the loop
   std::vector<std::string> holdA;
   
   // loop over number of loci
-  for(size_t locus=0; locus < probs_.size(); ++locus){
+  for(size_t locus=0; locus < probsF_.size(); ++locus){
     
     // size inner vector
-    mendelian_probs[locus].resize(4);
-    mendelian_alleles[locus].resize(4);
+    mendelian_probs_f[locus].resize(4);
+    mendelian_alleles_f[locus].resize(4);
+    mendelian_probs_m[locus].resize(4);
+    mendelian_alleles_m[locus].resize(4);
     
     // loop over possible alleles at that locus
     for(size_t allele : {0,1,2,3}){
+      /**********
+       * Female
+       **********/
       // convert things in holders
-      holdA = Rcpp::as<sVec>(alleles_[locus][allele]);
+      holdA = Rcpp::as<sVec>(allelesF_[locus][allele]);
       
       // set things in final reference
-      mendelian_probs[locus][allele].insert(mendelian_probs[locus][allele].end(),
-                                            probs_[locus][allele].begin(),
-                                            probs_[locus][allele].end());
+      mendelian_probs_f[locus][allele].insert(mendelian_probs_f[locus][allele].end(),
+                                              probsF_[locus][allele].begin(),
+                                              probsF_[locus][allele].end());
 
-      mendelian_alleles[locus][allele].insert(mendelian_alleles[locus][allele].end(),
-                                              holdA.begin(),
-                                              holdA.end());
-    }
+      mendelian_alleles_f[locus][allele].insert(mendelian_alleles_f[locus][allele].end(),
+                                                holdA.begin(),
+                                                holdA.end());
+      
+      /**********
+       * Male
+       **********/
+      // convert things in holders
+      holdA = Rcpp::as<sVec>(allelesM_[locus][allele]);
+      
+      // set things in final reference
+      mendelian_probs_m[locus][allele].insert(mendelian_probs_m[locus][allele].end(),
+                                              probsM_[locus][allele].begin(),
+                                              probsM_[locus][allele].end());
+      
+      mendelian_alleles_m[locus][allele].insert(mendelian_alleles_m[locus][allele].end(),
+                                                holdA.begin(),
+                                                holdA.end());
+      
+    }// end loop over alleles
+  }// end loop over loci 
+
+}
+
+// getters for mendelian inheritance
+dVec::iterator reference::get_mendelian_probs_begin(size_t sex, size_t locus, size_t allele){
+  // 0 is female, 1 is male
+  switch(sex){
+    case 0:
+      return mendelian_probs_f[locus][allele].begin();
+    case 1:
+      return mendelian_probs_m[locus][allele].begin();
   }
+}
+  
+dVec::iterator reference::get_mendelian_probs_end(size_t sex, size_t locus, size_t allele){
+  // 0 is female, 1 is male
+  switch(sex){
+  case 0:
+    return mendelian_probs_f[locus][allele].end();
+  case 1:
+    return mendelian_probs_m[locus][allele].end();
+  }
+}
 
+sVec::iterator reference::get_mendelian_allele_begin(size_t sex, size_t locus, size_t allele){
+  // 0 is female, 1 is male
+  switch(sex){
+  case 0:
+    return mendelian_alleles_f[locus][allele].begin();
+  case 1:
+    return mendelian_alleles_m[locus][allele].begin();
+  }
+}
+  
+sVec::iterator reference::get_mendelian_allele_end(size_t sex, size_t locus, size_t allele){
+  // 0 is female, 1 is male
+  switch(sex){
+  case 0:
+    return mendelian_alleles_f[locus][allele].end();
+  case 1:
+    return mendelian_alleles_m[locus][allele].end();
+  }
 }
  
-void reference::set_homing(const Rcpp::ListOf<Rcpp::ListOf<Rcpp::NumericVector> >& probs_,
-                            const Rcpp::ListOf<Rcpp::ListOf<Rcpp::StringVector> >& alleles_){
+
+// set homing inheritance
+void reference::set_homing(const Rcpp::ListOf<Rcpp::ListOf<Rcpp::NumericVector> >& probsF_,
+                           const Rcpp::ListOf<Rcpp::ListOf<Rcpp::StringVector> >& allelesF_,
+                           const Rcpp::ListOf<Rcpp::ListOf<Rcpp::NumericVector> >& probsM_,
+                           const Rcpp::ListOf<Rcpp::ListOf<Rcpp::StringVector> >& allelesM_){
   
   // set size of outer vector
-  homing_probs.resize(probs_.size());
-  homing_alleles.resize(alleles_.size());;
+  //  All should be the same size
+  homing_probs_f.resize(probsF_.size());
+  homing_alleles_f.resize(allelesF_.size());
+  homing_probs_m.resize(probsF_.size());
+  homing_alleles_m.resize(allelesF_.size());
   
   // holder objects to make life easier in the loop
   std::vector<std::string> holdA;
   
   
-   // loop over number of loci
-   for(size_t locus=0; locus < probs_.size(); ++locus){
-     
-     // size inner vector
-     homing_probs[locus].resize(4);
-     homing_alleles[locus].resize(4);
-     
-     // loop over possible alleles at that locus
-     for(size_t allele : {0,1,2,3}){
-       // convert things in holders
-       holdA = Rcpp::as<sVec>(alleles_[locus][allele]);
-       
-       // set things in final reference
-       homing_probs[locus][allele].insert(homing_probs[locus][allele].end(),
-                                             probs_[locus][allele].begin(),
-                                             probs_[locus][allele].end());
-       
-       homing_alleles[locus][allele].insert(homing_alleles[locus][allele].end(),
-                                               holdA.begin(),
-                                               holdA.end());
-     }
-   }
+  // loop over number of loci
+  for(size_t locus=0; locus < probsF_.size(); ++locus){
+    
+    // size inner vector
+    homing_probs_f[locus].resize(4);
+    homing_alleles_f[locus].resize(4);
+    homing_probs_m[locus].resize(4);
+    homing_alleles_m[locus].resize(4);
+    
+    // loop over possible alleles at that locus
+    for(size_t allele : {0,1,2,3}){
+      /**********
+       * Female
+       **********/
+      // convert things in holders
+      holdA = Rcpp::as<sVec>(allelesF_[locus][allele]);
+      
+      // set things in final reference
+      homing_probs_f[locus][allele].insert(homing_probs_f[locus][allele].end(),
+                                           probsF_[locus][allele].begin(),
+                                           probsF_[locus][allele].end());
+      
+      homing_alleles_f[locus][allele].insert(homing_alleles_f[locus][allele].end(),
+                                                holdA.begin(),
+                                                holdA.end());
+      
+      /**********
+       * Male
+       **********/
+      // convert things in holders
+      holdA = Rcpp::as<sVec>(allelesM_[locus][allele]);
+      
+      // set things in final reference
+      homing_probs_m[locus][allele].insert(homing_probs_m[locus][allele].end(),
+                                           probsM_[locus][allele].begin(),
+                                           probsM_[locus][allele].end());
+      
+      homing_alleles_m[locus][allele].insert(homing_alleles_m[locus][allele].end(),
+                                             holdA.begin(),
+                                             holdA.end());
+      
+    }// end loop over alleles
+  }// end loop over loci 
    
 }
 
-void reference::set_cutting(const Rcpp::ListOf<Rcpp::ListOf<Rcpp::NumericVector> >& probs_,
-                            const Rcpp::ListOf<Rcpp::ListOf<Rcpp::StringVector> >& alleles_){
+// getters for homing inheritance
+dVec::iterator reference::get_homing_probs_begin(size_t sex, size_t locus, size_t allele){
+  // 0 is female, 1 is male
+  switch(sex){
+  case 0:
+    return homing_probs_f[locus][allele].begin();
+  case 1:
+    return homing_probs_m[locus][allele].begin();
+  }
+}
+
+dVec::iterator reference::get_homing_probs_end(size_t sex, size_t locus, size_t allele){
+  // 0 is female, 1 is male
+  switch(sex){
+  case 0:
+    return homing_probs_f[locus][allele].end();
+  case 1:
+    return homing_probs_m[locus][allele].end();
+  }
+}
+  
+sVec::iterator reference::get_homing_allele_begin(size_t sex, size_t locus, size_t allele){
+  // 0 is female, 1 is male
+  switch(sex){
+  case 0:
+    return homing_alleles_f[locus][allele].begin();
+  case 1:
+    return homing_alleles_m[locus][allele].begin();
+  }
+}
+  
+sVec::iterator reference::get_homing_allele_end(size_t sex, size_t locus, size_t allele){
+  // 0 is female, 1 is male
+  switch(sex){
+  case 0:
+    return homing_alleles_f[locus][allele].end();
+  case 1:
+    return homing_alleles_m[locus][allele].end();
+  }
+}
+  
+
+// set cutting inheritance
+void reference::set_cutting(const Rcpp::ListOf<Rcpp::ListOf<Rcpp::NumericVector> >& probsF_,
+                            const Rcpp::ListOf<Rcpp::ListOf<Rcpp::StringVector> >& allelesF_,
+                            const Rcpp::ListOf<Rcpp::ListOf<Rcpp::NumericVector> >& probsM_,
+                            const Rcpp::ListOf<Rcpp::ListOf<Rcpp::StringVector> >& allelesM_){
   
   // set size of outer vector
-  cutting_probs.resize(probs_.size());
-  cutting_alleles.resize(alleles_.size());;
+  //  All should be the same size
+  cutting_probs_f.resize(probsF_.size());
+  cutting_alleles_f.resize(allelesF_.size());
+  cutting_probs_m.resize(probsF_.size());
+  cutting_alleles_m.resize(allelesF_.size());
   
   // holder objects to make life easier in the loop
   std::vector<std::string> holdA;
   
   // loop over number of loci
-  for(size_t locus=0; locus < probs_.size(); ++locus){
+  for(size_t locus=0; locus < probsF_.size(); ++locus){
     
     // size inner vector
-    cutting_probs[locus].resize(4);
-    cutting_alleles[locus].resize(4);
+    cutting_probs_f[locus].resize(4);
+    cutting_alleles_f[locus].resize(4);
+    cutting_probs_m[locus].resize(4);
+    cutting_alleles_m[locus].resize(4);
     
     // loop over possible alleles at that locus
     for(size_t allele : {0,1,2,3}){
+      /**********
+       * Female
+       **********/
       // convert things in holders
-      holdA = Rcpp::as<sVec>(alleles_[locus][allele]);
+      holdA = Rcpp::as<sVec>(allelesF_[locus][allele]);
       
       // set things in final reference
-      cutting_probs[locus][allele].insert(cutting_probs[locus][allele].end(),
-                                         probs_[locus][allele].begin(),
-                                         probs_[locus][allele].end());
+      cutting_probs_f[locus][allele].insert(cutting_probs_f[locus][allele].end(),
+                                              probsF_[locus][allele].begin(),
+                                              probsF_[locus][allele].end());
       
-      cutting_alleles[locus][allele].insert(cutting_alleles[locus][allele].end(),
-                                           holdA.begin(),
-                                           holdA.end());
-    }
-  }
+      cutting_alleles_f[locus][allele].insert(cutting_alleles_f[locus][allele].end(),
+                                                holdA.begin(),
+                                                holdA.end());
+      
+      /**********
+       * Male
+       **********/
+      // convert things in holders
+      holdA = Rcpp::as<sVec>(allelesM_[locus][allele]);
+      
+      // set things in final reference
+      cutting_probs_m[locus][allele].insert(cutting_probs_m[locus][allele].end(),
+                                              probsM_[locus][allele].begin(),
+                                              probsM_[locus][allele].end());
+      
+      cutting_alleles_m[locus][allele].insert(cutting_alleles_m[locus][allele].end(),
+                                                holdA.begin(),
+                                                holdA.end());
+      
+    }// end loop over alleles
+  }// end loop over loci 
   
 }
+
+// getters for cutting inheritance
+dVec::iterator reference::get_cutting_probs_begin(size_t sex, size_t locus, size_t allele){
+  // 0 is female, 1 is male
+  switch(sex){
+  case 0:
+    return cutting_probs_f[locus][allele].begin();
+  case 1:
+    return cutting_probs_m[locus][allele].begin();
+  }
+}
+dVec::iterator reference::get_cutting_probs_end(size_t sex, size_t locus, size_t allele){
+  // 0 is female, 1 is male
+  switch(sex){
+  case 0:
+    return cutting_probs_f[locus][allele].end();
+  case 1:
+    return cutting_probs_m[locus][allele].end();
+  }
+}
+  
+sVec::iterator reference::get_cutting_allele_begin(size_t sex, size_t locus, size_t allele){
+  // 0 is female, 1 is male
+  switch(sex){
+  case 0:
+    return cutting_alleles_f[locus][allele].begin();
+  case 1:
+    return cutting_alleles_m[locus][allele].begin();
+  }
+}
+  
+sVec::iterator reference::get_cutting_allele_end(size_t sex, size_t locus, size_t allele){
+  // 0 is female, 1 is male
+  switch(sex){
+  case 0:
+    return cutting_alleles_f[locus][allele].end();
+  case 1:
+    return cutting_alleles_m[locus][allele].end();
+  }
+}
+  

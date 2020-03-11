@@ -546,25 +546,25 @@ void Daisy::DaisyOffspring(const std::string& fGen, const std::string& mGen){
       for(size_t j=0; j<2; ++j){
         // fill allele and probs
         if(fGen[index+j] == 'W'){
-          fAllele[i].insert(fAllele[i].end(), reference::instance().get_mendelian_allele_begin(i,0),
-                            reference::instance().get_mendelian_allele_end(i,0));
-          fProbs[i].insert(fProbs[i].end(), reference::instance().get_mendelian_probs_begin(i,0),
-                           reference::instance().get_mendelian_probs_end(i,0));
+          fAllele[i].insert(fAllele[i].end(), reference::instance().get_mendelian_allele_begin(0,i,0),
+                            reference::instance().get_mendelian_allele_end(0,i,0));
+          fProbs[i].insert(fProbs[i].end(), reference::instance().get_mendelian_probs_begin(0,i,0),
+                           reference::instance().get_mendelian_probs_end(0,i,0));
         } else if(fGen[index+j] == 'H'){
-          fAllele[i].insert(fAllele[i].end(), reference::instance().get_mendelian_allele_begin(i,1),
-                            reference::instance().get_mendelian_allele_end(i,1));
-          fProbs[i].insert(fProbs[i].end(), reference::instance().get_mendelian_probs_begin(i,1),
-                           reference::instance().get_mendelian_probs_end(i,1));
+          fAllele[i].insert(fAllele[i].end(), reference::instance().get_mendelian_allele_begin(0,i,1),
+                            reference::instance().get_mendelian_allele_end(0,i,1));
+          fProbs[i].insert(fProbs[i].end(), reference::instance().get_mendelian_probs_begin(0,i,1),
+                           reference::instance().get_mendelian_probs_end(0,i,1));
         } else if(fGen[index+j] == 'R'){
-          fAllele[i].insert(fAllele[i].end(), reference::instance().get_mendelian_allele_begin(i,2),
-                            reference::instance().get_mendelian_allele_end(i,2));
-          fProbs[i].insert(fProbs[i].end(), reference::instance().get_mendelian_probs_begin(i,2),
-                           reference::instance().get_mendelian_probs_end(i,2));
+          fAllele[i].insert(fAllele[i].end(), reference::instance().get_mendelian_allele_begin(0,i,2),
+                            reference::instance().get_mendelian_allele_end(0,i,2));
+          fProbs[i].insert(fProbs[i].end(), reference::instance().get_mendelian_probs_begin(0,i,2),
+                           reference::instance().get_mendelian_probs_end(0,i,2));
         } else if(fGen[index+j] == 'S'){
-          fAllele[i].insert(fAllele[i].end(), reference::instance().get_mendelian_allele_begin(i,3),
-                            reference::instance().get_mendelian_allele_end(i,3));
-          fProbs[i].insert(fProbs[i].end(), reference::instance().get_mendelian_probs_begin(i,3),
-                           reference::instance().get_mendelian_probs_end(i,3));
+          fAllele[i].insert(fAllele[i].end(), reference::instance().get_mendelian_allele_begin(0,i,3),
+                            reference::instance().get_mendelian_allele_end(0,i,3));
+          fProbs[i].insert(fProbs[i].end(), reference::instance().get_mendelian_probs_begin(0,i,3),
+                           reference::instance().get_mendelian_probs_end(0,i,3));
         }
       } // end allele loop
       
@@ -574,25 +574,25 @@ void Daisy::DaisyOffspring(const std::string& fGen, const std::string& mGen){
       for(size_t j=0; j<2; ++j){
         // fill allele and probs
         if(fGen[index+j] == 'W'){
-          fAllele[i].insert(fAllele[i].end(), reference::instance().get_cutting_allele_begin(i,0),
-                            reference::instance().get_cutting_allele_end(i,0));
-          fProbs[i].insert(fProbs[i].end(), reference::instance().get_cutting_probs_begin(i,0),
-                           reference::instance().get_cutting_probs_end(i,0));
+          fAllele[i].insert(fAllele[i].end(), reference::instance().get_cutting_allele_begin(0,i,0),
+                            reference::instance().get_cutting_allele_end(0,i,0));
+          fProbs[i].insert(fProbs[i].end(), reference::instance().get_cutting_probs_begin(0,i,0),
+                           reference::instance().get_cutting_probs_end(0,i,0));
         } else if(fGen[index+j] == 'H'){
-          fAllele[i].insert(fAllele[i].end(), reference::instance().get_cutting_allele_begin(i,1),
-                            reference::instance().get_cutting_allele_end(i,1));
-          fProbs[i].insert(fProbs[i].end(), reference::instance().get_cutting_probs_begin(i,1),
-                           reference::instance().get_cutting_probs_end(i,1));
+          fAllele[i].insert(fAllele[i].end(), reference::instance().get_cutting_allele_begin(0,i,1),
+                            reference::instance().get_cutting_allele_end(0,i,1));
+          fProbs[i].insert(fProbs[i].end(), reference::instance().get_cutting_probs_begin(0,i,1),
+                           reference::instance().get_cutting_probs_end(0,i,1));
         } else if(fGen[index+j] == 'R'){
-          fAllele[i].insert(fAllele[i].end(), reference::instance().get_cutting_allele_begin(i,2),
-                            reference::instance().get_cutting_allele_end(i,2));
-          fProbs[i].insert(fProbs[i].end(), reference::instance().get_cutting_probs_begin(i,2),
-                           reference::instance().get_cutting_probs_end(i,2));
+          fAllele[i].insert(fAllele[i].end(), reference::instance().get_cutting_allele_begin(0,i,2),
+                            reference::instance().get_cutting_allele_end(0,i,2));
+          fProbs[i].insert(fProbs[i].end(), reference::instance().get_cutting_probs_begin(0,i,2),
+                           reference::instance().get_cutting_probs_end(0,i,2));
         } else if(fGen[index+j] == 'S'){
-          fAllele[i].insert(fAllele[i].end(), reference::instance().get_cutting_allele_begin(i,3),
-                            reference::instance().get_cutting_allele_end(i,3));
-          fProbs[i].insert(fProbs[i].end(), reference::instance().get_cutting_probs_begin(i,3),
-                           reference::instance().get_cutting_probs_end(i,3));
+          fAllele[i].insert(fAllele[i].end(), reference::instance().get_cutting_allele_begin(0,i,3),
+                            reference::instance().get_cutting_allele_end(0,i,3));
+          fProbs[i].insert(fProbs[i].end(), reference::instance().get_cutting_probs_begin(0,i,3),
+                           reference::instance().get_cutting_probs_end(0,i,3));
         }
       } // end allele loop
       
@@ -602,25 +602,25 @@ void Daisy::DaisyOffspring(const std::string& fGen, const std::string& mGen){
       for(size_t j=0; j<2; ++j){
         // fill allele and probs
         if(fGen[index+j] == 'W'){
-          fAllele[i].insert(fAllele[i].end(), reference::instance().get_homing_allele_begin(i,0),
-                            reference::instance().get_homing_allele_end(i,0));
-          fProbs[i].insert(fProbs[i].end(), reference::instance().get_homing_probs_begin(i,0),
-                           reference::instance().get_homing_probs_end(i,0));
+          fAllele[i].insert(fAllele[i].end(), reference::instance().get_homing_allele_begin(0,i,0),
+                            reference::instance().get_homing_allele_end(0,i,0));
+          fProbs[i].insert(fProbs[i].end(), reference::instance().get_homing_probs_begin(0,i,0),
+                           reference::instance().get_homing_probs_end(0,i,0));
         } else if(fGen[index+j] == 'H'){
-          fAllele[i].insert(fAllele[i].end(), reference::instance().get_homing_allele_begin(i,1),
-                            reference::instance().get_homing_allele_end(i,1));
-          fProbs[i].insert(fProbs[i].end(), reference::instance().get_homing_probs_begin(i,1),
-                           reference::instance().get_homing_probs_end(i,1));
+          fAllele[i].insert(fAllele[i].end(), reference::instance().get_homing_allele_begin(0,i,1),
+                            reference::instance().get_homing_allele_end(0,i,1));
+          fProbs[i].insert(fProbs[i].end(), reference::instance().get_homing_probs_begin(0,i,1),
+                           reference::instance().get_homing_probs_end(0,i,1));
         } else if(fGen[index+j] == 'R'){
-          fAllele[i].insert(fAllele[i].end(), reference::instance().get_homing_allele_begin(i,2),
-                            reference::instance().get_homing_allele_end(i,2));
-          fProbs[i].insert(fProbs[i].end(), reference::instance().get_homing_probs_begin(i,2),
-                           reference::instance().get_homing_probs_end(i,2));
+          fAllele[i].insert(fAllele[i].end(), reference::instance().get_homing_allele_begin(0,i,2),
+                            reference::instance().get_homing_allele_end(0,i,2));
+          fProbs[i].insert(fProbs[i].end(), reference::instance().get_homing_probs_begin(0,i,2),
+                           reference::instance().get_homing_probs_end(0,i,2));
         } else if(fGen[index+j] == 'S'){
-          fAllele[i].insert(fAllele[i].end(), reference::instance().get_homing_allele_begin(i,3),
-                            reference::instance().get_homing_allele_end(i,3));
-          fProbs[i].insert(fProbs[i].end(), reference::instance().get_homing_probs_begin(i,3),
-                           reference::instance().get_homing_probs_end(i,3));
+          fAllele[i].insert(fAllele[i].end(), reference::instance().get_homing_allele_begin(0,i,3),
+                            reference::instance().get_homing_allele_end(0,i,3));
+          fProbs[i].insert(fProbs[i].end(), reference::instance().get_homing_probs_begin(0,i,3),
+                           reference::instance().get_homing_probs_end(0,i,3));
         }
       } // end allele loop 
     } // end females
@@ -632,25 +632,25 @@ void Daisy::DaisyOffspring(const std::string& fGen, const std::string& mGen){
       for(size_t j=0; j<2; ++j){
         // fill allele and probs
         if(mGen[index+j] == 'W'){
-          mAllele[i].insert(mAllele[i].end(), reference::instance().get_mendelian_allele_begin(i,0),
-                            reference::instance().get_mendelian_allele_end(i,0));
-          mProbs[i].insert(mProbs[i].end(), reference::instance().get_mendelian_probs_begin(i,0),
-                           reference::instance().get_mendelian_probs_end(i,0));
+          mAllele[i].insert(mAllele[i].end(), reference::instance().get_mendelian_allele_begin(1,i,0),
+                            reference::instance().get_mendelian_allele_end(1,i,0));
+          mProbs[i].insert(mProbs[i].end(), reference::instance().get_mendelian_probs_begin(1,i,0),
+                           reference::instance().get_mendelian_probs_end(1,i,0));
         } else if(mGen[index+j] == 'H'){
-          mAllele[i].insert(mAllele[i].end(), reference::instance().get_mendelian_allele_begin(i,1),
-                            reference::instance().get_mendelian_allele_end(i,1));
-          mProbs[i].insert(mProbs[i].end(), reference::instance().get_mendelian_probs_begin(i,1),
-                           reference::instance().get_mendelian_probs_end(i,1));
+          mAllele[i].insert(mAllele[i].end(), reference::instance().get_mendelian_allele_begin(1,i,1),
+                            reference::instance().get_mendelian_allele_end(1,i,1));
+          mProbs[i].insert(mProbs[i].end(), reference::instance().get_mendelian_probs_begin(1,i,1),
+                           reference::instance().get_mendelian_probs_end(1,i,1));
         } else if(mGen[index+j] == 'R'){
-          mAllele[i].insert(mAllele[i].end(), reference::instance().get_mendelian_allele_begin(i,2),
-                            reference::instance().get_mendelian_allele_end(i,2));
-          mProbs[i].insert(mProbs[i].end(), reference::instance().get_mendelian_probs_begin(i,2),
-                           reference::instance().get_mendelian_probs_end(i,2));
+          mAllele[i].insert(mAllele[i].end(), reference::instance().get_mendelian_allele_begin(1,i,2),
+                            reference::instance().get_mendelian_allele_end(1,i,2));
+          mProbs[i].insert(mProbs[i].end(), reference::instance().get_mendelian_probs_begin(1,i,2),
+                           reference::instance().get_mendelian_probs_end(1,i,2));
         } else if(mGen[index+j] == 'S'){
-          mAllele[i].insert(mAllele[i].end(), reference::instance().get_mendelian_allele_begin(i,3),
-                            reference::instance().get_mendelian_allele_end(i,3));
-          mProbs[i].insert(mProbs[i].end(), reference::instance().get_mendelian_probs_begin(i,3),
-                           reference::instance().get_mendelian_probs_end(i,3));
+          mAllele[i].insert(mAllele[i].end(), reference::instance().get_mendelian_allele_begin(1,i,3),
+                            reference::instance().get_mendelian_allele_end(1,i,3));
+          mProbs[i].insert(mProbs[i].end(), reference::instance().get_mendelian_probs_begin(1,i,3),
+                           reference::instance().get_mendelian_probs_end(1,i,3));
         }
       } // end allele loop
       
@@ -660,25 +660,25 @@ void Daisy::DaisyOffspring(const std::string& fGen, const std::string& mGen){
       for(size_t j=0; j<2; ++j){
         // fill allele and probs
         if(mGen[index+j] == 'W'){
-          mAllele[i].insert(mAllele[i].end(), reference::instance().get_cutting_allele_begin(i,0),
-                            reference::instance().get_cutting_allele_end(i,0));
-          mProbs[i].insert(mProbs[i].end(), reference::instance().get_cutting_probs_begin(i,0),
-                           reference::instance().get_cutting_probs_end(i,0));
+          mAllele[i].insert(mAllele[i].end(), reference::instance().get_cutting_allele_begin(1,i,0),
+                            reference::instance().get_cutting_allele_end(1,i,0));
+          mProbs[i].insert(mProbs[i].end(), reference::instance().get_cutting_probs_begin(1,i,0),
+                           reference::instance().get_cutting_probs_end(1,i,0));
         } else if(mGen[index+j] == 'H'){
-          mAllele[i].insert(mAllele[i].end(), reference::instance().get_cutting_allele_begin(i,1),
-                            reference::instance().get_cutting_allele_end(i,1));
-          mProbs[i].insert(mProbs[i].end(), reference::instance().get_cutting_probs_begin(i,1),
-                           reference::instance().get_cutting_probs_end(i,1));
+          mAllele[i].insert(mAllele[i].end(), reference::instance().get_cutting_allele_begin(1,i,1),
+                            reference::instance().get_cutting_allele_end(1,i,1));
+          mProbs[i].insert(mProbs[i].end(), reference::instance().get_cutting_probs_begin(1,i,1),
+                           reference::instance().get_cutting_probs_end(1,i,1));
         } else if(mGen[index+j] == 'R'){
-          mAllele[i].insert(mAllele[i].end(), reference::instance().get_cutting_allele_begin(i,2),
-                            reference::instance().get_cutting_allele_end(i,2));
-          mProbs[i].insert(mProbs[i].end(), reference::instance().get_cutting_probs_begin(i,2),
-                           reference::instance().get_cutting_probs_end(i,2));
+          mAllele[i].insert(mAllele[i].end(), reference::instance().get_cutting_allele_begin(1,i,2),
+                            reference::instance().get_cutting_allele_end(1,i,2));
+          mProbs[i].insert(mProbs[i].end(), reference::instance().get_cutting_probs_begin(1,i,2),
+                           reference::instance().get_cutting_probs_end(1,i,2));
         } else if(mGen[index+j] == 'S'){
-          mAllele[i].insert(mAllele[i].end(), reference::instance().get_cutting_allele_begin(i,3),
-                            reference::instance().get_cutting_allele_end(i,3));
-          mProbs[i].insert(mProbs[i].end(), reference::instance().get_cutting_probs_begin(i,3),
-                           reference::instance().get_cutting_probs_end(i,3));
+          mAllele[i].insert(mAllele[i].end(), reference::instance().get_cutting_allele_begin(1,i,3),
+                            reference::instance().get_cutting_allele_end(1,i,3));
+          mProbs[i].insert(mProbs[i].end(), reference::instance().get_cutting_probs_begin(1,i,3),
+                           reference::instance().get_cutting_probs_end(1,i,3));
         }
       } // end allele loop
       
@@ -689,25 +689,25 @@ void Daisy::DaisyOffspring(const std::string& fGen, const std::string& mGen){
       for(size_t j=0; j<2; ++j){
         // fill allele and probs
         if(mGen[index+j] == 'W'){
-          mAllele[i].insert(mAllele[i].end(), reference::instance().get_homing_allele_begin(i,0),
-                            reference::instance().get_homing_allele_end(i,0));
-          mProbs[i].insert(mProbs[i].end(), reference::instance().get_homing_probs_begin(i,0),
-                           reference::instance().get_homing_probs_end(i,0));
+          mAllele[i].insert(mAllele[i].end(), reference::instance().get_homing_allele_begin(1,i,0),
+                            reference::instance().get_homing_allele_end(1,i,0));
+          mProbs[i].insert(mProbs[i].end(), reference::instance().get_homing_probs_begin(1,i,0),
+                           reference::instance().get_homing_probs_end(1,i,0));
         } else if(mGen[index+j] == 'H'){
-          mAllele[i].insert(mAllele[i].end(), reference::instance().get_homing_allele_begin(i,1),
-                            reference::instance().get_homing_allele_end(i,1));
-          mProbs[i].insert(mProbs[i].end(), reference::instance().get_homing_probs_begin(i,1),
-                           reference::instance().get_homing_probs_end(i,1));
+          mAllele[i].insert(mAllele[i].end(), reference::instance().get_homing_allele_begin(1,i,1),
+                            reference::instance().get_homing_allele_end(1,i,1));
+          mProbs[i].insert(mProbs[i].end(), reference::instance().get_homing_probs_begin(1,i,1),
+                           reference::instance().get_homing_probs_end(1,i,1));
         } else if(mGen[index+j] == 'R'){
-          mAllele[i].insert(mAllele[i].end(), reference::instance().get_homing_allele_begin(i,2),
-                            reference::instance().get_homing_allele_end(i,2));
-          mProbs[i].insert(mProbs[i].end(), reference::instance().get_homing_probs_begin(i,2),
-                           reference::instance().get_homing_probs_end(i,2));
+          mAllele[i].insert(mAllele[i].end(), reference::instance().get_homing_allele_begin(1,i,2),
+                            reference::instance().get_homing_allele_end(1,i,2));
+          mProbs[i].insert(mProbs[i].end(), reference::instance().get_homing_probs_begin(1,i,2),
+                           reference::instance().get_homing_probs_end(1,i,2));
         } else if(mGen[index+j] == 'S'){
-          mAllele[i].insert(mAllele[i].end(), reference::instance().get_homing_allele_begin(i,3),
-                            reference::instance().get_homing_allele_end(i,3));
-          mProbs[i].insert(mProbs[i].end(), reference::instance().get_homing_probs_begin(i,3),
-                           reference::instance().get_homing_probs_end(i,3));
+          mAllele[i].insert(mAllele[i].end(), reference::instance().get_homing_allele_begin(1,i,3),
+                            reference::instance().get_homing_allele_end(1,i,3));
+          mProbs[i].insert(mProbs[i].end(), reference::instance().get_homing_probs_begin(1,i,3),
+                           reference::instance().get_homing_probs_end(1,i,3));
         }
       } // end allele loop
     } // end males

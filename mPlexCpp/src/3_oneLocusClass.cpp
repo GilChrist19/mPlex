@@ -240,25 +240,25 @@ void oneLocus::MultiplexOffspring_oLocus(const std::string& fGen, const std::str
       for(size_t i=0; i<numLoci; ++i){
         // fill allele and probs
         if(fGen[i+index] == 'W'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele_begin(i,0),
-                            reference::instance().get_homing_allele_end(i,0));
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs_begin(i,0),
-                            reference::instance().get_homing_probs_end(i,0));
+          holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele_begin(0,i,0),
+                            reference::instance().get_homing_allele_end(0,i,0));
+          holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs_begin(0,i,0),
+                            reference::instance().get_homing_probs_end(0,i,0));
         } else if(fGen[i+index] == 'H'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele_begin(i,1),
-                            reference::instance().get_homing_allele_end(i,1));
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs_begin(i,1),
-                            reference::instance().get_homing_probs_end(i,1));
+          holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele_begin(0,i,1),
+                            reference::instance().get_homing_allele_end(0,i,1));
+          holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs_begin(0,i,1),
+                            reference::instance().get_homing_probs_end(0,i,1));
         } else if(fGen[i+index] == 'R'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele_begin(i,2),
-                            reference::instance().get_homing_allele_end(i,2));
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs_begin(i,2),
-                           reference::instance().get_homing_probs_end(i,2));
+          holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele_begin(0,i,2),
+                            reference::instance().get_homing_allele_end(0,i,2));
+          holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs_begin(0,i,2),
+                           reference::instance().get_homing_probs_end(0,i,2));
         } else if(fGen[i+index] == 'S'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele_begin(i,3),
-                            reference::instance().get_homing_allele_end(i,3));
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs_begin(i,3),
-                           reference::instance().get_homing_probs_end(i,3));
+          holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele_begin(0,i,3),
+                            reference::instance().get_homing_allele_end(0,i,3));
+          holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs_begin(0,i,3),
+                           reference::instance().get_homing_probs_end(0,i,3));
         }
         
         /********************************
@@ -318,25 +318,25 @@ void oneLocus::MultiplexOffspring_oLocus(const std::string& fGen, const std::str
       for(size_t i=0; i<numLoci; ++i){
         // fill allele and probs
         if(fGen[i+index] == 'W'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele_begin(i,0),
-                                 reference::instance().get_mendelian_allele_end(i,0));
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs_begin(i,0),
-                                reference::instance().get_mendelian_probs_end(i,0));
+          holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele_begin(0,i,0),
+                                 reference::instance().get_mendelian_allele_end(0,i,0));
+          holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs_begin(0,i,0),
+                                reference::instance().get_mendelian_probs_end(0,i,0));
         } else if(fGen[i+index] == 'H'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele_begin(i,1),
-                                 reference::instance().get_mendelian_allele_end(i,1));
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs_begin(i,1),
-                                reference::instance().get_mendelian_probs_end(i,1));
+          holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele_begin(0,i,1),
+                                 reference::instance().get_mendelian_allele_end(0,i,1));
+          holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs_begin(0,i,1),
+                                reference::instance().get_mendelian_probs_end(0,i,1));
         } else if(fGen[i+index] == 'R'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele_begin(i,2),
-                                 reference::instance().get_mendelian_allele_end(i,2));
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs_begin(i,2),
-                                reference::instance().get_mendelian_probs_end(i,2));
+          holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele_begin(0,i,2),
+                                 reference::instance().get_mendelian_allele_end(0,i,2));
+          holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs_begin(0,i,2),
+                                reference::instance().get_mendelian_probs_end(0,i,2));
         } else if(fGen[i+index] == 'S'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele_begin(i,3),
-                                 reference::instance().get_mendelian_allele_end(i,3));
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs_begin(i,3),
-                                reference::instance().get_mendelian_probs_end(i,3));
+          holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele_begin(0,i,3),
+                                 reference::instance().get_mendelian_allele_end(0,i,3));
+          holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs_begin(0,i,3),
+                                reference::instance().get_mendelian_probs_end(0,i,3));
         }
         
         /********************************
@@ -402,25 +402,25 @@ void oneLocus::MultiplexOffspring_oLocus(const std::string& fGen, const std::str
       for(size_t i=0; i<numLoci; ++i){
         // fill allele and probs
         if(mGen[i+index] == 'W'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele_begin(i,0),
-                                 reference::instance().get_homing_allele_end(i,0));
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs_begin(i,0),
-                                reference::instance().get_homing_probs_end(i,0));
+          holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele_begin(1,i,0),
+                                 reference::instance().get_homing_allele_end(1,i,0));
+          holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs_begin(1,i,0),
+                                reference::instance().get_homing_probs_end(1,i,0));
         } else if(mGen[i+index] == 'H'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele_begin(i,1),
-                                 reference::instance().get_homing_allele_end(i,1));
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs_begin(i,1),
-                                reference::instance().get_homing_probs_end(i,1));
+          holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele_begin(1,i,1),
+                                 reference::instance().get_homing_allele_end(1,i,1));
+          holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs_begin(1,i,1),
+                                reference::instance().get_homing_probs_end(1,i,1));
         } else if(mGen[i+index] == 'R'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele_begin(i,2),
-                                 reference::instance().get_homing_allele_end(i,2));
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs_begin(i,2),
-                                reference::instance().get_homing_probs_end(i,2));
+          holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele_begin(1,i,2),
+                                 reference::instance().get_homing_allele_end(1,i,2));
+          holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs_begin(1,i,2),
+                                reference::instance().get_homing_probs_end(1,i,2));
         } else if(mGen[i+index] == 'S'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele_begin(i,3),
-                                 reference::instance().get_homing_allele_end(i,3));
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs_begin(i,3),
-                                reference::instance().get_homing_probs_end(i,3));
+          holdGens2.insert(holdGens2.end(), reference::instance().get_homing_allele_begin(1,i,3),
+                                 reference::instance().get_homing_allele_end(1,i,3));
+          holdProbs2.insert(holdProbs2.end(), reference::instance().get_homing_probs_begin(1,i,3),
+                                reference::instance().get_homing_probs_end(1,i,3));
         }
 
         /********************************
@@ -481,25 +481,25 @@ void oneLocus::MultiplexOffspring_oLocus(const std::string& fGen, const std::str
       for(size_t i=0; i<numLoci; ++i){
         // fill allele and probs
         if(mGen[i+index] == 'W'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele_begin(i,0),
-                                 reference::instance().get_mendelian_allele_end(i,0));
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs_begin(i,0),
-                                reference::instance().get_mendelian_probs_end(i,0));
+          holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele_begin(1,i,0),
+                                 reference::instance().get_mendelian_allele_end(1,i,0));
+          holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs_begin(1,i,0),
+                                reference::instance().get_mendelian_probs_end(1,i,0));
         } else if(mGen[i+index] == 'H'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele_begin(i,1),
-                                 reference::instance().get_mendelian_allele_end(i,1));
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs_begin(i,1),
-                                reference::instance().get_mendelian_probs_end(i,1));
+          holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele_begin(1,i,1),
+                                 reference::instance().get_mendelian_allele_end(1,i,1));
+          holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs_begin(1,i,1),
+                                reference::instance().get_mendelian_probs_end(1,i,1));
         } else if(mGen[i+index] == 'R'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele_begin(i,2),
-                                 reference::instance().get_mendelian_allele_end(i,2));
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs_begin(i,2),
-                                reference::instance().get_mendelian_probs_end(i,2));
+          holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele_begin(1,i,2),
+                                 reference::instance().get_mendelian_allele_end(1,i,2));
+          holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs_begin(1,i,2),
+                                reference::instance().get_mendelian_probs_end(1,i,2));
         } else if(mGen[i+index] == 'S'){
-          holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele_begin(i,3),
-                                 reference::instance().get_mendelian_allele_end(i,3));
-          holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs_begin(i,3),
-                                reference::instance().get_mendelian_probs_end(i,3));
+          holdGens2.insert(holdGens2.end(), reference::instance().get_mendelian_allele_begin(1,i,3),
+                                 reference::instance().get_mendelian_allele_end(1,i,3));
+          holdProbs2.insert(holdProbs2.end(), reference::instance().get_mendelian_probs_begin(1,i,3),
+                                reference::instance().get_mendelian_probs_end(1,i,3));
         }
 
         /********************************

@@ -4,17 +4,26 @@
 \alias{MakeReference_DaisyDrive}
 \title{Daisy Drive Offspring Reference}
 \usage{
-MakeReference_DaisyDrive(cRate, hRate, rRate, d, eta=NULL, phi=NULL,
-omega=NULL, xiF=NULL, xiM=NULL, s=NULL)
+MakeReference_DaisyDrive(cRateM, hRateM, rRateM, dM,
+cRateF=cRateM, hRateF=hRateM, rRateF=rRateM, dF=dM,
+eta=NULL, phi=NULL, omega=NULL, xiF=NULL, xiM=NULL, s=NULL)
 }
 \arguments{
-\item{cRate}{Vector of cutting rates for each drive piece}
+\item{cRateM}{Vector of cutting rates for each drive piece in males}
 
-\item{hRate}{Vector of homing allele generation rates}
+\item{hRateM}{Vector of homing allele generation rates in males}
 
-\item{rRate}{Vector of neutral allele generation rates}
+\item{rRateM}{Vector of neutral allele generation rates in males}
 
-\item{d}{Vector of background mutation rates at each locus}
+\item{cRateF}{Vector of cutting rates for each drive piece in females}
+
+\item{hRateF}{Vector of homing allele generation rates in females}
+
+\item{rRateF}{Vector of neutral allele generation rates in females}
+
+\item{dM}{Vector of background mutation rates at each locus in males}
+
+\item{dF}{Vector of background mutation rates at each locus in females}
 
 \item{eta}{Named vector of mating fitness}
 
@@ -36,19 +45,21 @@ Create a list specifying the offspring probability distribution.
 }
 \details{
 This function creates a reference list for \code{\link{DaisyOffspring}}.
-The number of drive elements is specified by the length of cRate. The first element
+The number of drive elements is specified by the length of cRateM. The first element
 of each {c,h,r}Rate must be 0, because the first element behaves in a mendelian
 fashion, and the rates of the final piece don't matter, because there is not
-another piece to drive. cRate, hRate, and rRate must be the same length. This
+another piece to drive. cRateM, hRateM, and rRateM must be the same length. Each
+rate can be different between males and females. The default is for females to be
+the same as males, and the user only needs to specify male rates. This
 function is similar to \code{\link{MakeReference_Multiplex_mLoci}}
 and \code{\link{MakeReference_Multiplex_oLocus}}
 }
 \examples{
-cRate <- c(0,0.4,0.7) # This drive targets 3 loci
-hRate <- c(0, 0.2, 0.3)
-rRate <- c(0, 0.006, 0.01)
-d <- c(0.0001, 0.0001, 0.0001)
+cRateM <- c(0,0.4,0.7) # This drive targets 3 loci
+hRateM <- c(0, 0.2, 0.3)
+rRateM <- c(0, 0.006, 0.01)
+dM <- c(0.0001, 0.0001, 0.0001)
 
-MakeReference_DaisyDrive(H,R,S,d)
+MakeReference_DaisyDrive(cRateM=cRateM, hRateM=hRateM, rRateM=rRateM,dM=dM)
 
 }

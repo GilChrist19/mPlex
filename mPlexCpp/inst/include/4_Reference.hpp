@@ -37,12 +37,18 @@ public:
                                     const Rcpp::NumericVector& omega_, const Rcpp::NumericVector& xiF_,
                                     const Rcpp::NumericVector& xiM_, const Rcpp::NumericVector& s_);
   
-  void                set_mendelian(const Rcpp::ListOf<Rcpp::ListOf<Rcpp::NumericVector> >& probs_,
-                                    const Rcpp::ListOf<Rcpp::ListOf<Rcpp::StringVector> >& alleles_);
-  void                set_homing(const Rcpp::ListOf<Rcpp::ListOf<Rcpp::NumericVector> >& probs_,
-                                 const Rcpp::ListOf<Rcpp::ListOf<Rcpp::StringVector> >& alleles_);
-  void                set_cutting(const Rcpp::ListOf<Rcpp::ListOf<Rcpp::NumericVector> >& probs_,
-                                  const Rcpp::ListOf<Rcpp::ListOf<Rcpp::StringVector> >& alleles_);
+  void                set_mendelian(const Rcpp::ListOf<Rcpp::ListOf<Rcpp::NumericVector> >& probsF_,
+                                    const Rcpp::ListOf<Rcpp::ListOf<Rcpp::StringVector> >& allelesF_,
+                                    const Rcpp::ListOf<Rcpp::ListOf<Rcpp::NumericVector> >& probsM_,
+                                    const Rcpp::ListOf<Rcpp::ListOf<Rcpp::StringVector> >& allelesM_);
+  void                set_homing(const Rcpp::ListOf<Rcpp::ListOf<Rcpp::NumericVector> >& probsF_,
+                                 const Rcpp::ListOf<Rcpp::ListOf<Rcpp::StringVector> >& allelesF_,
+                                 const Rcpp::ListOf<Rcpp::ListOf<Rcpp::NumericVector> >& probsM_,
+                                 const Rcpp::ListOf<Rcpp::ListOf<Rcpp::StringVector> >& allelesM_);
+  void                set_cutting(const Rcpp::ListOf<Rcpp::ListOf<Rcpp::NumericVector> >& probsF_,
+                                  const Rcpp::ListOf<Rcpp::ListOf<Rcpp::StringVector> >& allelesF_,
+                                  const Rcpp::ListOf<Rcpp::ListOf<Rcpp::NumericVector> >& probsM_,
+                                  const Rcpp::ListOf<Rcpp::ListOf<Rcpp::StringVector> >& allelesM_);
   void                set_alleleTypes(const Rcpp::ListOf<Rcpp::List>& alleleList_){alleleTypes = alleleList_;};
 
   
@@ -54,20 +60,20 @@ public:
   double      get_xiM(const std::string& genType);
   double      get_s(const std::string& genType);
 
-  dVec::iterator    get_mendelian_probs_begin(size_t locus, size_t allele){return mendelian_probs[locus][allele].begin();};
-  dVec::iterator    get_mendelian_probs_end(size_t locus, size_t allele){return mendelian_probs[locus][allele].end();};
-  sVec::iterator    get_mendelian_allele_begin(size_t locus, size_t allele){return mendelian_alleles[locus][allele].begin();};
-  sVec::iterator    get_mendelian_allele_end(size_t locus, size_t allele){return mendelian_alleles[locus][allele].end();};
+  dVec::iterator    get_mendelian_probs_begin(size_t sex, size_t locus, size_t allele);
+  dVec::iterator    get_mendelian_probs_end(size_t sex, size_t locus, size_t allele);
+  sVec::iterator    get_mendelian_allele_begin(size_t sex, size_t locus, size_t allele);
+  sVec::iterator    get_mendelian_allele_end(size_t sex, size_t locus, size_t allele);
   
-  dVec::iterator    get_homing_probs_begin(size_t locus, size_t allele){return homing_probs[locus][allele].begin();};
-  dVec::iterator    get_homing_probs_end(size_t locus, size_t allele){return homing_probs[locus][allele].end();};
-  sVec::iterator    get_homing_allele_begin(size_t locus, size_t allele){return homing_alleles[locus][allele].begin();};
-  sVec::iterator    get_homing_allele_end(size_t locus, size_t allele){return homing_alleles[locus][allele].end();};
+  dVec::iterator    get_homing_probs_begin(size_t sex, size_t locus, size_t allele);
+  dVec::iterator    get_homing_probs_end(size_t sex, size_t locus, size_t allele);
+  sVec::iterator    get_homing_allele_begin(size_t sex, size_t locus, size_t allele);
+  sVec::iterator    get_homing_allele_end(size_t sex, size_t locus, size_t allele);
   
-  dVec::iterator    get_cutting_probs_begin(size_t locus, size_t allele){return cutting_probs[locus][allele].begin();};
-  dVec::iterator    get_cutting_probs_end(size_t locus, size_t allele){return cutting_probs[locus][allele].end();};
-  sVec::iterator    get_cutting_allele_begin(size_t locus, size_t allele){return cutting_alleles[locus][allele].begin();};
-  sVec::iterator    get_cutting_allele_end(size_t locus, size_t allele){return cutting_alleles[locus][allele].end();};
+  dVec::iterator    get_cutting_probs_begin(size_t sex, size_t locus, size_t allele);
+  dVec::iterator    get_cutting_probs_end(size_t sex, size_t locus, size_t allele);
+  sVec::iterator    get_cutting_allele_begin(size_t sex, size_t locus, size_t allele);
+  sVec::iterator    get_cutting_allele_end(size_t sex, size_t locus, size_t allele);
   
   Rcpp::List        get_alleloTypes(size_t patch){return alleleTypes[patch];};
   
@@ -92,12 +98,21 @@ private:
   std::unordered_map<std::string, double>   s;
   std::unordered_map<std::string, double>::iterator itHold;
   
-  std::vector<dArVec>                       mendelian_probs;
-  std::vector<sArVec>                       mendelian_alleles;
-  std::vector<dArVec>                       homing_probs;
-  std::vector<sArVec>                       homing_alleles;
-  std::vector<dArVec>                       cutting_probs;
-  std::vector<sArVec>                       cutting_alleles;
+  std::vector<dArVec>                       mendelian_probs_f;
+  std::vector<sArVec>                       mendelian_alleles_f;
+  std::vector<dArVec>                       mendelian_probs_m;
+  std::vector<sArVec>                       mendelian_alleles_m;
+
+  std::vector<dArVec>                       homing_probs_f;
+  std::vector<sArVec>                       homing_alleles_f;
+  std::vector<dArVec>                       homing_probs_m;
+  std::vector<sArVec>                       homing_alleles_m;
+
+  std::vector<dArVec>                       cutting_probs_f;
+  std::vector<sArVec>                       cutting_alleles_f;
+  std::vector<dArVec>                       cutting_probs_m;
+  std::vector<sArVec>                       cutting_alleles_m;
+
   
   Rcpp::ListOf<Rcpp::List>                  alleleTypes;
 
