@@ -40,23 +40,26 @@ knitr::opts_chunk$set(
 #  # Inheritance pattern
 #  ####################
 #  # 1-locus CRISPR-like drive system, with no extra genotype-specific costs
-#  #  97% homing rate, 3% resistance rate, no backgorund mutation
-#  reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.97),
-#                                                         R = c(0.03),
-#                                                         S = c(0),
-#                                                         d = c(0))
+#  #  97% cutting rate, 100% homing rate, no backgorund mutation
+#  reproductionReference <- MakeReference_Multiplex_mLoci(cRateM = c(0.97),
+#                                                         hRateM = c(1.0),
+#                                                         rRateM = c(0),
+#                                                         dM = c(0))
 #  
 #  
 #  ####################
 #  # Setup Initial genotype ratios
 #  ####################
 #  # 1 locus, start completely wild-type
-#  alleloTypes <- vector(mode = "list", length = 1L) #1 locus
-#  alleloTypes[[1]]$alleles <- c("W")
-#  alleloTypes[[1]]$probs <- c(1)
+#  aTypes <- vector(mode = "list", length = 1L) #1 locus
+#  aTypes[[1]]$alleles <- c("W")
+#  aTypes[[1]]$probs <- c(1)
 #  
 #  # replicate so each patch starts the same
-#  AllAlleles <- replicate(n = sitesNumber, expr = alleloTypes, simplify = FALSE)
+#  #  This is optional. If a length-1 list is supplied, it is internally replicated
+#  #  and all patches begin the same. Otherwise, the list must have length equal
+#  #  to the number of patches.
+#  AllAlleles <- replicate(n = sitesNumber, expr = aTypes, simplify = FALSE)
 #  
 #  
 #  ####################
@@ -66,7 +69,8 @@ knitr::opts_chunk$set(
 #  patchReleases = replicate(n = sitesNumber,
 #                            expr = list(maleReleases = NULL,
 #                                        femaleReleases = NULL,
-#                                        eggReleases = NULL),
+#                                        eggReleases = NULL,
+#                                        matedFemaleReleases = NULL),
 #                            simplify = FALSE)
 #  
 #  # Create release object to pass to patches
@@ -166,23 +170,26 @@ moveMat
 # Inheritance pattern
 ####################
 # 1-locus CRISPR-like drive system, with no extra genotype-specific costs
-#  97% homing rate, 3% resistance rate, no backgorund mutation
-reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.97),
-                                                       R = c(0.03),
-                                                       S = c(0),
-                                                       d = c(0))
+#  97% cutting rate, 100% homing rate, no backgorund mutation
+reproductionReference <- MakeReference_Multiplex_mLoci(cRateM = c(0.97),
+                                                       hRateM = c(1.00),
+                                                       rRateM = c(0),
+                                                       dM = c(0))
 
 ## -----------------------------------------------------------------------------
 ####################
 # Setup Initial genotype ratios
 ####################
 # 1 locus, start completely wild-type
-alleloTypes <- vector(mode = "list", length = 1L) #1 locus
-alleloTypes[[1]]$alleles <- c("W")
-alleloTypes[[1]]$probs <- c(1)
+aTypes <- vector(mode = "list", length = 1L) #1 locus
+aTypes[[1]]$alleles <- c("W")
+aTypes[[1]]$probs <- c(1)
 
 # replicate so each patch starts the same
-AllAlleles <- replicate(n = sitesNumber, expr = alleloTypes, simplify = FALSE)
+#  This is optional. If a length-1 list is supplied, it is internally replicated 
+#  and all patches begin the same. Otherwise, the list must have length equal 
+#  to the number of patches.
+AllAlleles <- replicate(n = sitesNumber, expr = aTypes, simplify = FALSE)
 
 ## -----------------------------------------------------------------------------
 ####################
@@ -193,7 +200,8 @@ AllAlleles <- replicate(n = sitesNumber, expr = alleloTypes, simplify = FALSE)
 patchReleases = replicate(n = sitesNumber,
                           expr = list(maleReleases = NULL,
                                       femaleReleases = NULL,
-                                      eggReleases = NULL),
+                                      eggReleases = NULL,
+                                      matedFemaleReleases = NULL),
                           simplify = FALSE)
 
 # Create release object to pass to patches
@@ -353,11 +361,12 @@ moveMat <- matrix(data = c(0.98, 0.02, 0,
 # Inheritance pattern
 ####################
 # 1-locus CRISPR-like drive system
-#  97% homing rate, 3% resistance rate, no backgorund mutation
-reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.97),
-                                                       R = c(0.03),
-                                                       S = c(0),
-                                                       d = c(0), omega = c("HH"=0.5, "RR" = 0.9))
+#  97% cutting rate, 90% homing rate, 33% resistant 1 allele rate
+#  (ie, 1:2 R1:R2 generation), no backgorund mutation
+reproductionReference <- MakeReference_Multiplex_mLoci(cRateM = c(0.97),
+                                                       hRateM = c(0.90),
+                                                       rRateM = c(0.33),
+                                                       dM = c(0), omega = c("HH"=0.5, "RR" = 0.9))
 
 
 ####################
@@ -383,7 +392,8 @@ AllAlleles <- list(aTypes1, aTypes1, aTypes3)
 patchReleases = replicate(n = sitesNumber,
                           expr = list(maleReleases = NULL,
                                       femaleReleases = NULL,
-                                      eggReleases = NULL),
+                                      eggReleases = NULL,
+                                      matedFemaleReleases = NULL),
                           simplify = FALSE)
 
 # Create release object to pass to patches
@@ -536,10 +546,10 @@ omega <- setNames(object = rep.int(x = 0.6, times = length(locus1)),
 
 # 3-locus CRISPR-like drive system
 #  first locus is high homing, second is medium, third is poor
-reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.95, 0.8, 0.4),
-                                                       R = c(0.05, 0.2, 0.6),
-                                                       S = c(0, 0, 0),
-                                                       d = c(0, 0, 0),
+reproductionReference <- MakeReference_Multiplex_mLoci(cRateM = c(0.95, 0.8, 0.4),
+                                                       hRateM = c(0.90, 0.8, 0.6),
+                                                       rRateM = c(1, 1, 1),
+                                                       dM = c(0, 0, 0),
                                                        omega = omega)
 
 
@@ -547,15 +557,13 @@ reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.95, 0.8, 0.4),
 # Setup Initial genotype ratios
 ####################
 # 3 locus, start completely wild-type
-aTypes <- vector(mode = "list", length = 3L) #3 locus
+aTypes <- vector(mode = "list", length = 3L) #3 loci in sim
 aTypes[[1]]$alleles <- c("W")
 aTypes[[1]]$probs <- c(1L)
 aTypes[[2]]$alleles <- c("W")
 aTypes[[2]]$probs <- c(1L)
 aTypes[[3]]$alleles <- c("W")
 aTypes[[3]]$probs <- c(1L)
-# replicate so each patch starts the same
-AllAlleles <- list(aTypes)
 
 
 ####################
@@ -565,7 +573,8 @@ AllAlleles <- list(aTypes)
 patchReleases = replicate(n = sitesNumber,
                           expr = list(maleReleases = NULL,
                                       femaleReleases = NULL,
-                                      eggReleases = NULL),
+                                      eggReleases = NULL,
+                                      matedFemaleReleases = NULL),
                           simplify = FALSE)
 
 # Create release object to pass to patches
@@ -622,7 +631,7 @@ runMPlex(seed = 10,
          numReps = 1, 
          networkParameters = netPar,
          reproductionReference = reproductionReference,
-         initAlleles = AllAlleles,
+         initAlleles = list(aTypes),
          patchReleases = patchReleases,
          migrationMale = moveMat,
          migrationFemale = moveMat,

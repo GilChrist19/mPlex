@@ -126,20 +126,20 @@ MakeReference_DaisyDrive <- function(cRateM=c(0, 1.0, 1.0), hRateM=c(0,1.0,1.0),
   
   
   # loop over both sexes
-  sexC <- c(cRateF,cRateM)
-  sexH <- c(hRateF,hRateM)
-  sexR <- c(rRateF,rRateM)
-  sexD <- c(dF,dM)
+  sexC <- list(cRateF,cRateM)
+  sexH <- list(hRateF,hRateM)
+  sexR <- list(rRateF,rRateM)
+  sexD <- list(dF,dM)
   for(sex in 1:2){
     # fill probs matrices
-    homingProbs[1, ] <- (1-sexD[sex])*(1-sexC[sex]) #chance to stay W is (1-background mutation) * (1-cutting rate)
-    homingProbs[2, ] <- (1-sexD[sex])*sexC[sex]*sexH[sex] #chance to become H is (1-background)*cutting*homing
-    homingProbs[3, ] <- sexD[sex] + (1-sexD[sex])*sexC[sex]*(1-sexH[sex])*sexR[sex] #NHEJ caused good resistance, 
-    homingProbs[4, ] <- (1-sexD[sex])*sexC[sex]*(1-sexH[sex])*(1-sexR[sex]) #bad resistant allele, from NHEJ and background mutation rate
+    homingProbs[1, ] <- (1-sexD[[sex]])*(1-sexC[[sex]]) #chance to stay W is (1-background mutation) * (1-cutting rate)
+    homingProbs[2, ] <- (1-sexD[[sex]])*sexC[[sex]]*sexH[[sex]] #chance to become H is (1-background)*cutting*homing
+    homingProbs[3, ] <- sexD[[sex]] + (1-sexD[[sex]])*sexC[[sex]]*(1-sexH[[sex]])*sexR[[sex]] #NHEJ caused good resistance, 
+    homingProbs[4, ] <- (1-sexD[[sex]])*sexC[[sex]]*(1-sexH[[sex]])*(1-sexR[[sex]]) #bad resistant allele, from NHEJ and background mutation rate
     
-    cuttingProbs[1, ] <- (1-sexD[sex])*(1-sexC[sex]) #chance to stay W is (1-background mutation) * (1-cutting rate)
-    cuttingProbs[2, ] <- sexD[sex] + (1-sexD[sex])*sexC[sex]*sexR[sex] #NHEJ caused good resistance, 
-    cuttingProbs[3, ] <- (1-sexD[sex])*sexC[sex]*(1-sexR[sex]) #bad resistant allele, from NHEJ and background mutation rate
+    cuttingProbs[1, ] <- (1-sexD[[sex]])*(1-sexC[[sex]]) #chance to stay W is (1-background mutation) * (1-cutting rate)
+    cuttingProbs[2, ] <- sexD[[sex]] + (1-sexD[[sex]])*sexC[[sex]]*sexR[[sex]] #NHEJ caused good resistance, 
+    cuttingProbs[3, ] <- (1-sexD[[sex]])*sexC[[sex]]*(1-sexR[[sex]]) #bad resistant allele, from NHEJ and background mutation rate
     
     
     #set up lists to hold probabilities
@@ -341,16 +341,16 @@ MakeReference_Multiplex_mLoci <- function(cRateM=c(1.0, 1.0, 1.0), hRateM=c(1.0,
 
   
   # loop over both sexes
-  sexC <- c(cRateF,cRateM)
-  sexH <- c(hRateF,hRateM)
-  sexR <- c(rRateF,rRateM)
-  sexD <- c(dF,dM)
+  sexC <- list(cRateF,cRateM)
+  sexH <- list(hRateF,hRateM)
+  sexR <- list(rRateF,rRateM)
+  sexD <- list(dF,dM)
   for(sex in 1:2){
     # fill probs matrices
-    homingProbs[1, ] <- (1-sexD[sex])*(1-sexC[sex]) #chance to stay W is (1-background mutation) * (1-cutting rate)
-    homingProbs[2, ] <- (1-sexD[sex])*sexC[sex]*sexH[sex] #chance to become H is (1-background)*cutting*homing
-    homingProbs[3, ] <- sexD[sex] + (1-sexD[sex])*sexC[sex]*(1-sexH[sex])*sexR[sex] #NHEJ caused good resistance, 
-    homingProbs[4, ] <- (1-sexD[sex])*sexC[sex]*(1-sexH[sex])*(1-sexR[sex]) #bad resistant allele, from NHEJ and background mutation rate
+    homingProbs[1, ] <- (1-sexD[[sex]])*(1-sexC[[sex]]) #chance to stay W is (1-background mutation) * (1-cutting rate)
+    homingProbs[2, ] <- (1-sexD[[sex]])*sexC[[sex]]*sexH[[sex]] #chance to become H is (1-background)*cutting*homing
+    homingProbs[3, ] <- sexD[[sex]] + (1-sexD[[sex]])*sexC[[sex]]*(1-sexH[[sex]])*sexR[[sex]] #NHEJ caused good resistance, 
+    homingProbs[4, ] <- (1-sexD[[sex]])*sexC[[sex]]*(1-sexH[[sex]])*(1-sexR[[sex]]) #bad resistant allele, from NHEJ and background mutation rate
     
     
     #set up lists to hold probabilities
@@ -535,16 +535,16 @@ MakeReference_Multiplex_oLocus <- function(cRateM=c(1.0, 1.0, 1.0), hRateM=c(1.0
   
   
   # loop over both sexes
-  sexC <- c(cRateF,cRateM)
-  sexH <- c(hRateF,hRateM)
-  sexR <- c(rRateF,rRateM)
-  sexD <- c(dF,dM)
+  sexC <- list(cRateF,cRateM)
+  sexH <- list(hRateF,hRateM)
+  sexR <- list(rRateF,rRateM)
+  sexD <- list(dF,dM)
   for(sex in 1:2){
     # fill probs matrices
-    homingProbs[1, ] <- (1-sexD[sex])*(1-sexC[sex]) #chance to stay W is (1-background mutation) * (1-cutting rate)
-    homingProbs[2, ] <- (1-sexD[sex])*sexC[sex]*sexH[sex] #chance to become H is (1-background)*cutting*homing
-    homingProbs[3, ] <- sexD[sex] + (1-sexD[sex])*sexC[sex]*(1-sexH[sex])*sexR[sex] #NHEJ caused good resistance, 
-    homingProbs[4, ] <- (1-sexD[sex])*sexC[sex]*(1-sexH[sex])*(1-sexR[sex]) #bad resistant allele, from NHEJ and background mutation rate
+    homingProbs[1, ] <- (1-sexD[[sex]])*(1-sexC[[sex]]) #chance to stay W is (1-background mutation) * (1-cutting rate)
+    homingProbs[2, ] <- (1-sexD[[sex]])*sexC[[sex]]*sexH[[sex]] #chance to become H is (1-background)*cutting*homing
+    homingProbs[3, ] <- sexD[[sex]] + (1-sexD[[sex]])*sexC[[sex]]*(1-sexH[[sex]])*sexR[[sex]] #NHEJ caused good resistance, 
+    homingProbs[4, ] <- (1-sexD[[sex]])*sexC[[sex]]*(1-sexH[[sex]])*(1-sexR[[sex]]) #bad resistant allele, from NHEJ and background mutation rate
     
     
     #set up lists to hold probabilities

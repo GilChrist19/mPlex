@@ -84,23 +84,26 @@ moveMat <- matrix(data = c(0.98, 0.02, 0,
 # Inheritance pattern
 ####################
 # 1-locus CRISPR-like drive system, with no extra genotype-specific costs
-#  97% homing rate, 3% resistance rate, no backgorund mutation
-reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.97),
-                                                       R = c(0.03),
-                                                       S = c(0),
-                                                       d = c(0))
+#  97% cutting rate, 100% homing rate, no backgorund mutation
+reproductionReference <- MakeReference_Multiplex_mLoci(cRateM = c(0.97),
+                                                       hRateM = c(1.0),
+                                                       rRateM = c(0),
+                                                       dM = c(0))
 
 
 ####################
 # Setup Initial genotype ratios
 ####################
 # 1 locus, start completely wild-type
-alleloTypes <- vector(mode = "list", length = 1L) #1 locus
-alleloTypes[[1]]$alleles <- c("W")
-alleloTypes[[1]]$probs <- c(1)
+aTypes <- vector(mode = "list", length = 1L) #1 locus
+aTypes[[1]]$alleles <- c("W")
+aTypes[[1]]$probs <- c(1)
 
 # replicate so each patch starts the same
-AllAlleles <- replicate(n = sitesNumber, expr = alleloTypes, simplify = FALSE)
+#  This is optional. If a length-1 list is supplied, it is internally replicated 
+#  and all patches begin the same. Otherwise, the list must have length equal 
+#  to the number of patches.
+AllAlleles <- replicate(n = sitesNumber, expr = aTypes, simplify = FALSE)
 
 
 ####################
@@ -110,7 +113,8 @@ AllAlleles <- replicate(n = sitesNumber, expr = alleloTypes, simplify = FALSE)
 patchReleases = replicate(n = sitesNumber,
                           expr = list(maleReleases = NULL,
                                       femaleReleases = NULL,
-                                      eggReleases = NULL),
+                                      eggReleases = NULL,
+                                      matedFemaleReleases = NULL),
                           simplify = FALSE)
 
 # Create release object to pass to patches
@@ -237,11 +241,11 @@ moveMat
 # Inheritance pattern
 ####################
 # 1-locus CRISPR-like drive system, with no extra genotype-specific costs
-#  97% homing rate, 3% resistance rate, no backgorund mutation
-reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.97),
-                                                       R = c(0.03),
-                                                       S = c(0),
-                                                       d = c(0))
+#  97% cutting rate, 100% homing rate, no backgorund mutation
+reproductionReference <- MakeReference_Multiplex_mLoci(cRateM = c(0.97),
+                                                       hRateM = c(1.00),
+                                                       rRateM = c(0),
+                                                       dM = c(0))
 ```
 
 While we use the default parameters, there are several fitness costs that can be applied. Every cost is applied in a genotype-specific manner. The optional fitness costs are:  
@@ -266,18 +270,21 @@ These costs are implemented as hash tables, searched by genotype. Therefore, all
 # Setup Initial genotype ratios
 ####################
 # 1 locus, start completely wild-type
-alleloTypes <- vector(mode = "list", length = 1L) #1 locus
-alleloTypes[[1]]$alleles <- c("W")
-alleloTypes[[1]]$probs <- c(1)
+aTypes <- vector(mode = "list", length = 1L) #1 locus
+aTypes[[1]]$alleles <- c("W")
+aTypes[[1]]$probs <- c(1)
 
 # replicate so each patch starts the same
-AllAlleles <- replicate(n = sitesNumber, expr = alleloTypes, simplify = FALSE)
+#  This is optional. If a length-1 list is supplied, it is internally replicated 
+#  and all patches begin the same. Otherwise, the list must have length equal 
+#  to the number of patches.
+AllAlleles <- replicate(n = sitesNumber, expr = aTypes, simplify = FALSE)
 ```
 
 
 #### Releases and Batch Migration
 
-*mPlex* uses a list specifying the releases by male, female, or egg, their genotypes, and the release schedule. The initial list is `NULL`, and only if there are releases to be performed is anything added. 
+*mPlex* uses a list specifying the releases by male, female, egg, or mated female, their genotypes, and the release schedule. The initial list is `NULL`, and only if there are releases to be performed is anything added. 
 
 
 ```{r}
@@ -289,7 +296,8 @@ AllAlleles <- replicate(n = sitesNumber, expr = alleloTypes, simplify = FALSE)
 patchReleases = replicate(n = sitesNumber,
                           expr = list(maleReleases = NULL,
                                       femaleReleases = NULL,
-                                      eggReleases = NULL),
+                                      eggReleases = NULL,
+                                      matedFemaleReleases = NULL),
                           simplify = FALSE)
 
 # Create release object to pass to patches
@@ -349,7 +357,7 @@ The biological parameters were chosen for _Aedes aegypti_ in our original simula
 
 #### Run Simulation
 
-`mPlex` is an individual-based model, and thus only runst stochastically. There are several options to parameterize it:  
+`mPlex` is an individual-based model, and thus only runs stochastically. There are several options to parameterize it:  
 
   * `seed`: Seed to set mersenne twister
   * `numThreads`: Internal multithreading
@@ -495,7 +503,7 @@ head(x = fMat, n = 3)
 plotmPlexSingle(directory = aggDir, whichPatches = NULL, nonZeroGen = FALSE)
 ```
 
-The left Y-axis is population size, the right Y-axis is patch number, and the X-axis is time. We can see the releases in the first patch, equal for males and females, and follow their migration down the plots from patch 1 to patch 2, with patch 3 remaining completely independent. The total population remains around 250 individuals for males and females, which gives the expected equilibrium value of 500.  The legend shows the aggregation key generated above. This is done because more comlicated experiments will have genotypes too long to display well, or our genotypes of interest will be a combination of multiple genotypes, which will be hard to put in a legend.  
+The left Y-axis is population size, the right Y-axis is patch number, and the X-axis is time. We can see the releases in the first patch, on the right under *Male Mosquitoes*, and follow their migration down the plots from patch 1 to patch 2, with patch 3 remaining completely independent. The total population remains around 50 individuals for males and females, which gives the expected equilibrium value of 100.  The legend shows the aggregation key generated above. This is done because more complicated experiments will have genotypes too long to display well, or our genotypes of interest will be a combination of multiple genotypes, which will be hard to put in a legend.  
 We can also plot all of our repetitions using `plotmPlexMult()`.  
 
 ```{r}
@@ -560,11 +568,12 @@ moveMat <- matrix(data = c(0.98, 0.02, 0,
 # Inheritance pattern
 ####################
 # 1-locus CRISPR-like drive system
-#  97% homing rate, 3% resistance rate, no backgorund mutation
-reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.97),
-                                                       R = c(0.03),
-                                                       S = c(0),
-                                                       d = c(0), omega = c("HH"=0.5, "RR" = 0.9))
+#  97% cutting rate, 90% homing rate, 33% resistant 1 allele rate
+#  (ie, 1:2 R1:R2 generation), no backgorund mutation
+reproductionReference <- MakeReference_Multiplex_mLoci(cRateM = c(0.97),
+                                                       hRateM = c(0.90),
+                                                       rRateM = c(0.33),
+                                                       dM = c(0), omega = c("HH"=0.5, "RR" = 0.9))
 
 
 ####################
@@ -590,7 +599,8 @@ AllAlleles <- list(aTypes1, aTypes1, aTypes3)
 patchReleases = replicate(n = sitesNumber,
                           expr = list(maleReleases = NULL,
                                       femaleReleases = NULL,
-                                      eggReleases = NULL),
+                                      eggReleases = NULL,
+                                      matedFemaleReleases = NULL),
                           simplify = FALSE)
 
 # Create release object to pass to patches
@@ -676,7 +686,7 @@ aggKey <- read.csv(file = file.path(aggDir, "0_AggKey.csv"), header = TRUE)
 aggKey
 ```
 
-Looking at the first patch, we see releases of 1 very early in the males, which corresponds to the `HH` genotype given in the key. We then see releases of number 5 later on, corresponding to the `RR` releases we performed. We can see how these begin to migrate into the second patch. There is some transition as the green color, 4, rises and falls in the middle. This corresponds to the `HW` heterozygous individuals. Finally, the population is primarily taken over by 2, with some 5 mixed in. These correspond to the `HR` and `RR` individuals. Notice that the population drops significantly once this has happened. This is because of the fitness costs on `HH` and `RR` individuals. The effect of this can be seen in the repetitions plot, where the `HH` individuals died out in one simulation and the population remained `WW`.  
+Looking at the first patch, we see releases of 1 very early in the males, which corresponds to the `HH` genotype given in the key. We then see releases of number 5 later on, corresponding to the `RR` releases we performed. We can see how these begin to migrate into the second patch. There is some transition as the green color, 4, rises and falls in the middle. This corresponds to the `HW` heterozygous individuals. Finally, the population is primarily taken over by 8. This corresponds to the `SS` individuals. Notice that the population drops significantly during the active homing, about time 300-600, and then recovers as the population shifts to `SS` individuals. This is because of the fitness costs on `HH` and `RR` individuals. The effect of this can be seen in the repetitions plot, where the `HH` individuals died out in one simulation and the population remained `WW`.  
 Notice, in the third patch which is not connected to the first two, the population begins mostly `WW`, with some `RR` and even less `SS` and heterozygous individuals. The population remains fairly constant, but begins to trend upwards as the fitness cost drives `RR` individuals out of the population. If we continued the simulation longer, eventually all of the `R` alleles would drop out of the population.
 
 ```{r, echo=FALSE}
@@ -768,10 +778,10 @@ omega <- setNames(object = rep.int(x = 0.6, times = length(locus1)),
 
 # 3-locus CRISPR-like drive system
 #  first locus is high homing, second is medium, third is poor
-reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.95, 0.8, 0.4),
-                                                       R = c(0.05, 0.2, 0.6),
-                                                       S = c(0, 0, 0),
-                                                       d = c(0, 0, 0),
+reproductionReference <- MakeReference_Multiplex_mLoci(cRateM = c(0.95, 0.8, 0.4),
+                                                       hRateM = c(0.90, 0.8, 0.6),
+                                                       rRateM = c(1, 1, 1),
+                                                       dM = c(0, 0, 0),
                                                        omega = omega)
 
 
@@ -779,15 +789,13 @@ reproductionReference <- MakeReference_Multiplex_mLoci(H = c(0.95, 0.8, 0.4),
 # Setup Initial genotype ratios
 ####################
 # 3 locus, start completely wild-type
-aTypes <- vector(mode = "list", length = 3L) #3 locus
+aTypes <- vector(mode = "list", length = 3L) #3 loci in sim
 aTypes[[1]]$alleles <- c("W")
 aTypes[[1]]$probs <- c(1L)
 aTypes[[2]]$alleles <- c("W")
 aTypes[[2]]$probs <- c(1L)
 aTypes[[3]]$alleles <- c("W")
 aTypes[[3]]$probs <- c(1L)
-# replicate so each patch starts the same
-AllAlleles <- list(aTypes)
 
 
 ####################
@@ -797,7 +805,8 @@ AllAlleles <- list(aTypes)
 patchReleases = replicate(n = sitesNumber,
                           expr = list(maleReleases = NULL,
                                       femaleReleases = NULL,
-                                      eggReleases = NULL),
+                                      eggReleases = NULL,
+                                      matedFemaleReleases = NULL),
                           simplify = FALSE)
 
 # Create release object to pass to patches
@@ -854,7 +863,7 @@ runMPlex(seed = 10,
          numReps = 1, 
          networkParameters = netPar,
          reproductionReference = reproductionReference,
-         initAlleles = AllAlleles,
+         initAlleles = list(aTypes),
          patchReleases = patchReleases,
          migrationMale = moveMat,
          migrationFemale = moveMat,
@@ -946,9 +955,9 @@ tail(x = aggKey, n = 5)
 plotmPlexSingle(directory = aggDir[3], whichPatches = NULL, nonZeroGen = FALSE)
 ```
 
-This time, notice how the first 400 days are completely genotype 10, `WW`, at the second locus. This is because no releases at the second locus were performed until day 400, as each locus is independent. After the initial releases, we see a quick but short uptick of genotype 4, `HW` heterozygotes at locus two, which is quickly replaced mostly be genotype 1, `HH` individuals, with a small amount of genotype 2, `HR` heterozygotes. This happens because there is no fitness cost on anything at the second locus, so the `H` allele drives to completion, but it drives less effectively than locus one, 80% effective compared to 95%, thus creating a higher proportion of `R` alleles in the process.  
+This time, notice how the first 400 days are completely genotype 10, `WW`, at the second locus. This is because no releases at the second locus were performed until day 400, as each locus is independent. After the initial releases, we see a quick but short uptick of genotype 4, `HW` heterozygotes at locus two, which is quickly replaced mostly be genotype 1, `HH` individuals, with a small amount of genotype 2, `HR` heterozygotes. This happens because there is no fitness cost on anything at the second locus, so the `H` allele drives to completion, but it drives less effectively than locus one, 80% cutting rate and 80% homing rate, compared to 95% cutting and 90% homing rates, thus creating a higher proportion of `R` alleles in the process.  
 
-Finally, we can perform the same analysis on the third locus. Again, this locus has no fitness cost, but it is the least effective of the three, driving only at a 60% rate.
+Finally, we can perform the same analysis on the third locus. Again, this locus has no fitness cost, but it is the least effective of the three, cutting at 40% and homing at 60% efficacy.
 
 ```{r}
 # third locus
@@ -961,7 +970,7 @@ plotmPlexSingle(directory = aggDir[4], whichPatches = NULL, nonZeroGen = FALSE)
 
 Prior to the releases at 750 days, we see that genotype 10, `WW` individuals at locus three, are dominant, but also a dip in the population. This comes from the fitness cost associated with the first locus, which reduces the population as it spreads, until enough of the population is resistant that the size begins to bounce back. We don't see this when analyzing locus two because releases were performed at nearly the same time, thus masking this effect with the change in genotypes. Shortly after the release, we see an increase in genotype 4, `HW` heterozygotes, as the `H` allele begins to drive through the population. However, since the drive efficacy is so low, the final population is a mix of genotypes 2, 1, and 5, corresponding to genotypes `HR`, `HH`, and `RR` at locus three.  
 
-While it is interesting to view each locus independently, there are other metrics that are more valuable. If this drive carried different transgenes with it, then having the drive at every locus is the only way to ensure that an individual possesses all of the transgenes. This can be analyzed by specifying all of the genotypes of interest at each locus, using the `genotypes` option in `genOI_mLoci_Daisy()`. This way, our data is aggregated into two groups:  
+While it is interesting to view each locus independently, there are other metrics that may be more valuable. If this drive carried different transgenes with it, then having the drive at every locus is the only way to ensure that an individual possesses all of the transgenes. This can be analyzed by specifying all of the genotypes of interest at each locus, using the `genotypes` option in `genOI_mLoci_Daisy()`. This way, our data is aggregated into two groups:  
 
   * 1: Individuals with any of our desired genotypes at each locus  
   * other: Individuals that do not have our desired genotypes at all loci  
