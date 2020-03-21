@@ -10,7 +10,7 @@
 # RUN WRAPPER
 ###############################################################################
 
-#' Run mPlex
+#' Run CKMR
 #' 
 #' R interface to C++ simulation code.
 #' 
@@ -28,7 +28,7 @@
 #' @param verbose Boolean, be chatty? Default is FALSE
 #' 
 #' @export
-runMPlex <- function(seed = 1, numReps = 1, numThreads = 1,
+runCKMR <- function(seed = 1, numReps = 1, numThreads = 1,
                      networkParameters, reproductionReference,
                      patchReleases, migrationMale, migrationFemale,
                      migrationBatch, samplingParameters,
@@ -36,9 +36,20 @@ runMPlex <- function(seed = 1, numReps = 1, numThreads = 1,
   
   # expand so c++ can find it
   outputDirectory = path.expand(outputDirectory)
+
+  ##########
+  # Seed Setup
+  ##########
+  oldSeed <- .GlobalEnv$.Random.seed
+  set.seed(seed)
+  fourSeed <- sample(x = abs(.GlobalEnv$.Random.seed), size = 4, replace = FALSE)
+  on.exit(.GlobalEnv$.Random.seed <- oldSeed)
   
   # pass all down for simulation
-  run_mPlex(seed,
+  run_CKMR(s1_ = fourSeed[1],
+            s2_ = fourSeed[2],
+            s3_ = fourSeed[3],
+            s4_ = fourSeed[4],
              numReps,
              numThreads,
              networkParameters,

@@ -12,7 +12,13 @@
 ///////////////////////////////////////////////////////////////////////////////
 // constructor & destructor
 ///////////////////////////////////////////////////////////////////////////////
-prng::prng(const uint_least32_t& seed) : rng(seed){
+//prng::prng(const uint_least32_t& seed) : rng(seed){
+//  runif = std::uniform_real_distribution<double>(0,1);
+//};
+prng::prng(const std::array<std::uint64_t, 4>& seed){
+  // set seed
+  rng.seed(seed);
+  // initialize uniform
   runif = std::uniform_real_distribution<double>(0,1);
 };
 prng::~prng(){};

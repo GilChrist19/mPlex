@@ -17,8 +17,8 @@ using sMat = std::vector<sVec>;
 /******************************************************************************
  * Familial Class
 ******************************************************************************/
-#ifndef FAMILY_MPLEX
-#define FAMILY_MPLEX
+#ifndef FAMILY_CKMR
+#define FAMILY_CKMR
 
 /****************
  * SETUP FUNCTION

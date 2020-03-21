@@ -41,13 +41,13 @@ for(i in c(simDir, aggDir)){dir.create(path = i)}
 # Setup Parameters for Network
 ###############################################################################
 
-numPatch <- 2
+numPatch <- 20
 set.seed(10)
 migration <- matrix(data = runif(numPatch*numPatch), nrow = numPatch, ncol = numPatch)
 migration <- migration/rowSums(migration)
 migration <- diag(numPatch)
 
-patchPops = rep(1000L,numPatch)
+patchPops = rep(2000L,numPatch)
 
 #setup alleles to initiate patches
 alleloTypes <- vector(mode = "list", length = 1L) #1 locus
@@ -186,7 +186,7 @@ patchReleases[[2]]$maleReleases <- basicRepeatedReleases(releaseStart = 10,
 ###############################################################################
 # Calculate parameters and initialize network
 ###############################################################################
-simTime <- 100
+simTime <- 200
 netPar = NetworkParameters(nPatch = numPatch,
                            simTime = simTime,
                            sampTime = 2,
@@ -210,8 +210,10 @@ runMPlex(seed = 10,
          migrationBatch = migrationBatch,
          outputDirectory = simDir,
          reproductionType = "mPlex_mLoci",
-         verbose = TRUE)
+         verbose = FALSE)
 difftime(time1 = Sys.time(), time2 = startTime)
+
+
 
 # setup aggregation key
 #  this example sets all genotypes as different

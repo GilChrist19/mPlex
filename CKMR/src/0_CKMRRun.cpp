@@ -35,9 +35,9 @@
 /******************************************************************************
  * Run the simulation
 ******************************************************************************/
-//' Run Multi-Plex Experiment
+//' Run CKMR Experiment
 //'
-//' Run multiple mPlex experiments, choosing the type of inheritance desired.
+//' Run multiple CKMR experiments.
 //'
 //' @examples
 //' \dontrun{
@@ -47,7 +47,10 @@
 //' }
 //'
 // [[Rcpp::export]]
-void run_mPlex(const uint_least32_t& seed_,
+void run_CKMR(const std::uint64_t& s1_,
+               const std::uint64_t& s2_,
+               const std::uint64_t& s3_,
+               const std::uint64_t& s4_,
                const uint_least32_t& numReps_,
                const uint_least32_t& numThreads_,
                const Rcpp::List& networkParameters_,
@@ -78,8 +81,12 @@ void run_mPlex(const uint_least32_t& seed_,
   
   std::vector<prng> randInst;
   randInst.reserve(numThreads_);
+  std::array<std::uint64_t, 4> seed = {s1_,s2_,s3_,s4_};
   for(size_t i=0; i < numThreads_; i++){
-    randInst.emplace_back(prng(i + seed_));
+    // iterate all seeds in vector
+    for(auto& j : seed){j += i;}
+    // set seed
+    randInst.emplace_back(prng(seed));
   }
   
   if(verbose_){Rcpp::Rcout <<  " ... done initializing prngs!\n";};

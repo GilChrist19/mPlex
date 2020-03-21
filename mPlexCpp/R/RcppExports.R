@@ -12,8 +12,8 @@
 #' sorry
 #' }
 #'
-run_mPlex <- function(seed_, numReps_, numThreads_, networkParameters_, reproductionReference_, initAlleles_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, reproductionType_, outputDirectory_, verbose_) {
-    invisible(.Call('_mPlexCpp_run_mPlex', PACKAGE = 'mPlexCpp', seed_, numReps_, numThreads_, networkParameters_, reproductionReference_, initAlleles_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, reproductionType_, outputDirectory_, verbose_))
+run_mPlex <- function(s1_, s2_, s3_, s4_, numReps_, numThreads_, networkParameters_, reproductionReference_, initAlleles_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, reproductionType_, outputDirectory_, verbose_) {
+    invisible(.Call('_mPlexCpp_run_mPlex', PACKAGE = 'mPlexCpp', s1_, s2_, s3_, s4_, numReps_, numThreads_, networkParameters_, reproductionReference_, initAlleles_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, reproductionType_, outputDirectory_, verbose_))
 }
 
 #' Calculate Geodesic Distance - Cosine Method

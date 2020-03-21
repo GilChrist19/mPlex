@@ -43,6 +43,16 @@ runMPlex <- function(seed = 1, numReps = 1, numThreads = 1,
   if(!dir.exists(outputDirectory)) stop("Output directory doesn't exist.")
   
   ##########
+  # Seed Setup
+  ##########
+  oldSeed <- .GlobalEnv$.Random.seed
+  set.seed(seed)
+  fourSeed <- sample(x = abs(.GlobalEnv$.Random.seed), size = 4, replace = FALSE)
+  on.exit(.GlobalEnv$.Random.seed <- oldSeed)
+  
+  
+  
+  ##########
   # Migration Check
   ##########
   # must be square, must be the same size, size must be equal to the number of patches
@@ -178,7 +188,10 @@ runMPlex <- function(seed = 1, numReps = 1, numThreads = 1,
   # Run
   ##########
   # pass all down for simulation
-  run_mPlex(seed_ = seed, 
+  run_mPlex(s1_ = fourSeed[1],
+            s2_ = fourSeed[2],
+            s3_ = fourSeed[3],
+            s4_ = fourSeed[4],
             numReps_ = numReps, 
             numThreads_ = numThreads,
             networkParameters_ = networkParameters,

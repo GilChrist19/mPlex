@@ -18,6 +18,8 @@
 #include <vector>
 #include <math.h>
 
+#include "4_xoshiro.hpp"
+
 ///////////////////////////////////////////////////////////////////////////////
 // class declaration
 ///////////////////////////////////////////////////////////////////////////////
@@ -26,7 +28,7 @@ class prng {
 public:
 
     /* constructor & destructor */
-    prng(const uint_least32_t& seed);
+    prng(const std::array<std::uint64_t, 4>& seed);
     virtual ~prng();
 //    ~prng() = default;
 
@@ -61,7 +63,8 @@ public:
 
 private:
 
-  std::mt19937                            rng;
+  //std::mt19937                            rng;
+  xoshiro256ss				                    rng;
   std::uniform_real_distribution<double>  runif;
   std::bernoulli_distribution             bernoulli;
   std::discrete_distribution<size_t>      sample;

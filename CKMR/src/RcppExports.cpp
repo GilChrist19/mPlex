@@ -6,12 +6,15 @@
 
 using namespace Rcpp;
 
-// run_mPlex
-void run_mPlex(const uint_least32_t& seed_, const uint_least32_t& numReps_, const uint_least32_t& numThreads_, const Rcpp::List& networkParameters_, const Rcpp::List& reproductionReference_, const Rcpp::List& patchReleases_, const Rcpp::NumericMatrix& migrationMale_, const Rcpp::NumericMatrix& migrationFemale_, const Rcpp::List& migrationBatch_, const Rcpp::List& samplingParameters_, const std::string& outputDirectory_, const bool& verbose_);
-RcppExport SEXP _CKMR_run_mPlex(SEXP seed_SEXP, SEXP numReps_SEXP, SEXP numThreads_SEXP, SEXP networkParameters_SEXP, SEXP reproductionReference_SEXP, SEXP patchReleases_SEXP, SEXP migrationMale_SEXP, SEXP migrationFemale_SEXP, SEXP migrationBatch_SEXP, SEXP samplingParameters_SEXP, SEXP outputDirectory_SEXP, SEXP verbose_SEXP) {
+// run_CKMR
+void run_CKMR(const std::uint64_t& s1_, const std::uint64_t& s2_, const std::uint64_t& s3_, const std::uint64_t& s4_, const uint_least32_t& numReps_, const uint_least32_t& numThreads_, const Rcpp::List& networkParameters_, const Rcpp::List& reproductionReference_, const Rcpp::List& patchReleases_, const Rcpp::NumericMatrix& migrationMale_, const Rcpp::NumericMatrix& migrationFemale_, const Rcpp::List& migrationBatch_, const Rcpp::List& samplingParameters_, const std::string& outputDirectory_, const bool& verbose_);
+RcppExport SEXP _CKMR_run_CKMR(SEXP s1_SEXP, SEXP s2_SEXP, SEXP s3_SEXP, SEXP s4_SEXP, SEXP numReps_SEXP, SEXP numThreads_SEXP, SEXP networkParameters_SEXP, SEXP reproductionReference_SEXP, SEXP patchReleases_SEXP, SEXP migrationMale_SEXP, SEXP migrationFemale_SEXP, SEXP migrationBatch_SEXP, SEXP samplingParameters_SEXP, SEXP outputDirectory_SEXP, SEXP verbose_SEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const uint_least32_t& >::type seed_(seed_SEXP);
+    Rcpp::traits::input_parameter< const std::uint64_t& >::type s1_(s1_SEXP);
+    Rcpp::traits::input_parameter< const std::uint64_t& >::type s2_(s2_SEXP);
+    Rcpp::traits::input_parameter< const std::uint64_t& >::type s3_(s3_SEXP);
+    Rcpp::traits::input_parameter< const std::uint64_t& >::type s4_(s4_SEXP);
     Rcpp::traits::input_parameter< const uint_least32_t& >::type numReps_(numReps_SEXP);
     Rcpp::traits::input_parameter< const uint_least32_t& >::type numThreads_(numThreads_SEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type networkParameters_(networkParameters_SEXP);
@@ -23,7 +26,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Rcpp::List& >::type samplingParameters_(samplingParameters_SEXP);
     Rcpp::traits::input_parameter< const std::string& >::type outputDirectory_(outputDirectory_SEXP);
     Rcpp::traits::input_parameter< const bool& >::type verbose_(verbose_SEXP);
-    run_mPlex(seed_, numReps_, numThreads_, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, samplingParameters_, outputDirectory_, verbose_);
+    run_CKMR(s1_, s2_, s3_, s4_, numReps_, numThreads_, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, samplingParameters_, outputDirectory_, verbose_);
     return R_NilValue;
 END_RCPP
 }
@@ -146,7 +149,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_CKMR_run_mPlex", (DL_FUNC) &_CKMR_run_mPlex, 12},
+    {"_CKMR_run_CKMR", (DL_FUNC) &_CKMR_run_CKMR, 15},
     {"_CKMR_calcCos", (DL_FUNC) &_CKMR_calcCos, 2},
     {"_CKMR_calcHaversine", (DL_FUNC) &_CKMR_calcHaversine, 2},
     {"_CKMR_calcVinSph", (DL_FUNC) &_CKMR_calcVinSph, 2},

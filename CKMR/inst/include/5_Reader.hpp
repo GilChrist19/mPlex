@@ -7,8 +7,8 @@
 //   
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef MPLEX_READ
-#define MPLEX_READ
+#ifndef CKMR_READ
+#define CKMR_READ
 
 #include <iostream>
 #include <fstream>

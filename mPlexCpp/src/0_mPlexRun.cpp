@@ -13,7 +13,7 @@
 #include <progress.hpp>
 #include <progress_bar.hpp>
 
-// #include <gperftools/profiler.h>
+//#include <gperftools/profiler.h>
 
 // I think the plugin includes compiler flags
 // Source: https://wbnicholson.wordpress.com/2014/07/10/parallelization-in-rcpp-via-openmp/
@@ -47,7 +47,10 @@
 //' }
 //'
 // [[Rcpp::export]]
-void run_mPlex(const uint_least32_t& seed_,
+void run_mPlex(const std::uint64_t& s1_,
+               const std::uint64_t& s2_,
+               const std::uint64_t& s3_,
+               const std::uint64_t& s4_,
                const uint_least32_t& numReps_,
                const uint_least32_t& numThreads_,
                const Rcpp::List& networkParameters_,
@@ -63,7 +66,7 @@ void run_mPlex(const uint_least32_t& seed_,
 
   #ifdef BASE_PROFILER_H_
     // make sure to change path!!! But keep file name.
-    ProfilerStart("/home/jared/Desktop/OUTPUT/profile.log");
+    ProfilerStart("/home/gilchrist/Desktop/OUTPUT/profile.log");
   #endif
 
     
@@ -79,8 +82,12 @@ void run_mPlex(const uint_least32_t& seed_,
   
   std::vector<prng> randInst;
   randInst.reserve(numThreads_);
+  std::array<std::uint64_t, 4> seed = {s1_,s2_,s3_,s4_};
   for(auto i=0; i < numThreads_; i++){
-    randInst.emplace_back(prng(i + seed_));
+    // iterate all seeds in vector
+    for(auto& j : seed){j += i;}
+    // set seed
+    randInst.emplace_back(prng(seed));
   }
   
   if(verbose_){Rcpp::Rcout <<  " ... done initializing prngs!\n";};

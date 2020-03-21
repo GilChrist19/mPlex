@@ -9,8 +9,8 @@
 
 #include <string>
 
-#ifndef bigBrother_MPLEX
-#define bigBrother_MPLEX
+#ifndef bigBrother_CKMR
+#define bigBrother_CKMR
 
 ///////////////////////////////////////////////////////////////////////////////
 // class declaration

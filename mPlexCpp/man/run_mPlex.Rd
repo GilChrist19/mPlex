@@ -5,7 +5,10 @@
 \title{Run Multi-Plex Experiment}
 \usage{
 run_mPlex(
-  seed_,
+  s1_,
+  s2_,
+  s3_,
+  s4_,
   numReps_,
   numThreads_,
   networkParameters_,

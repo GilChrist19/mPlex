@@ -6,8 +6,8 @@
 //  \____/_/ |_/_/  /_/_/ |_|  
 //      
 ///////////////////////////////////////////////////////////////////////////////
-#ifndef PATCH_MPLEX
-#define PATCH_MPLEX
+#ifndef PATCH_CKMR
+#define PATCH_CKMR
 
 #include <RcppArmadillo.h>
 

@@ -1,0 +1,18 @@
+20200318
+
+Putting together a new prng. Tested 2 things, the xoshiro256** from Vigna and 
+Blackman and the pcg class from O'Neill.
+xoshiro home page: http://vigna.di.unimi.it/
+pcg     home page: https://www.pcg-random.org/
+
+pcg code is from the author.
+xoshiro code is from Sean, based off the C code provided by the authors.
+
+I chose the xoshiro256** generator because it was ~10% faster than pcg for us.
+Online, there's a huge debate, and both authors think the other author's prng 
+is crap. So, pick and camp and go. Both are smaller, faster, and more
+statistically sound than the Mersenne Twister.
+
+20200321
+These were stolen from MGDrivE.
+Timings etc are from MGDRivE too, but I'm still using xoshiro256** here.

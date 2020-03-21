@@ -7,8 +7,8 @@
 //   
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef PARAMETERS_MPLEX
-#define PARAMETERS_MPLEX
+#ifndef PARAMETERS_CKMR
+#define PARAMETERS_CKMR
 
 
 #include <tuple>

@@ -13,8 +13,8 @@
  * Mosquito Class
 ******************************************************************************/
 
-#ifndef MOSQUITO_MPLEX
-#define MOSQUITO_MPLEX
+#ifndef MOSQUITO_CKMR
+#define MOSQUITO_CKMR
 
 class Mosquito {
 public:

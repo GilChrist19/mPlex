@@ -7,8 +7,8 @@
 //   
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef REFERENCE_MPLEX
-#define REFERENCE_MPLEX
+#ifndef REFERENCE_CKMR
+#define REFERENCE_CKMR
 
 #include <string>
 #include <vector>

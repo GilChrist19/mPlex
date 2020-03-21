@@ -1,10 +1,10 @@
 ###############################################################################
-#                            ____  __          ______          
-#                 ____ ___  / __ \/ /__  _  __/ ____/___  ____ 
-#                / __ `__ \/ /_/ / / _ \| |/_/ /   / __ \/ __ \
-#               / / / / / / ____/ /  __/>  </ /___/ /_/ / /_/ /
-#              /_/ /_/ /_/_/   /_/\___/_/|_|\____/ .___/ .___/ 
-#                                               /_/   /_/      
+#     ________ __ __  _______ 
+#    / ____/ //_//  |/  / __ \
+#   / /   / ,<  / /|_/ / /_/ /
+#  / /___/ /| |/ /  / / _, _/ 
+#  \____/_/ |_/_/  /_/_/ |_|  
+#    
 ###############################################################################
 ###############################################################################
 #                        _____         _   _____ _ _
@@ -18,7 +18,7 @@
 # Clean environment and source files
 ###############################################################################
 rm(list=ls());gc()
-library(mPlexCpp)
+library(CKMR)
 
 
 
@@ -120,7 +120,7 @@ samplingScheme <- list("samplingDays"=c(5,5,5,5,5),
 
 
 startTime <- Sys.time()
-runMPlex(seed = 10,
+runCKMR(seed = 10,
          numThreads = 4,
          networkParameters = netPar,
          reproductionReference = reference,
@@ -159,26 +159,12 @@ for( i in 1:3){
 
 
 
-
-# # setup aggregation key
-# #  this example sets all genotypes as different
-# genOI_mLoci_Daisy(outputFile = file.path(aggDir, "0_AggKey.csv"), genotypes = list(NULL), collapse = c(FALSE))
-# 
-# 
-# # aggregate experiment by aggregation key
-# SimAggregation(readDirectory = simDir, writeDirectory = aggDir, simTime = simTime)
-# 
-# 
-# # plot for example
-# Plot_mPlex(directory = aggDir, whichPatches = NULL, totalPop = TRUE)
-
-
 # see profiling if done
 cat("NumSamp  PercentSamp  CumPercentSamp  NumSampTree  PercentSampTree  Function")
 system(sprintf("google-pprof --text --cum --lines  /bin/ls %sprofile.log", "~/Desktop/OUTPUT/"), intern = TRUE)
 
 
-detach("package:mPlexCpp", unload=TRUE)
+detach("package:CKMR", unload=TRUE)
   
 
 
@@ -187,7 +173,7 @@ detach("package:mPlexCpp", unload=TRUE)
 ###############################################################################
 
 # repetitions wrapper - no reinitializing memory between reps. 
-runMPlex(seed = 10,
+runCKMR(seed = 10,
          numReps = 2,
          numThreads = 1,
          networkParameters = netPar,
@@ -202,24 +188,9 @@ runMPlex(seed = 10,
 
 
 
-# 
-# # setup aggregation key
-# #  this example sets all genotypes as different
-# genOI_mLoci_Daisy(outputFile = file.path(aggDir, "0_AggKey.csv"), genotypes = list(NULL), collapse = c(FALSE))
-# # example for oLocus
-# #genOI_oLocus(outputFile = file.path(aggDir, "0_AggKey.csv"), alleles = list(list(c(NULL)),list(c(NULL))), collapse = list(c(F),c(F)))
-# 
-# 
-# # aggregate experiment by aggregation key
-# SimAggregation(readDirectory = simDir, writeDirectory = aggDir, simTime = simTime)
-# 
-# 
-# # plot for example
-# Plot_mPlex(directory = aggDir, whichPatches = NULL, totalPop = TRUE)
 
 
-
-detach("package:mPlexCpp", unload=TRUE)
+detach("package:CKMR", unload=TRUE)
 
 
 
@@ -233,46 +204,6 @@ system(sprintf("google-pprof --text --cum --lines  /bin/ls %sprofile.log", "~/De
 
 
 
-
-
-
-mPlexCpp::genOI_mLoci_Daisy(outputFile = "~/Desktop/OUTPUT/mPlex/Aggregate/0_AggKey.csv", genotypes = list(NULL), collapse = c(FALSE))
-
-
-
-readDirectory <- "~/Desktop/OUTPUT/mPlex/experimentTest"
-writeDirectory <- "~/Desktop/OUTPUT/mPlex/Aggregate"
-simTime=1000
-
-testFunc <- function(readDirectory, writeDirectory, simTime){
-  
-  # list all files
-  readFiles <- list(list.files(path = readDirectory, pattern = 'M_', full.names = TRUE),
-                    list.files(path = readDirectory, pattern = 'F_', full.names = TRUE))
-  
-  # get file with largest size for buffer
-  #  Definitely female, so only check them.
-  largeFile <- readFiles[[2]][which.max(x = file.size(readFiles[[2]]))]
-  
-  # generate write file names
-  writeFiles <- vector(mode = "list", length = 2)
-  writeDirectory <- path.expand(path = writeDirectory)
-  
-  for(i in 1:2){
-    hold <- strsplit(x = readFiles[[i]], split = "/", fixed = TRUE, useBytes = TRUE)
-    writeFiles[[i]] <- file.path(writeDirectory,
-                                 unlist(x = hold)[seq.int(from = 0, to = length(hold)*length(hold[[1]]), by = length(hold[[1]]))])
-  }
-  
-  # read in genotype collapse key
-  genKey <- read.csv(file = list.files(path = writeDirectory, pattern = "AggKey", full.names = TRUE),
-                     header = TRUE, stringsAsFactors = FALSE)
-
-  # c++ for analysis
-  mPlexCpp:::simAgg(readFiles_ = readFiles, writeFiles_ = writeFiles,
-                    largeFile_ = largeFile, simTime_ = simTime, genKey_ = genKey)
-  
-}
 
 
 
