@@ -71,7 +71,7 @@
 #' ageDist = c(0,1,0,1,0,0)) #half of mosquitoes are 6, half are 8
 #'
 #' @export
-Release_basicRepeatedReleases <- function(releaseStart, releaseEnd, releaseInterval, genMos, numMos, minAge, maxAge, ageDist){
+basicRepeatedReleases <- function(releaseStart, releaseEnd, releaseInterval, genMos, numMos, minAge, maxAge, ageDist){
   #genMos is a list of genotypes to relaese
   #numMos is a vector of the number of mosquitoes you want to make, corresponding
   #  to the genotypes of genMos

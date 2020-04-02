@@ -31,7 +31,7 @@ void parameters::set_parameters(/* simulation fields */
                                 // batch parameters
                                 const dVec& batchProbs_, const dMat& sexProbs_, const dMat& moveMat_,
                                 // sampling parameters
-                                const iVec& sampDays_, const dVec& sampCov_){
+                                const iMat& sampDays_, const dMat& sampCov_){
 
 
 

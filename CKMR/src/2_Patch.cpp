@@ -569,12 +569,13 @@ void Patch::init_output(std::vector<std::ofstream *>& logFiles){
 
 
 // accessory function for writing mosquitoes
-void write_stage(popVec& pop, const int& stage, std::ofstream& logFile, std::string (Mosquito::*print)(), prng& myPRNG){
+void write_stage(popVec& pop, const int& patchID, const int& stage, std::ofstream& logFile, std::string (Mosquito::*print)(), prng& myPRNG){
   // check if it is time
   int holdInt = parameters::instance().get_t_now();
-  if( !(holdInt % parameters::instance().get_sampDay(stage)) ){
+  
+  if( !(holdInt % parameters::instance().get_sampDay(patchID, stage)) ){
     // set bernoulli
-    myPRNG.set_cBern(parameters::instance().get_sampCov(stage));
+    myPRNG.set_cBern(parameters::instance().get_sampCov(patchID, stage));
     // loop over everyone in current stage
     for(auto it = pop.rbegin(); it != pop.rend(); ++it){
       // if we sample it, it then must die
@@ -600,19 +601,19 @@ void write_stage(popVec& pop, const int& stage, std::ofstream& logFile, std::str
 void Patch::oneDay_writeOutput(std::vector<std::ofstream *>& logFiles, prng& myPRNG){
   
   // check eggs
-  write_stage(eggs, 0, *logFiles[0], &Mosquito::print_aquatic, myPRNG);
+  write_stage(eggs, patchID, 0, *logFiles[0], &Mosquito::print_aquatic, myPRNG);
   
   // check larva
-  write_stage(larva, 1, *logFiles[1], &Mosquito::print_aquatic, myPRNG);
+  write_stage(larva, patchID, 1, *logFiles[1], &Mosquito::print_aquatic, myPRNG);
   
   // check pupa
-  write_stage(pupa, 2, *logFiles[2], &Mosquito::print_aquatic, myPRNG);
+  write_stage(pupa, patchID, 2, *logFiles[2], &Mosquito::print_aquatic, myPRNG);
   
   // check adult males
-  write_stage(adult_male, 3, *logFiles[3], &Mosquito::print_male, myPRNG);
+  write_stage(adult_male, patchID, 3, *logFiles[3], &Mosquito::print_male, myPRNG);
   
   // check females
-  write_stage(adult_female, 4, *logFiles[4], &Mosquito::print_female, myPRNG);
+  write_stage(adult_female, patchID, 4, *logFiles[4], &Mosquito::print_female, myPRNG);
 
 }
 

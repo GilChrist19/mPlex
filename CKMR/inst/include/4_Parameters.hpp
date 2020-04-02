@@ -18,6 +18,7 @@
 
 using dMat = std::vector<std::vector<double> >;
 using dVec = std::vector<double>;
+using iMat = std::vector<std::vector<int> >;
 using iVec = std::vector<int>;
 
 
@@ -36,7 +37,7 @@ public:
                                        // batch parameters
                                        const std::vector<double>& batchProbs_, const dMat& sexProbs_, const dMat& moveMat_,
                                        // sampling parameters
-                                       const iVec& sampDays_, const dVec& sampCov_);
+                                       const iMat& sampDays_, const dMat& sampCov_);
   
   
   /* accessors */
@@ -72,8 +73,8 @@ public:
   dVec              get_batchLocation(const size_t& patch){return batchLocations[patch];};
   
   /* sampling parameters*/
-  int               get_sampDay(const size_t& stage){return sampDays[stage];};
-  double            get_sampCov(const size_t& stage){return sampCov[stage];};
+  int               get_sampDay(const size_t& patch, const size_t& stage){return sampDays[patch][stage];};
+  double            get_sampCov(const size_t& patch, const size_t& stage){return sampCov[patch][stage];};
   
   
 private:
@@ -115,8 +116,8 @@ private:
   dMat      batchLocations;
   
   /* sampling parameters */
-  iVec      sampDays;
-  dVec      sampCov;
+  iMat      sampDays;
+  dMat      sampCov;
   
 };
 

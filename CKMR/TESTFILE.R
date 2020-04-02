@@ -74,7 +74,7 @@ patchReleases = replicate(n = numPatch,
 
 
 # Create release object to pass to patches
-holdRel <- Release_basicRepeatedReleases(releaseStart = 100L,
+holdRel <- basicRepeatedReleases(releaseStart = 100L,
                                          releaseEnd = 110L,
                                          releaseInterval = 1,
                                          genMos = c("HH"),
@@ -84,7 +84,7 @@ holdRel <- Release_basicRepeatedReleases(releaseStart = 100L,
                                          ageDist = rep(x = 1, times = 24-16+1)/9)
 
 
-holdRel2 <- Release_basicRepeatedReleases(releaseStart = 600L,
+holdRel2 <- basicRepeatedReleases(releaseStart = 600L,
                                           releaseEnd = 610L,
                                           releaseInterval = 2L,
                                           genMos = c("RR"),
@@ -100,12 +100,31 @@ patchReleases[[1]]$maleReleases <- c(holdRel, holdRel2)
 
 
 
+###############################################################################
+# Sampling Setup
+###############################################################################
+# sampling is different for every patch, and every life stage
+# final object is a list with 2 matrices in it, one for when to sample, one for 
+#  how many to sample
+
+# Basic, every patch has every life stage (5 of them) sampled every day
+sampDay <- matrix(data = 1, nrow = numPatch, ncol = 5)
+
+# let every patch have every life stage sample ~10% of the pop there
+sampCov <- matrix(data = 0.1, nrow = numPatch, ncol = 5)
+
+
+
+samplingScheme <- list("samplingDays"=sampDay, "samplingCoverage"=sampCov)
+
+# test, don't  sample patch 1
+samplingScheme$samplingDays[1, ] <- simTime + 1
 
 
 ###############################################################################
 # Calculate parameters and initialize network
 ###############################################################################
-simTime <- 1000
+simTime <- 100
 netPar = NetworkParameters(nPatch = numPatch,
                            simTime = simTime,
                            AdPopEQ = patchPops,
@@ -115,13 +134,11 @@ netPar = NetworkParameters(nPatch = numPatch,
 
 migrationBatch <- basicBatchMigration(numPatches = numPatch)
 
-samplingScheme <- list("samplingDays"=c(5,5,5,5,5),
-                       "samplingCoverage"=c(0.2,0.1,0.1,0.1,0.1))
 
 
 startTime <- Sys.time()
 runCKMR(seed = 10,
-         numThreads = 4,
+         numThreads = 1,
          networkParameters = netPar,
          reproductionReference = reference,
          patchReleases = patchReleases,
@@ -130,7 +147,7 @@ runCKMR(seed = 10,
          migrationBatch = migrationBatch,
          samplingParameters = samplingScheme,
          outputDirectory = simDir,
-         verbose = TRUE)
+         verbose = FALSE)
 
 endTime <- Sys.time()
 print(difftime(time1 = endTime, time2 = startTime))

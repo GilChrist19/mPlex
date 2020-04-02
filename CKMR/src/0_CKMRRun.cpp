@@ -119,28 +119,36 @@ void run_CKMR(const std::uint64_t& s1_,
 
   // setup input matrices and then fill them. They are std::vectors, not Rcpp things
   int dim = migrationMale_.ncol();
-  Rcpp::NumericVector hold(dim);
-  dMat mHold(dim, dVec(dim)), fHold, bsHold, bmHold;
+  Rcpp::NumericVector hold(dim), hold2(2);
+  Rcpp::IntegerVector iHold(dim);
+  dMat mHold(dim, dVec(dim)), fHold(dim, dVec(dim)), bsHold(dim, dVec(2)), bmHold(dim, dVec(dim)), sampCov(dim, dVec(5));
+  iMat sampDay(dim, iVec(5)); // 5 because 5 life stages; E, L, P, Male, Female
 
   // loop over number of dims
   for(size_t i=0; i<dim; ++i){
     // male migration
     //  multiply move var by matrix now, since this is all we ever do with it.
     hold = networkParameters_["moveVar"] * migrationMale_.row(i);
-
-    // testing this.
     mHold[i] = Rcpp::as<dVec>(hold);
 
-    //mHold.push_back(Rcpp::as<dVec>(hold));
     // female migration
     hold = networkParameters_["moveVar"] * migrationFemale_.row(i);
-    fHold.push_back(Rcpp::as<dVec>(hold));
+    fHold[i] = Rcpp::as<dVec>(hold);
+    
     // batch sex discrepancy
-    hold = Rcpp::as<Rcpp::NumericMatrix>(migrationBatch_["sexProbs"]).row(i);
-    bsHold.push_back(Rcpp::as<dVec>(hold));
+    hold2 = Rcpp::as<Rcpp::NumericMatrix>(migrationBatch_["sexProbs"]).row(i);
+    bsHold[i]= Rcpp::as<dVec>(hold2);
     // batch migration
     hold = Rcpp::as<Rcpp::NumericMatrix>(migrationBatch_["moveProbs"]).row(i);
-    bmHold.push_back(Rcpp::as<dVec>(hold));
+    bmHold[i] = Rcpp::as<dVec>(hold);
+    
+    // sampling parameters
+    //  updated to new shapes so each patch can be different
+    hold = Rcpp::as<Rcpp::NumericMatrix>(samplingParameters_["samplingCoverage"]).row(i);
+    sampCov[i] = Rcpp::as<dVec>(hold);
+    
+    iHold = Rcpp::as<Rcpp::IntegerMatrix>(samplingParameters_["samplingDays"]).row(i);
+    sampDay[i] = Rcpp::as<iVec>(iHold);
   }
 
   // now set parameters
@@ -148,7 +156,7 @@ void run_CKMR(const std::uint64_t& s1_,
                                         networkParameters_["stageTime"],networkParameters_["beta"],networkParameters_["mu"],
                                         networkParameters_["alpha"],networkParameters_["Leq"],networkParameters_["AdPopEQ"],
                                         mHold, fHold, migrationBatch_["batchProbs"], bsHold, bmHold,
-                                        samplingParameters_["samplingDays"], samplingParameters_["samplingCoverage"]);
+                                        sampDay, sampCov);
 
   if(verbose_){Rcpp::Rcout <<  " ... done setting parameters!\n";};
 
