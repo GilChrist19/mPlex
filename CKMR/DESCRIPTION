@@ -13,7 +13,7 @@ Imports: Rcpp (>= 0.12.14), RcppProgress, RcppArmadillo
 LinkingTo: Rcpp, RcppProgress, RcppArmadillo
 Depends: R (>= 2.10)
 LazyData: true
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.0
 Roxygen: list(markdown = TRUE)
 SystemRequirements: C++14
 ByteCompile: true

@@ -28,11 +28,11 @@ eDist <- function(point1, points2){
 # Setup
 ###################
 # setup dimensions of landscape
-nRow <- 30
-nCol <- 30
+nRow <- 25
+nCol <- 25
 rate <- MGDrivE::kernels$exp_rate
 p0 <- 0.965
-myFile <- "~/Desktop/gridMoveMat.csv"
+myFile <- "~/Desktop/OUTPUT/mPlex/gridMoveMat.csv"
 
 ###################
 # point locations

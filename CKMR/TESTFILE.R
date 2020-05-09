@@ -26,8 +26,8 @@ library(CKMR)
 # Setup Directories
 ###############################################################################
 topDirectory <- "~/Desktop/OUTPUT/mPlex"
-simDir = "~/Desktop/OUTPUT/mPlex/simDir"
-aggDir <- "~/Desktop/OUTPUT/mPlex/aggDir"
+simDir <- file.path(topDirectory,"simDir")
+aggDir <- file.path(topDirectory,"aggDir")
 
 if(!dir.exists(paths = topDirectory)){
   dir.create(path = topDirectory)

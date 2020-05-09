@@ -30,9 +30,9 @@
 rm(list = ls());gc()
 
 # set target directory
-mainDir <- "~/Desktop/OUTPUT/mPlex/simDir"
+mainDir <- "~/Desktop/OUTPUT/mPlex/CKMR/simDir"
 workIndicator <- 25
-fPattern <- list("L")
+fPattern <- list("M","F")
 
 ###############################################################################
 ###############################################################################
