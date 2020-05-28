@@ -64,13 +64,13 @@ for(sT in 1:length(simTime)){
   #  speeds stuff up later
   fHold <- females$Patch[females$Time == simTime[sT]]
   mHold <- males$Patch[males$Time == simTime[sT]]
-  
+
   # count how many in each patch.
   retArr[sT,"F", ] <- vapply(X = patches, FUN = function(x){sum(fHold == x)},
                              FUN.VALUE = numeric(length = 1))
   retArr[sT,"M", ] <- vapply(X = patches, FUN = function(x){sum(mHold == x)},
                              FUN.VALUE = numeric(length = 1))
-  
+
 }
 
 # Metrics
@@ -130,7 +130,7 @@ sum(mdCount, msCount)
 dadDaught <- sum(males$myID %in% females$dadID)
 dadSon <- sum(males$myID %in% males$dadID)
 
-#  total M/O
+#  total F/O
 sum(dadDaught,dadSon)
 
 ## The second part counts all father/child matches as independent
@@ -161,6 +161,13 @@ sum(fdCount, fsCount)
 momCount <- table(totData$momID)
 momDup <- momCount[momCount > 1] # all instances of siblings, labeled by mother
 
+# to count number of sibling combinations, you need the number of siblings,
+#  times the other half, and divide that by two (because A:B is the same as B:A,
+#  so all combinations are double counted)
+# This provides the formula n*(n-1)/n, where n is the number of siblings per mother
+sum(momDup*(momDup-1)/2)
+
+
 fullSibF <- function(x){
   # subset all sibs father's IDs
   sibs <- totData$dadID[totData$momID == x]
@@ -187,6 +194,12 @@ length(hold) == sum(hold)
 #  Finally, check momID
 dadCount <- table(totData$dadID)
 dadDup <- momCount[dadCount > 1] # all instances of siblings, labeled by mother
+
+# to count number of sibling combinations, you need the number of siblings,
+#  times the other half, and divide that by two (because A:B is the same as B:A,
+#  so all combinations are double counted)
+# This provides the formula n*(n-1)/n, where n is the number of siblings per mother
+sum(dadDup*(dadDup-1)/2)
 
 fullSibM <- function(x){
   # subset all sibs father's IDs
