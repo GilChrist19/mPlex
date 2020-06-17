@@ -99,7 +99,6 @@ Patch::Patch(const int& patchID_,
   // set migration size objects
   maleMigration.resize(parameters::instance().get_n_patch());
   femaleMigration.resize(parameters::instance().get_n_patch());
-  probsMigration.reserve(parameters::instance().get_n_patch());
   
   // set mating objects
   genNames.reserve(2*parameters::instance().get_adult_pop_eq(patchID));
@@ -472,11 +471,7 @@ void Patch::oneDay_migrationOut(prng& myPRNG){
   /****************
    * MALE
   ****************/
-  // get slightly more variance in probability
-  probsMigration = myPRNG.get_rdirichlet(parameters::instance().get_male_migration(patchID)); 
-  
-  // set oneSample
-  myPRNG.set_oneSample(probsMigration);
+  myPRNG.set_oneSample(parameters::instance().get_male_migration(patchID));
   
   // loop over all adult males
   for(auto it = adult_male.rbegin(); it != adult_male.rend(); ++it){
@@ -498,11 +493,8 @@ void Patch::oneDay_migrationOut(prng& myPRNG){
   /****************
    * FEMALE
   ****************/
-  // get slightly more variance in probability
-  probsMigration = myPRNG.get_rdirichlet(parameters::instance().get_female_migration(patchID));
-  
   // reset oneSample for female probs
-  myPRNG.set_oneSample(probsMigration);
+  myPRNG.set_oneSample(parameters::instance().get_female_migration(patchID));
   
   // loop over all females
   for(auto it = adult_female.rbegin(); it != adult_female.rend(); ++it){

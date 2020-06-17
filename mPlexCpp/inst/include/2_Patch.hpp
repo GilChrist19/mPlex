@@ -152,7 +152,6 @@ protected:
   // migration things
   std::vector<popVec> maleMigration;
   std::vector<popVec> femaleMigration;
-  dVec                probsMigration;
   
   // mating things
   sVec genNames;

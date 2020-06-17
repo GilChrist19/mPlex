@@ -135,8 +135,7 @@ protected:
   // migration things
   std::vector<popVec> maleMigration;
   std::vector<popVec> femaleMigration;
-  dVec                probsMigration;
-  
+
   // mating things
   std::vector<std::string> genNames;
   std::vector<double> genProbs;
