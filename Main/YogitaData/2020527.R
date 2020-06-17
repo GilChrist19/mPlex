@@ -28,16 +28,20 @@
 #                   505 508 511 514 517 520
 #  Sampling Fraction: 35/7% of female pop, 23/7% of male pop, no aquatic
 # then, sampling Fraction: 35% of female pop, 23% of male pop, no aquatic, once a week
-
-
-
-
-
+#
+# 20200616
+#  updating simulations
+#  Yogita needs the same 2 simulations (weekly or daily sampling) for 30 and 50 
+#  mosquitoes per patch. So, I'm updating this to do all of the post-processing 
+#  in one go as well.
+#  Main updates are at the combineData and removing 1st 100 days at the bottom.
+#
 ###############################################################################
 # Clean environment and source files
 ###############################################################################
 rm(list=ls());gc()
 library(CKMR)
+source("~/Desktop/mPlex/Main/YogitaData/combineFiles.R")
 
 
 
@@ -64,7 +68,7 @@ migration <- as.matrix(x = read.csv(file = "~/Desktop/OUTPUT/mPlex/gridMoveMat.c
 numPatch <- nrow(migration)
 
 simTime <- 2100
-patchPops = rep(40,numPatch)
+patchPops = rep(30,numPatch)
 
 #setup alleles to initiate patches
 reference <- list('eta'=numeric(0), 'phi'=numeric(0), 'omega'=numeric(0),
@@ -99,7 +103,7 @@ sampDay <- matrix(data = simTime + 1, nrow = numPatch, ncol = 5)
 #  all aquatic stages get 0% coverage
 #  femalesget 35/7% coverage
 #  males get 23/7% coverage
-sampCov <- matrix(data = c(0,0,0,0.23,0.35), nrow = numPatch, ncol = 5, byrow = TRUE)
+sampCov <- matrix(data = c(0,0,0,0.23,0.35)/7, nrow = numPatch, ncol = 5, byrow = TRUE)
 
 # set specific patches to get sampled every week
 #  only sample male and female
@@ -107,7 +111,7 @@ sampPlaces <- c(130,133,136,139,142,145,205,208,211,214,217,220,280,283,286,289,
                 292,295,355,358,361,364,367,370,430,433,436,439,442,445,505,508,
                 511,514,517,520)
 
-sampDay[sampPlaces,4:5] <- 7
+sampDay[sampPlaces,4:5] <- 7/7
 
 
 # list to pass to mPlex
@@ -164,40 +168,54 @@ file.remove(allFiles[emptyFiles])
 ##########
 # Combine Files
 ##########
-# see combineFiles.R
-
+# no output
+combineFiles(mainDir=simDir, workIndicator=25, fPattern=c("M","F"))
 
 
 ##########
 # Remove initial population
 ##########
-Remove any days with "0" parents
-this is to get rid of "0" parents, the ones who started the population so there was 
- no structure before that.
-I will check male and female files, then remove both.
-Or, screw it, remove first 100 days, set maxVal = 100.
- 
-
--F: set column delimiter
-$5/$6: column numbers
-print if they equal 0
-NR: number record, it is the line number, so keep header
-then print first column from those columns.
-then, bye eye, get max value
-
-awk -F "," '($5 == "0") && ($6 == "0")' 000_F.csv | awk -F "," '{print $1}'
-
-awk -F "," '(NR==1) || ($1 > 100)' 000_F.csv > newFemFile.csv
-
-
-
-
+# Remove any days with "0" parents
+# this is to get rid of "0" parents, the ones who started the population so there was 
+#  no structure before that.
+# I will check male and female files, then remove both.
+# Or, screw it, remove first 100 days, set maxVal = 100.
+#  
+# 
+# -F: set column delimiter
+# $5/$6: column numbers
+# print if they equal 0
+# NR: number record, it is the line number, so keep header
+# then print first column from those columns.
+# then, bye eye, get max value
+# 
+# This one takes off anyone with 0 parents
+# awk -F "," '($5 == "0") && ($6 == "0")' 000_F.csv | awk -F "," '{print $1}'
+# 
+# This one takes off first 100 days
+# awk -F "," '(NR==1) || ($1 > 100)' 000_F.csv > newFemFile.csv
 
 
+readFiles <- c('/000_F.csv', '/000_M.csv')
+writeFiles <- c('/cut_F.csv', '/cut_M.csv')
+for(cFile in 1:2){
+  
+  # build command, 
+  cmd <- file.path("-F ',' '(NR==1) || ($1 > 100)' ", simDir, readFiles[cFile], 
+                   ' > ', topDirectory, writeFiles[cFile], fsep = '' )
+
+  # Pass down to cmdline
+  system2(command = 'awk', args = cmd)
+
+} # end loop
 
 
 
 
-detach("package:mPlexCpp", unload=TRUE)
+
+
+
+
+detach("package:CKMR", unload=TRUE)
 
 

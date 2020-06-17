@@ -25,14 +25,18 @@
 #  one file, and sort it based on time. In theory, this script will work on all 
 #  output from mPlex.
 #  This will breakdown when data gets too large. IDK what "too large" is.
+#
+# 20200616
+#  Turning this into a function, so it can be sourced from the sims script and 
+#  run. May be useful if we need to automate repetitions.
 #  
 ###############################################################################
-rm(list = ls());gc()
+#rm(list = ls());gc()
 
 # set target directory
-mainDir <- "~/Desktop/OUTPUT/mPlex/CKMR/simDir"
-workIndicator <- 25
-fPattern <- list("M","F")
+# mainDir <- "~/Desktop/OUTPUT/mPlex/CKMR/simDir"
+# workIndicator <- 25
+# fPattern <- list("M","F")
 
 ###############################################################################
 ###############################################################################
@@ -111,121 +115,121 @@ cLines <- function(file, chunkSize=50e6, ...) {
 
 ###############################################################################
 ###############################################################################
+# main function, does proper sizing, reads in files outputs one complete one
+combineFiles <- function(mainDir, workIndicator=25, fPattern=c("M","F") ){
+  
+  # grab desired files from directory
+  fList <- lapply(X = fPattern, FUN = function(x){
+  	list.files(path = mainDir, pattern = x, full.names = TRUE)
+  })
+  
+  
+  fPatCount <- 1
+  
+  # loop over sets of files in folder
+  for(stage in fList){
+  	
+  	##########
+    # Get number of lines in files
+    ##########
+    # use cLines to count the number of lines in each file
+    #  use sapply because not vectorized
+    # the line count includes headers, so subtract one from all
+  	nLines <- sapply(X = stage, FUN = cLines, USE.NAMES = FALSE) - 1
+  	
+  	##########
+  	# Get header
+  	##########
+  	# This is because females are printed with a different header than everyone else. 
+  	header <- scan(file = stage[1], what = character(), sep = ",", nlines = 1,quiet = TRUE)
+  	nCol <- length(header)
+  	
+  	##########
+  	# Return matrix
+  	##########
+  	# number of rows is total number of lines in all files
+  	# number of columns is the number in the original files, plus the patch label
+  	retMat <- matrix(data = 0L, nrow = sum(nLines), ncol = nCol+1,
+  									 dimnames = list(NULL,c(header[1], "Patch", header[-1])))
+  	
+  	# counters or objects reused in loop
+  	lStartCount <- 1
+  	nFiles <- length(stage)
+  	dataCols <- 3:(nCol+1)
+  	
+  	# loop over all files
+  	for(myFile in 1:nFiles){
+  		
+  	  ##########
+  	  # Input matrix
+  	  ##########
+  	  # Since all things are numbers, scan as integers
+  	  #  we can calculate the number of items so setup memory size exactly
+  	  # conver to matrix
+  	  #  we also know the size of the matrix, so set that
+  		# Some of the small populations were dying out as they were sampled too much,
+  	  #  to prevent issues, skip all of this if there are no lines
+  		if(nLines[myFile] == 0) next
+  		dataMat <- matrix(data = scan(file = stage[myFile], what = integer(), sep = ",",
+  																	skip = 1, nlines = nLines[myFile], n = nLines[myFile]*nCol,
+  																	quiet = TRUE),
+  											ncol = nCol, nrow = nLines[myFile], byrow = TRUE)
+  
+  		##########
+  		# Patch number
+  		##########
+  		# Just to be safe, get patch number from the file name
+  		# split on underscore (only in file name)
+  		# unlist
+  		# take last element
+  		# split on period
+  		# unlist
+  		# take first element
+  		# convert to 1-indexing
+  		pNum <- as.integer(strsplit(x = tail(x = strsplit(x = stage[myFile],split = "_", fixed = TRUE)[[1]], n = 1),
+  																split = ".", fixed = TRUE)[[1]][1]) + 1L
+  		
+  		##########
+  		# Fill return matrix
+  		##########
+  		# setup row index
+  		lineIndex <- lStartCount:(lStartCount + NROW(dataMat)-1L)
+  		
+  		# fill sampling time
+  		retMat[lineIndex,1] <- dataMat[ ,1]
+  		
+  		# fill patch label
+  		retMat[lineIndex,2] <- pNum
+  		
+  		# fill rest of data into retMat
+  		retMat[lineIndex, dataCols] <- dataMat[ ,2:nCol]
+  		
+  		##########
+  		# Final cleanup
+  		##########
+  		# increment line count
+  		lStartCount <- lStartCount + NROW(dataMat)
+  		
+  		# indicate I'm working
+  		if(!(myFile %% workIndicator)) print(myFile)
+  		
+  	} # end loop over files
+  	
+  	
+  	##########
+  	# Output
+  	##########
+  	# File name
+  	fName <- file.path(mainDir,file.path("000_", fPattern[fPatCount],".csv",fsep = ""))
+  	
+  	# Sort and write
+  	write.table(x = retMat[order(retMat[ ,1]), ], file = fName, sep = ",",
+  							row.names = FALSE, col.names = TRUE)
+  	
+  	# update file pattern count
+  	fPatCount <- fPatCount+1
+  	
+  } # end loop over file list
 
-# grab desired files from directory
-fList <- lapply(X = fPattern, FUN = function(x){
-	list.files(path = mainDir, pattern = x, full.names = TRUE)
-})
-
-
-fPatCount <- 1
-
-# loop over sets of files in folder
-for(stage in fList){
-	
-	##########
-  # Get number of lines in files
-  ##########
-  # use cLines to count the number of lines in each file
-  #  use sapply because not vectorized
-  # the line count includes headers, so subtract one from all
-	nLines <- sapply(X = stage, FUN = cLines, USE.NAMES = FALSE) - 1
-	
-	##########
-	# Get header
-	##########
-	# This is because females are printed with a different header than everyone else. 
-	header <- scan(file = stage[1], what = character(), sep = ",", nlines = 1,quiet = TRUE)
-	nCol <- length(header)
-	
-	##########
-	# Return matrix
-	##########
-	# number of rows is total number of lines in all files
-	# number of columns is the number in the original files, plus the patch label
-	retMat <- matrix(data = 0L, nrow = sum(nLines), ncol = nCol+1,
-									 dimnames = list(NULL,c(header[1], "Patch", header[-1])))
-	
-	# counters or objects reused in loop
-	lStartCount <- 1
-	nFiles <- length(stage)
-	dataCols <- 3:(nCol+1)
-	
-	# loop over all files
-	for(myFile in 1:nFiles){
-		
-	  ##########
-	  # Input matrix
-	  ##########
-	  # Since all things are numbers, scan as integers
-	  #  we can calculate the number of items so setup memory size exactly
-	  # conver to matrix
-	  #  we also know the size of the matrix, so set that
-		# Some of the small populations were dying out as they were sampled too much,
-	  #  to prevent issues, skip all of this if there are no lines
-		if(nLines[myFile] == 0) next
-		dataMat <- matrix(data = scan(file = stage[myFile], what = integer(), sep = ",",
-																	skip = 1, nlines = nLines[myFile], n = nLines[myFile]*nCol,
-																	quiet = TRUE),
-											ncol = nCol, nrow = nLines[myFile], byrow = TRUE)
-
-		##########
-		# Patch number
-		##########
-		# Just to be safe, get patch number from the file name
-		# split on underscore (only in file name)
-		# unlist
-		# take last element
-		# split on period
-		# unlist
-		# take first element
-		# convert to 1-indexing
-		pNum <- as.integer(strsplit(x = tail(x = strsplit(x = stage[myFile],split = "_", fixed = TRUE)[[1]], n = 1),
-																split = ".", fixed = TRUE)[[1]][1]) + 1L
-		
-		##########
-		# Fill return matrix
-		##########
-		# setup row index
-		lineIndex <- lStartCount:(lStartCount + NROW(dataMat)-1L)
-		
-		# fill sampling time
-		retMat[lineIndex,1] <- dataMat[ ,1]
-		
-		# fill patch label
-		retMat[lineIndex,2] <- pNum
-		
-		# fill rest of data into retMat
-		retMat[lineIndex, dataCols] <- dataMat[ ,2:nCol]
-		
-		##########
-		# Final cleanup
-		##########
-		# increment line count
-		lStartCount <- lStartCount + NROW(dataMat)
-		
-		# indicate I'm working
-		if(!(myFile %% workIndicator)) print(myFile)
-		
-	} # end loop over files
-	
-	
-	##########
-	# Output
-	##########
-	# File name
-	fName <- file.path(mainDir,file.path("000_", fPattern[fPatCount],".csv",fsep = ""))
-	
-	# Sort and write
-	write.table(x = retMat[order(retMat[ ,1]), ], file = fName, sep = ",",
-							row.names = FALSE, col.names = TRUE)
-	
-	
-	# update file pattern count
-	fPatCount <- fPatCount+1
-	
-} # end loop over file list
-
-
-
+} # end function
 
