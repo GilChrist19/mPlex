@@ -18,6 +18,11 @@
 #  space is fully managed, output is properly stored as zipped files. It loops 
 #  over different migration patterns, but could be expanded for other things.
 #
+#  Need to run over 2 adult mortalities:
+#   0.09
+#   0.125
+#  The kernel is defined on a daily basis, so this mortality change doesn't affect it.
+#
 ###############################################################################
 # Clean Environment
 ###############################################################################
@@ -25,7 +30,7 @@ rm(list=ls());gc()
 #library(CKMR)
 
 
-simTime <- 1195 # 3 years + 100 days to cutoff at the front
+simTime <- 190 # 100 day burn-in and 3 months of data
 patchPops <- 30
 nCore <- 2
 
@@ -127,7 +132,7 @@ netPar = CKMR::NetworkParameters(nPatch = numPatch,
                                  runID = 1L,
                                  dayGrowthRate = 1.175,
                                  beta = 20, tEgg = 2, tLarva = 5, tPupa = 1,
-                                 muAd = 0.09)
+                                 muAd = 0.125)
 
 # loop over kernels
 for(k in kernels){

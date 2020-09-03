@@ -59,11 +59,11 @@ vDist <- CKMR::calcVinEll(latLongs = as.matrix(c2_centroids_info[,c("ycoord","xc
 rate <- 1/112.5
 
 # p0
-#  Given an 80% probability to stay in one place over their entire life, 
+#  Given an 80% probability to stay in one place per day, 
 #  we calculate the chance of staying daily by raising the power to the life-time 
 #  of the mosquito, 
-#  Using a deathrate of 0.09
-p0 <- 0.8^0.09 
+#  Don't need the deathrate, when daily probs is given
+p0 <- 0.8
 
 # calculate kernel
 c2_kernel_exp80 <- CKMR::calcHurdleExpKernel(distMat = vDist, rate = rate, p0 = p0)

@@ -54,7 +54,12 @@ for completeness.
   
 Created and tested the simulation script. It runs, properly manages files, and 
 returns compressed data. The data is labeled by date, then kernel name. Need to 
-check life and sampling params, then we're good to go.
+check life and sampling params, then we're good to go.  
+  
+Update simTime to 190 days, 100 days of burn-in and 90 days, approximately 3 months, 
+of data.  
+All other parameters are good. Need to run over 2 adult mortalities (done).  
+Data from today is in the [google drive](https://drive.google.com/drive/folders/1VVGG048C4giHtuDdN8bSyKAlUSm0-7Gw?usp=sharing).
 
 
 
