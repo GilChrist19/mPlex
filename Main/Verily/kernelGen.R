@@ -98,7 +98,7 @@ p0 <- 0.8
 c2_kernel_exp80 <- CKMR::calcHurdleExpKernel(distMat = vDist, rate = rate, p0 = p0)
 
 # store for loading into the simulation
-save(c2_kernel_exp80, file = "./c2_kernel_exp80.rds", compress = "xz", compression_level = 9)
+save(c2_kernel_exp80, file = "./c2_kernel_exp80.rda", compress = "xz", compression_level = 9)
 
 
 

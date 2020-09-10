@@ -34,6 +34,11 @@ with. It will include several files:
   directories required. Requires all of the kernel files and the auxiliary file.
 * [Data Check](./dataCheck.R)
   * This script calculates basic metrics for the data provided. 
+* [Kernel Checks](./expectedDistanceDisplacement.R)
+  * This script takes the distances between nodes, the daily movement matrix, and 
+  the adult death rate, and from that it calculates the expected distance and 
+  displacement over the entire network (assuming discrete-time Markov Chain). This 
+  could probably be extended to return results based on starting node.
 
 ### 20200902
 
@@ -72,6 +77,13 @@ but that's going to cause a lot of confusion. Lets put it off until absolutely
 necessary.  
 Added a script for basic metrics on the data. It's mostly a copy from a previous 
 project, and many of the metrics aren't directly useful here. 
+
+### 20200910
+
+Added the script that calculates distance/displacement over a kernel. This was 
+derived for the original kernel generation stuff, but works for any transition matrix, 
+as long as it is provides daily rates and is Markovian (the standar format for MGDrive 
+and mPlex).
 
 
 
