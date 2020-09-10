@@ -20,6 +20,8 @@
 #  Uses the Vincenty Ellipsoid method for calculating distance
 #  Assumes and adult death rate of 0.09
 #   IF THIS CHANGES, NEED TO REGENERATE KERNEL!
+# 20200909
+#  New plot, labeling the traps with their number this time.
 #
 ################################################################################
 # plot to show grid and sampling locations
@@ -28,6 +30,9 @@
 load("./c2_centroids_info.rds")
 
 
+####################
+# Colored Dots Plot
+####################
 # color houses by trap or normal
 setColors <- rep.int(x = "grey", times = nrow(c2_centroids_info))
 setColors[as.logical(c2_centroids_info$trap)] <- "magenta"
@@ -37,10 +42,34 @@ png(filename = "~/Desktop/OUTPUT/landscape.png", width = 540, height = 540)
 
 plot(x = c2_centroids_info$xcoord, y = c2_centroids_info$ycoord,
      main = "Control Area 2, Fresno",
-     xlab = "X",ylab = "Y", type = "p", pch = 19,
+     xlab = "X", ylab = "Y", type = "p", pch = 19,
      col = setColors)
 
 dev.off()
+
+
+####################
+# Numbered Dots Plot
+####################
+# label the traps with their node number
+
+# get indices for plotting
+ind0 <- which(c2_centroids_info$trap == 0)
+ind1 <- which(c2_centroids_info$trap == 1)
+
+# print png of figure
+png(filename = "~/Desktop/OUTPUT/landscapeLabeled.png", width = 540, height = 540)
+
+plot(x = c2_centroids_info$xcoord[ind0], y = c2_centroids_info$ycoord[ind0],
+     main = "Control Area 2, Fresno",
+     xlab = "X", ylab = "Y", type = "p", pch = 19,
+     col = 'grey')
+text(x = c2_centroids_info$xcoord[ind1], y = c2_centroids_info$ycoord[ind1],
+     label = as.character(ind1), col = 'magenta',
+     offset = 0, font = 2, cex = 0.75)
+
+dev.off()
+
 
 ################################################################################
 # Generate synthetic kernel

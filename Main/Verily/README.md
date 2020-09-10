@@ -32,6 +32,8 @@ with. It will include several files:
   * This file runs, cleans, and stores simulations over different kernels. The 
   output is stored by date, then by kernel name, as tar.bz2 files. It manages all 
   directories required. Requires all of the kernel files and the auxiliary file.
+* [Data Check](./dataCheck.R)
+  * This script calculates basic metrics for the data provided. 
 
 ### 20200902
 
@@ -60,6 +62,16 @@ Update simTime to 190 days, 100 days of burn-in and 90 days, approximately 3 mon
 of data.  
 All other parameters are good. Need to run over 2 adult mortalities (done).  
 Data from today is in the [google drive](https://drive.google.com/drive/folders/1VVGG048C4giHtuDdN8bSyKAlUSm0-7Gw?usp=sharing).
+
+### 20200909
+
+Update kernelGen.R file to provide a second plot. This plot numbers the traps, instead 
+of putting their points there.  
+Uploaded the distances matrix to the google drive. I may need to change file formats, 
+but that's going to cause a lot of confusion. Lets put it off until absolutely 
+necessary.  
+Added a script for basic metrics on the data. It's mostly a copy from a previous 
+project, and many of the metrics aren't directly useful here. 
 
 
 

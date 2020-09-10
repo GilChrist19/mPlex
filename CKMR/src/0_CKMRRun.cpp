@@ -213,6 +213,8 @@ void run_CKMR(const std::uint64_t& s1_,
 
   // setup vectors of ofstreams
   std::vector<std::vector<std::ofstream *> > output(numPatches, std::vector<std::ofstream *>(5));
+  
+  //Rcpp::Rcout << output.size()<< std::endl;
 
   // setup strings for file names
   std::vector<std::string> sHoldVec(5);

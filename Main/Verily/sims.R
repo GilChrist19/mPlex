@@ -132,7 +132,7 @@ netPar = CKMR::NetworkParameters(nPatch = numPatch,
                                  runID = 1L,
                                  dayGrowthRate = 1.175,
                                  beta = 20, tEgg = 2, tLarva = 5, tPupa = 1,
-                                 muAd = 0.125)
+                                 muAd = 0.09)
 
 # loop over kernels
 for(k in kernels){
