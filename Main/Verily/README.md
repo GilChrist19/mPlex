@@ -20,6 +20,9 @@ with. It will include several files:
   * Synthetic kernel, assuming an 80% life-time probability to stay in your original 
   location, an average movement distance (given that you do move) of 112.5m, and 
   an adult mortality of 0.09 per day.
+* [Kernel3](./c2_kernel2.Rds)
+  * Second kernel from Tomas. Yogita was getting weird results with the first 2 
+  kernels, so we're trying a third.
 * [kernelGen.R](./kernelGen.R)
   * This file generates kernels from the [locations](./c2_centroids_info.rds) file. 
   This way, we can create specific kernels, depending on what we want to test. 
@@ -84,6 +87,16 @@ Added the script that calculates distance/displacement over a kernel. This was
 derived for the original kernel generation stuff, but works for any transition matrix, 
 as long as it is provides daily rates and is Markovian (the standar format for MGDrive 
 and mPlex).
+
+### 20200917
+
+Yogita is getting weird results from both kernels (Tomas' and the exp one). 
+So Tomas provided another kernel ([Kernel3](./c2_kernel2.Rds)) and I'll generate 
+sims from it.
+
+### 20200918
+
+Mistake in the kernel. New Kernel3 available, generating new sims.
 
 
 

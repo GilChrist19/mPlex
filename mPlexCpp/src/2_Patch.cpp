@@ -151,6 +151,13 @@ void Patch::oneDay_popDynamics(prng& myPRNG){
 ******************************************************************************/
 // cute swap/pop statement came from here
 // https://gamedev.stackexchange.com/questions/33888/what-is-the-most-efficient-container-to-store-dynamic-game-objects-in
+// 20210207 - JB
+//  Updating swap operation.
+//  Reality is, we are removing one object from the list. 
+//  Currently, we swap the desired object with the end object, then remove it.
+//  But, we could just overwrite the desired object, so we now have 2 copies of 
+//   the end object, and then remove the end object, thereby releiving the extra copy.
+//  This is less operations than a swap, and ends with the same effect.
 /**************************************
  * Death
 ***************************************/
@@ -163,7 +170,8 @@ void Patch::oneDay_eggDeathAge(prng& myPRNG){
   for(auto it = eggs.rbegin(); it != eggs.rend(); ++it){
     // If it is your time, swap and remove
     if(myPRNG.get_cBern() ){
-      std::swap(*it, eggs.back());
+      // std::swap(*it, eggs.back());
+      *it = std::move(eggs.back());
       eggs.pop_back();
     } else {
       it->age_one_day();
@@ -187,7 +195,8 @@ void Patch::oneDay_larvaDeathAge(prng& myPRNG){
   for(auto it = larva.rbegin(); it != larva.rend(); ++it){
     // If it is your time, swap and remove
     if(myPRNG.get_cBern() ){
-      std::swap(*it, larva.back());
+      // std::swap(*it, larva.back());
+      *it = std::move(larva.back());
       larva.pop_back();
     } else {
       it->age_one_day();
@@ -205,7 +214,8 @@ void Patch::oneDay_pupaDeathAge(prng& myPRNG){
   for(auto it = pupa.rbegin(); it != pupa.rend(); ++it){
     // If it is your time, swap and remove
     if(myPRNG.get_cBern() ){
-      std::swap(*it, pupa.back());
+      // std::swap(*it, pupa.back());
+      *it = std::move(pupa.back());
       pupa.pop_back();
     } else {
       it->age_one_day();
@@ -225,7 +235,8 @@ void Patch::oneDay_adultDeathAge(prng& myPRNG){
     probs = holdDbl * reference::instance().get_omega(it->get_genotype());
     // If it is your time, swap and remove
     if(myPRNG.get_rBern(1.0-probs) ){
-      std::swap(*it, adult_male.back());
+      // std::swap(*it, adult_male.back());
+      *it = std::move(adult_male.back());
       adult_male.pop_back();
     } else {
       it->age_one_day();
@@ -238,7 +249,8 @@ void Patch::oneDay_adultDeathAge(prng& myPRNG){
     probs = holdDbl * reference::instance().get_omega(it->get_genotype());
     // If it is your time, swap and remove
     if(myPRNG.get_rBern(1.0-probs) ){
-      std::swap(*it, adult_female.back());
+      // std::swap(*it, adult_female.back());
+      *it = std::move(adult_female.back());
       adult_female.pop_back();
     } else {
       it->age_one_day();
@@ -266,7 +278,8 @@ void Patch::oneDay_pupaMaturation(prng& myPRNG){
       // one extra death probability, in the math
       if(myPRNG.get_cBern() ){
         // death!
-        std::swap(*it, pupa.back());
+        // std::swap(*it, pupa.back());
+        *it = std::move(pupa.back());
         pupa.pop_back();
         
         // gender mill, mwuahahahaha
@@ -278,7 +291,8 @@ void Patch::oneDay_pupaMaturation(prng& myPRNG){
           unmated_female.push_back(*it);
         }
         // you actually died
-        std::swap(*it, pupa.back());
+        // std::swap(*it, pupa.back());
+        *it = std::move(pupa.back());
         pupa.pop_back();
       } else {
         // male!
@@ -288,7 +302,8 @@ void Patch::oneDay_pupaMaturation(prng& myPRNG){
           adult_male.push_back(*it);
         }
         // you died
-        std::swap(*it, pupa.back());
+        // std::swap(*it, pupa.back());
+        *it = std::move(pupa.back());
         pupa.pop_back();
         
       } // end gender mill
@@ -310,7 +325,8 @@ void Patch::oneDay_larvaMaturation(){
       // put maturing egg into larva
       pupa.push_back(*it);
       // swap position and remove egg
-      std::swap(*it, larva.back());
+      // std::swap(*it, larva.back());
+      *it = std::move(larva.back());
       larva.pop_back();
     }
   } // end loop
@@ -328,7 +344,8 @@ void Patch::oneDay_eggMaturation(){
       // put maturing egg into larva
       larva.push_back(*it);
       // swap position and remove egg
-      std::swap(*it, eggs.back());
+      // std::swap(*it, eggs.back());
+      *it = std::move(eggs.back());
       eggs.pop_back();
     }
   } // end loop
@@ -376,7 +393,8 @@ void Patch::oneDay_mating(prng& myPRNG){
       probs = holdDbl * reference::instance().get_omega(it->get_genotype());
       // If it is your time, swap and remove
       if(myPRNG.get_rBern(1.0-probs) ){
-        std::swap(*it, unmated_female.back());
+        // std::swap(*it, unmated_female.back());
+        *it = std::move(unmated_female.back());
         unmated_female.pop_back();
       } else {
         it->age_one_day();
@@ -483,7 +501,8 @@ void Patch::oneDay_migrationOut(prng& myPRNG){
       // add to new patch it goes to
       maleMigration[holdInt].push_back(*it);
       // remove
-      std::swap(*it, adult_male.back());
+      // std::swap(*it, adult_male.back());
+      *it = std::move(adult_male.back());
       adult_male.pop_back();
     } // end if this patch
     
@@ -506,7 +525,8 @@ void Patch::oneDay_migrationOut(prng& myPRNG){
       // add to new place
       femaleMigration[holdInt].push_back(*it);
       // remove
-      std::swap(*it, adult_female.back());
+      // std::swap(*it, adult_female.back());
+      *it = std::move(adult_female.back());
       adult_female.pop_back();
     } // end if
     
@@ -533,7 +553,8 @@ void Patch::oneDay_migrationOut(prng& myPRNG){
         // put him in new patch migration set
         maleMigration[holdInt].push_back(*mos);
         // remove him from here
-        std::swap(*mos, adult_male.back());
+        // std::swap(*mos, adult_male.back());
+        *mos = std::move(adult_male.back());
         adult_male.pop_back();
       }
     } // end males
@@ -548,7 +569,8 @@ void Patch::oneDay_migrationOut(prng& myPRNG){
         // put her in the new patch
         femaleMigration[holdInt].push_back(*mos);
         // remove from current patch
-        std::swap(*mos, adult_female.back());
+        // std::swap(*mos, adult_female.back());
+        *mos = std::move(adult_female.back());
         adult_female.pop_back();
       }
     } // end female batch

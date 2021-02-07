@@ -140,7 +140,7 @@ for(k in kernels){
   # run simulation
   ##########
   CKMR::runCKMR(seed = 10,
-                 numThreads = nCore,
+                 numThreads = 2,
                  networkParameters = netPar,
                  reproductionReference = reference,
                  patchReleases = patchReleases,
@@ -149,7 +149,7 @@ for(k in kernels){
                  migrationBatch = migrationBatch,
                  samplingParameters = samplingScheme,
                  outputDirectory = simDir,
-                 verbose = FALSE)
+                 verbose = TRUE)
   
   
   ########################################
