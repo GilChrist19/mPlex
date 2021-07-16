@@ -1,4 +1,9 @@
 ## -*- makefile -*-
+##PKG_CPPFLAGS += -I../inst/include/
+##PKG_LIBS = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)  -lprofiler
+##CXX_STD = CXX14
+
+
 PKG_CPPFLAGS += -I../inst/include/ $(SHLIB_OPENMP_CFLAGS)
 PKG_LIBS = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) $(SHLIB_OPENMP_CFLAGS) -lprofiler
 PKG_CXXFLAGS = $(SHLIB_OPENMP_CFLAGS)

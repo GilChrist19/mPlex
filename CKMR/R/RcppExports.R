@@ -212,13 +212,15 @@ calcExpKernel <- function(distMat, rate) {
 #'
 #' Given a distance matrix from \code{\link[MGDrivE]{calcVinEll}}, calculate a
 #' stochastic matrix where one step movement probabilities follow an zero-inflated
-#' exponential density with a point mass at zero. The point mass at zero represents the first stage of
-#' a two-stage process, where mosquitoes decide to stay at their current node or leave anywhere.
-#' This parameter can be calculated from lifetime probabilities to stay at the current node with the
-#' helper function \code{\link[MGDrivE]{calcZeroInflation}}.
+#' exponential density with a point mass at zero. The point mass at zero represents
+#' the first stage of a two-stage process, where mosquitoes decide to stay at
+#' their current node or leave anywhere. This parameter can be calculated from
+#' lifetime probabilities to stay at the current node with the helper function
+#' \code{\link[MGDrivE]{calcZeroInflation}}.
 #'
-#' If a mosquito leaves its current node, with probability \eqn{1-p_{0}}, it then chooses
-#' a destination node according to a standard exponential density with rate parameter \eqn{rate}.
+#' If a mosquito leaves its current node, with probability \eqn{1-p_{0}}, it
+#' then chooses a destination node according to a standard exponential density
+#' with rate parameter \eqn{rate}.
 #'
 #' The distribution and density functions for the zero inflated exponential kernel are given below:
 #' \deqn{
@@ -227,13 +229,14 @@ calcExpKernel <- function(distMat, rate) {
 #' \deqn{
 #' f(x)=p_{0}\delta(x)+(1-p_{0})\lambda e^{-\lambda x}
 #' }
-#' where \eqn{\lambda} is the rate parameter of the exponential distribution, \eqn{\theta(x)} is the Heaviside step function
-#' and \eqn{\delta(x)} is the Dirac delta function.
+#' where \eqn{\lambda} is the rate parameter of the exponential distribution,
+#' \eqn{\theta(x)} is the Heaviside step function and \eqn{\delta(x)} is the
+#' Dirac delta function.
 #'
-#'
-#' @param distMat distance matrix from \code{\link[MGDrivE]{calcVinEll}}
-#' @param rate rate parameter of \code{\link[stats]{Exponential}} distribution
-#' @param p0 point mass at zero
+#' @param distMat Distance matrix from \code{\link[MGDrivE]{calcVinEll}}
+#' @param rate Rate parameter of \code{\link[stats]{Exponential}} distribution
+#' @param p0 Point mass at zero
+#' @param eps Cutoff for extremely small probabilities, default is 1e-20
 #'
 #' @examples
 #' # setup distance matrix
@@ -249,8 +252,8 @@ calcExpKernel <- function(distMat, rate) {
 #' kernMat = calcHurdleExpKernel(distMat = distMat, rate = 1/1e6, p0 = 0.1)
 #'
 #' @export
-calcHurdleExpKernel <- function(distMat, rate, p0) {
-    .Call('_CKMR_calcHurdleExpKernel', PACKAGE = 'CKMR', distMat, rate, p0)
+calcHurdleExpKernel <- function(distMat, rate, p0, eps = 1.0e-20) {
+    .Call('_CKMR_calcHurdleExpKernel', PACKAGE = 'CKMR', distMat, rate, p0, eps)
 }
 
 simAgg <- function(readFiles_, writeFiles_, largeFile_, simTime_, genKey_) {

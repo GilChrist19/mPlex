@@ -48,37 +48,43 @@
 //'
 // [[Rcpp::export]]
 void run_CKMR(const std::uint64_t& s1_,
-               const std::uint64_t& s2_,
-               const std::uint64_t& s3_,
-               const std::uint64_t& s4_,
-               const uint_least32_t& numReps_,
-               const uint_least32_t& numThreads_,
-               const Rcpp::List& networkParameters_,
-               const Rcpp::List& reproductionReference_,
-               const Rcpp::List& patchReleases_,
-               const Rcpp::NumericMatrix& migrationMale_,
-               const Rcpp::NumericMatrix& migrationFemale_,
-               const Rcpp::List& migrationBatch_,
-               const Rcpp::List& samplingParameters_,
-               const std::string& outputDirectory_,
-               const bool& verbose_){
+              const std::uint64_t& s2_,
+              const std::uint64_t& s3_,
+              const std::uint64_t& s4_,
+              const uint_least32_t& numReps_,
+              const uint_least32_t& numThreads_,
+              const Rcpp::List& networkParameters_,
+              const Rcpp::List& reproductionReference_,
+              const Rcpp::List& patchReleases_,
+              const Rcpp::NumericMatrix& migrationMale_,
+              const Rcpp::NumericMatrix& migrationFemale_,
+              const Rcpp::List& migrationBatch_,
+              const Rcpp::List& samplingParameters_,
+              const std::string& outputDirectory_,
+              const bool& verbose_){
 
   #ifdef BASE_PROFILER_H_
     // make sure to change path!!! But keep file name.
     ProfilerStart("/home/jared/Desktop/OUTPUT/profile.log");
   #endif
 
-
+  // define outside ifdef so that it works when _OPENMP isn't define
+  int myThread(0);
+  
+  // set threads if using openMP
+  #ifdef _OPENMP
+    omp_set_num_threads(numThreads_);
+  #else
+    const_cast<uint_least32_t&>(numThreads_) = 1;
+  #endif
+  
+  
+  
   ////////////////////
   // BEGIN INITIALIZE PRNG
   ////////////////////
   if(verbose_) {Rcpp::Rcout << "Initializing " << numThreads_ << " prngs ... ";};
 
-  #ifdef _OPENMP
-  int myThread;
-  omp_set_num_threads(numThreads_);
-  #endif
-  
   std::vector<prng> randInst;
   randInst.reserve(numThreads_);
   std::array<std::uint64_t, 4> seed = {s1_,s2_,s3_,s4_};

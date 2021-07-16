@@ -69,17 +69,23 @@ void run_mPlex(const std::uint64_t& s1_,
     ProfilerStart("/home/gilchrist/Desktop/OUTPUT/profile.log");
   #endif
 
+  // define outside ifdef so that it works when _OPENMP isn't define
+  int myThread(0);
+  
+  // set threads if using openMP
+  #ifdef _OPENMP
+    omp_set_num_threads(numThreads_);
+  #else
+    const_cast<uint_least32_t&>(numThreads_) = 1;
+  #endif
+    
+    
     
   ////////////////////
   // BEGIN INITIALIZE PRNG
   ////////////////////
   if(verbose_) {Rcpp::Rcout << "Initializing " << numThreads_ << " prngs ... ";};
 
-  #ifdef _OPENMP
-  int myThread;
-  omp_set_num_threads(numThreads_);
-  #endif
-  
   std::vector<prng> randInst;
   randInst.reserve(numThreads_);
   std::array<std::uint64_t, 4> seed = {s1_,s2_,s3_,s4_};

@@ -6,6 +6,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // run_mPlex
 void run_mPlex(const std::uint64_t& s1_, const std::uint64_t& s2_, const std::uint64_t& s3_, const std::uint64_t& s4_, const uint_least32_t& numReps_, const uint_least32_t& numThreads_, const Rcpp::List& networkParameters_, const Rcpp::List& reproductionReference_, const Rcpp::ListOf<Rcpp::List>& initAlleles_, const Rcpp::List& patchReleases_, const Rcpp::NumericMatrix& migrationMale_, const Rcpp::NumericMatrix& migrationFemale_, const Rcpp::List& migrationBatch_, const std::string& reproductionType_, const std::string& outputDirectory_, const bool& verbose_);
 RcppExport SEXP _mPlexCpp_run_mPlex(SEXP s1_SEXP, SEXP s2_SEXP, SEXP s3_SEXP, SEXP s4_SEXP, SEXP numReps_SEXP, SEXP numThreads_SEXP, SEXP networkParameters_SEXP, SEXP reproductionReference_SEXP, SEXP initAlleles_SEXP, SEXP patchReleases_SEXP, SEXP migrationMale_SEXP, SEXP migrationFemale_SEXP, SEXP migrationBatch_SEXP, SEXP reproductionType_SEXP, SEXP outputDirectory_SEXP, SEXP verbose_SEXP) {
@@ -122,15 +127,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // calcHurdleExpKernel
-Rcpp::NumericMatrix calcHurdleExpKernel(const Rcpp::NumericMatrix& distMat, double rate, double p0);
-RcppExport SEXP _mPlexCpp_calcHurdleExpKernel(SEXP distMatSEXP, SEXP rateSEXP, SEXP p0SEXP) {
+Rcpp::NumericMatrix calcHurdleExpKernel(const Rcpp::NumericMatrix& distMat, const double& rate, const double& p0, const double& eps);
+RcppExport SEXP _mPlexCpp_calcHurdleExpKernel(SEXP distMatSEXP, SEXP rateSEXP, SEXP p0SEXP, SEXP epsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type distMat(distMatSEXP);
-    Rcpp::traits::input_parameter< double >::type rate(rateSEXP);
-    Rcpp::traits::input_parameter< double >::type p0(p0SEXP);
-    rcpp_result_gen = Rcpp::wrap(calcHurdleExpKernel(distMat, rate, p0));
+    Rcpp::traits::input_parameter< const double& >::type rate(rateSEXP);
+    Rcpp::traits::input_parameter< const double& >::type p0(p0SEXP);
+    Rcpp::traits::input_parameter< const double& >::type eps(epsSEXP);
+    rcpp_result_gen = Rcpp::wrap(calcHurdleExpKernel(distMat, rate, p0, eps));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -160,7 +166,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_mPlexCpp_calcLognormalKernel", (DL_FUNC) &_mPlexCpp_calcLognormalKernel, 3},
     {"_mPlexCpp_calcGammaKernel", (DL_FUNC) &_mPlexCpp_calcGammaKernel, 3},
     {"_mPlexCpp_calcExpKernel", (DL_FUNC) &_mPlexCpp_calcExpKernel, 2},
-    {"_mPlexCpp_calcHurdleExpKernel", (DL_FUNC) &_mPlexCpp_calcHurdleExpKernel, 3},
+    {"_mPlexCpp_calcHurdleExpKernel", (DL_FUNC) &_mPlexCpp_calcHurdleExpKernel, 4},
     {"_mPlexCpp_simAgg", (DL_FUNC) &_mPlexCpp_simAgg, 7},
     {NULL, NULL, 0}
 };

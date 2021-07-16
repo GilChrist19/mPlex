@@ -40,7 +40,7 @@ for(i in c(simDir, aggDir)){dir.create(path = i)}
 ###############################################################################
 # Setup Parameters for Network
 ###############################################################################
-
+simTime <- 100
 numPatch <- 4
 set.seed(10)
 # migration <- matrix(data = runif(numPatch*numPatch), nrow = numPatch, ncol = numPatch)
@@ -124,7 +124,6 @@ samplingScheme$samplingDays[1, ] <- simTime + 1
 ###############################################################################
 # Calculate parameters and initialize network
 ###############################################################################
-simTime <- 100
 netPar = NetworkParameters(nPatch = numPatch,
                            simTime = simTime,
                            AdPopEQ = patchPops,
@@ -138,7 +137,7 @@ migrationBatch <- basicBatchMigration(numPatches = numPatch)
 
 startTime <- Sys.time()
 runCKMR(seed = 10,
-         numThreads = 1,
+         numThreads = 2,
          networkParameters = netPar,
          reproductionReference = reference,
          patchReleases = patchReleases,
@@ -147,7 +146,7 @@ runCKMR(seed = 10,
          migrationBatch = migrationBatch,
          samplingParameters = samplingScheme,
          outputDirectory = simDir,
-         verbose = FALSE)
+         verbose = TRUE)
 
 endTime <- Sys.time()
 print(difftime(time1 = endTime, time2 = startTime))
