@@ -7,9 +7,28 @@
 #                                               /_/   /_/
 ###############################################################################
 ###############################################################################
-# 20210805
-#  Update to 20210722
-#  Keep the sampling parameters, only need the 1000 pop, add males back in though.
+#                        _____         _   _____ _ _
+#                       |_   _|__  ___| |_|  ___(_) | ___
+#                         | |/ _ \/ __| __| |_  | | |/ _ \
+#                         | |  __/\__ \ |_|  _| | | |  __/
+#                         |_|\___||___/\__|_|   |_|_|\___|
+#
+###############################################################################
+# 20210909
+#  This is a copy and update of 20210527.
+#  The sampling scheme comes from 20210805.
+#  Landscape details are below - direct copy from 20210527
+#
+#  25x25 landscape
+#  16.6062m distance between nodes on the grid
+#  72% lifetime stay probability
+#  exp. rate from MGDrivE
+#  Expected Displacement: 30.978m
+#  Expected Cumulative Distance: 34.394m
+#  Sampling Time: daily
+#  Sampling Places: 130 133 136 139 142 145 205 208 211 214 217 220 280 283 286 
+#                   289 292 295 355 358 361 364 367 370 430 433 436 439 442 445
+#                   505 508 511 514 517 520
 #
 ###############################################################################
 # Clean environment and source files
@@ -20,24 +39,23 @@ source("~/Desktop/mPlex/Main/YogitaData/combineFiles.R")
 
 set.seed(seed = 10)
 simTime <- 190
-numThreads <- 1
+numThreads <- 2 # FILL ME IN WITH MORE CORES!!!
 ###############################################################################
 # Setup Directories
 ###############################################################################
 topDirectory <- "~/Desktop/OUTPUT/CKMR"
 
-if(!dir.exists(paths = topDirectory)){
-  dir.create(path = topDirectory)
-} else {
-  unlink(x = list.files(topDirectory, full.names = TRUE), recursive = TRUE, force = TRUE)
-}
+# if(!dir.exists(paths = topDirectory)){
+#   dir.create(path = topDirectory)
+# } else {
+#   unlink(x = list.files(topDirectory, full.names = TRUE), recursive = TRUE, force = TRUE)
+# }
 
 
 ###############################################################################
 # Setup Parameters for Network
 ###############################################################################
-# single patch
-migration <- as.matrix(x = 1)
+migration <- as.matrix(x = read.csv(file = "~/Desktop/OUTPUT/CKMR/gridMoveMat.csv",header = FALSE))
 numPatch <- nrow(migration)
 
 # batch migration
@@ -72,14 +90,20 @@ patchReleases = replicate(n = numPatch,
 #  to never sample, must put time to simTime + 1, otherwise modulo throws errors
 sampDay <- matrix(data = simTime + 1, nrow = numPatch, ncol = 5)
 
-# male/female get sampled daily
-sampDay[ ,c(2,4,5)] <- 1
-
 # coverage
 #  sample larvae 10% per week, converted to daily
 #  sample males 10% per week, converted to daily
 #  sample females 10% per week, converted to daily
 sampCov <- matrix(data = c(0,0.10,0,0.10,0.10)/7, nrow = numPatch, ncol = 5, byrow = TRUE)
+
+# set specific patches to get sampled every week
+#  only sample male and female
+sampPlaces <- c(130,133,136,139,142,145,205,208,211,214,217,220,280,283,286,289,
+                292,295,355,358,361,364,367,370,430,433,436,439,442,445,505,508,
+                511,514,517,520)
+
+sampDay[sampPlaces,c(2,4,5)] <- 7/7
+
 
 # list to pass to mPlex
 samplingScheme <- list("samplingDays"=sampDay, "samplingCoverage"=sampCov)
@@ -118,7 +142,7 @@ for(i in 1:numPC){
   ####################
   netPar = NetworkParameters(nPatch = numPatch,
                              simTime = simTime,
-                             AdPopEQ = paramCombo[i,'nPop'],
+                             AdPopEQ = rep.int(x = paramCombo[i,'nPop'], times = numPatch),
                              runID = 1L,
                              dayGrowthRate = 1.175,
                              beta = 20, tEgg = 2, tLarva = 5, tPupa = 1,
