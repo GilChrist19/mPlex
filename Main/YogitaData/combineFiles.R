@@ -120,7 +120,7 @@ combineFiles <- function(mainDir, workIndicator=25, fPattern=c("M","F") ){
   
   # grab desired files from directory
   fList <- lapply(X = fPattern, FUN = function(x){
-  	list.files(path = mainDir, pattern = x, full.names = TRUE)
+  	list.files(path = mainDir, pattern = paste0(x,"_"), full.names = TRUE)
   })
   
   
