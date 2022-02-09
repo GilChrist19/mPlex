@@ -140,7 +140,7 @@ void Patch::oneDay_popDynamics(prng& myPRNG, bigBrother& myBB){
 //  Reality is, we are removing one object from the list. 
 //  Currently, we swap the desired object with the end object, then remove it.
 //  But, we could just overwrite the desired object, so we now have 2 copies of 
-//   the end object, and then remove the end object, thereby releiving the extra copy.
+//   the end object, and then remove the end object, thereby relieving the extra copy.
 //  This is less operations than a swap, and ends with the same effect.
 /**************************************
  * Death
@@ -584,20 +584,21 @@ void Patch::init_output(std::vector<std::ofstream *>& logFiles){
 
 
 // accessory function for writing mosquitoes
-void write_stage(popVec& pop, const int& patchID, const int& stage, std::ofstream& logFile, std::string (Mosquito::*print)(), prng& myPRNG){
-  // check if it is time
-  int holdInt = parameters::instance().get_t_now();
+void write_stage(popVec& pop, const int& patchID, const int& stage,
+                 std::ofstream& logFile, std::string (Mosquito::*print)(),
+                 prng& myPRNG, const int& cTime){
+
   
-  if( !(holdInt % parameters::instance().get_sampDay(patchID, stage)) ){
+  if( parameters::instance().get_sampDay(cTime, stage, patchID) ){
     // set bernoulli
-    myPRNG.set_cBern(parameters::instance().get_sampCov(patchID, stage));
+    myPRNG.set_cBern(parameters::instance().get_sampCov(cTime, stage, patchID));
     // loop over everyone in current stage
     for(auto it = pop.rbegin(); it != pop.rend(); ++it){
       // if we sample it, it then must die
       //  otherwise, nothing happens
       if(myPRNG.get_cBern()){
         // write output
-        logFile << holdInt << ((*it).*print)();
+        logFile << cTime << ((*it).*print)();
         
         // kill
         // std::swap(*it, pop.back());
@@ -615,21 +616,23 @@ void write_stage(popVec& pop, const int& patchID, const int& stage, std::ofstrea
 
 
 void Patch::oneDay_writeOutput(std::vector<std::ofstream *>& logFiles, prng& myPRNG){
+  // grab current time
+  int curTime = parameters::instance().get_t_now();
   
   // check eggs
-  write_stage(eggs, patchID, 0, *logFiles[0], &Mosquito::print_aquatic, myPRNG);
+  write_stage(eggs, patchID, 0, *logFiles[0], &Mosquito::print_aquatic, myPRNG, curTime);
   
   // check larva
-  write_stage(larva, patchID, 1, *logFiles[1], &Mosquito::print_aquatic, myPRNG);
+  write_stage(larva, patchID, 1, *logFiles[1], &Mosquito::print_aquatic, myPRNG, curTime);
   
   // check pupa
-  write_stage(pupa, patchID, 2, *logFiles[2], &Mosquito::print_aquatic, myPRNG);
+  write_stage(pupa, patchID, 2, *logFiles[2], &Mosquito::print_aquatic, myPRNG, curTime);
   
   // check adult males
-  write_stage(adult_male, patchID, 3, *logFiles[3], &Mosquito::print_male, myPRNG);
+  write_stage(adult_male, patchID, 3, *logFiles[3], &Mosquito::print_male, myPRNG, curTime);
   
   // check females
-  write_stage(adult_female, patchID, 4, *logFiles[4], &Mosquito::print_female, myPRNG);
+  write_stage(adult_female, patchID, 4, *logFiles[4], &Mosquito::print_female, myPRNG, curTime);
 
 }
 

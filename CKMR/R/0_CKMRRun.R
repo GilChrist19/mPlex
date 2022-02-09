@@ -23,7 +23,7 @@
 #' @param migrationMale A matrix specifying male migration rates
 #' @param migrationFemale A matrix specifying female migration rates
 #' @param migrationBatch A list specifing batch migration probabilities, rates, and sex ratios
-#' @param samplingParameters A list specifying the time between sampling events and sampling coverage
+#' @param samplingParameters A list specifying the time of sampling events and sampling coverage
 #' @param outputDirectory String folder name to write output
 #' @param verbose Boolean, be chatty? Default is FALSE
 #' 
@@ -47,18 +47,20 @@ runCKMR <- function(seed = 1, numReps = 1, numThreads = 1,
   
   # pass all down for simulation
   run_CKMR(s1_ = fourSeed[1],
-            s2_ = fourSeed[2],
-            s3_ = fourSeed[3],
-            s4_ = fourSeed[4],
-             numReps,
-             numThreads,
-             networkParameters,
-             reproductionReference,
-             patchReleases,
-             migrationMale,
-             migrationFemale,
-             migrationBatch,
-             samplingParameters,
-             outputDirectory,
-             verbose)
+           s2_ = fourSeed[2],
+           s3_ = fourSeed[3],
+           s4_ = fourSeed[4],
+           numReps,
+           numThreads,
+           networkParameters,
+           reproductionReference,
+           patchReleases,
+           migrationMale,
+           migrationFemale,
+           migrationBatch,
+           # split this so I can specify datatype - avoids casting issue from MGDivE
+           samplingParameters$samplingDays,
+           samplingParameters$samplingCoverage,
+           outputDirectory,
+           verbose)
 }

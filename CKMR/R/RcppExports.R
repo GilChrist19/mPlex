@@ -12,8 +12,8 @@
 #' sorry
 #' }
 #'
-run_CKMR <- function(s1_, s2_, s3_, s4_, numReps_, numThreads_, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, samplingParameters_, outputDirectory_, verbose_) {
-    invisible(.Call('_CKMR_run_CKMR', PACKAGE = 'CKMR', s1_, s2_, s3_, s4_, numReps_, numThreads_, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, samplingParameters_, outputDirectory_, verbose_))
+run_CKMR <- function(s1_, s2_, s3_, s4_, numReps_, numThreads_, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, sampDays_, sampCov_, outputDirectory_, verbose_) {
+    invisible(.Call('_CKMR_run_CKMR', PACKAGE = 'CKMR', s1_, s2_, s3_, s4_, numReps_, numThreads_, networkParameters_, reproductionReference_, patchReleases_, migrationMale_, migrationFemale_, migrationBatch_, sampDays_, sampCov_, outputDirectory_, verbose_))
 }
 
 #' Calculate Geodesic Distance - Cosine Method

@@ -14,7 +14,7 @@
 #include <tuple>
 #include <vector>
 #include <numeric>
-
+#include <RcppArmadillo.h>
 
 using dMat = std::vector<std::vector<double> >;
 using dVec = std::vector<double>;
@@ -37,7 +37,7 @@ public:
                                        // batch parameters
                                        const std::vector<double>& batchProbs_, const dMat& sexProbs_, const dMat& moveMat_,
                                        // sampling parameters
-                                       const iMat& sampDays_, const dMat& sampCov_);
+                                       const arma::Cube<arma::uword>& sampDays_, const arma::Cube<double>& sampCov_);
   
   
   /* accessors */
@@ -73,8 +73,8 @@ public:
   dVec              get_batchLocation(const size_t& patch){return batchLocations[patch];};
   
   /* sampling parameters*/
-  int               get_sampDay(const size_t& patch, const size_t& stage){return sampDays[patch][stage];};
-  double            get_sampCov(const size_t& patch, const size_t& stage){return sampCov[patch][stage];};
+  bool              get_sampDay(const size_t& time, const size_t& stage, const size_t& patch){return sampDays.at(time,stage,patch);};
+  double            get_sampCov(const size_t& time, const size_t& stage, const size_t& patch){return sampCov.at(time,stage,patch);};
   
   
 private:
@@ -116,8 +116,8 @@ private:
   dMat      batchLocations;
   
   /* sampling parameters */
-  iMat      sampDays;
-  dMat      sampCov;
+  arma::Cube<arma::uword>      sampDays;
+  arma::Cube<double>      sampCov;
   
 };
 

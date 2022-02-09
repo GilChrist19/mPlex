@@ -59,7 +59,8 @@ void run_CKMR(const std::uint64_t& s1_,
               const Rcpp::NumericMatrix& migrationMale_,
               const Rcpp::NumericMatrix& migrationFemale_,
               const Rcpp::List& migrationBatch_,
-              const Rcpp::List& samplingParameters_,
+              const arma::Cube<arma::uword>& sampDays_,
+              const arma::Cube<double>& sampCov_,
               const std::string& outputDirectory_,
               const bool& verbose_){
 
@@ -126,9 +127,7 @@ void run_CKMR(const std::uint64_t& s1_,
   // setup input matrices and then fill them. They are std::vectors, not Rcpp things
   int dim = migrationMale_.ncol();
   Rcpp::NumericVector hold(dim), hold2(2);
-  Rcpp::IntegerVector iHold(dim);
-  dMat mHold(dim, dVec(dim)), fHold(dim, dVec(dim)), bsHold(dim, dVec(2)), bmHold(dim, dVec(dim)), sampCov(dim, dVec(5));
-  iMat sampDay(dim, iVec(5)); // 5 because 5 life stages; E, L, P, Male, Female
+  dMat mHold(dim, dVec(dim)), fHold(dim, dVec(dim)), bsHold(dim, dVec(2)), bmHold(dim, dVec(dim));
 
   // loop over number of dims
   for(size_t i=0; i<dim; ++i){
@@ -147,14 +146,6 @@ void run_CKMR(const std::uint64_t& s1_,
     // batch migration
     hold = Rcpp::as<Rcpp::NumericMatrix>(migrationBatch_["moveProbs"]).row(i);
     bmHold[i] = Rcpp::as<dVec>(hold);
-    
-    // sampling parameters
-    //  updated to new shapes so each patch can be different
-    hold = Rcpp::as<Rcpp::NumericMatrix>(samplingParameters_["samplingCoverage"]).row(i);
-    sampCov[i] = Rcpp::as<dVec>(hold);
-    
-    iHold = Rcpp::as<Rcpp::IntegerMatrix>(samplingParameters_["samplingDays"]).row(i);
-    sampDay[i] = Rcpp::as<iVec>(iHold);
   }
 
   // now set parameters
@@ -162,7 +153,7 @@ void run_CKMR(const std::uint64_t& s1_,
                                         networkParameters_["stageTime"],networkParameters_["beta"],networkParameters_["mu"],
                                         networkParameters_["alpha"],networkParameters_["Leq"],networkParameters_["AdPopEQ"],
                                         mHold, fHold, migrationBatch_["batchProbs"], bsHold, bmHold,
-                                        sampDay, sampCov);
+                                        sampDays_, sampCov_);
 
   if(verbose_){Rcpp::Rcout <<  " ... done setting parameters!\n";};
 
@@ -194,7 +185,7 @@ void run_CKMR(const std::uint64_t& s1_,
   // setup all patches
   for(size_t np=0; np<numPatches; ++np){
 
-    // pull out  relaeses for this patch
+    // pull out  releases for this patch
     patchRelease = patchReleases_[np];
 
     // setup patch

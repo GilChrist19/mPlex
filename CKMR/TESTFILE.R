@@ -103,22 +103,30 @@ patchReleases[[1]]$maleReleases <- c(holdRel, holdRel2)
 ###############################################################################
 # Sampling Setup
 ###############################################################################
-# sampling is different for every patch, and every life stage
-# final object is a list with 2 matrices in it, one for when to sample, one for 
+# sampling is different for every patch, every life stage, and every time point
+# final object is a list with 2 arrays in it, one for when to sample, one for 
 #  how many to sample
 
+# sampling time
+#  Boolean array: simTime x lifeStages x numPatches
+#  lifeStages is always 5 - egg, larva, pupa, male, female
 # Basic, every patch has every life stage (5 of them) sampled every day
-sampDay <- matrix(data = 1, nrow = numPatch, ncol = 5)
+sampDay <- array(data = TRUE, dim = c(simTime, 5, numPatch))
 
-# let every patch have every life stage sample ~10% of the pop there
-sampCov <- matrix(data = 0.1, nrow = numPatch, ncol = 5)
+# test, don't sample any life stage in patch 1
+#  patch 2 gets forgotten half way through
+sampDay[ , ,1] <- FALSE
+sampDay[50:simTime, ,2] <- FALSE
 
+# sampling coverage
+#  double array: simTime x lifeStages x numPatches
+#  lifeStages is always 5 - egg, larva, pupa, male, female
+# Example, every patch and every stage at 10% every day
+sampCov <- array(data = 0.1, dim = c(simTime, 5, numPatch))
 
-
+# put in list for simulation
+#  the names in this list are fixed, do not change them
 samplingScheme <- list("samplingDays"=sampDay, "samplingCoverage"=sampCov)
-
-# test, don't  sample patch 1
-samplingScheme$samplingDays[1, ] <- simTime + 1
 
 
 ###############################################################################
