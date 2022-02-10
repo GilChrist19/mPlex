@@ -1,7 +1,7 @@
 # mPlex: Agent-based Modeling of Multiplex Gene Drive in Mosquitoes
 mPlexCpp is a C++11/14-based R package to run simulations of multiplex (including daisy-drive) 
-gene drive systems. It was developed at the [Marshall Lab](https://www.marshalllab.com) 
-at the University of California, Berkeley.
+gene drive systems. It was developed at the [Marshall Lab](https://www.marshalllab.com), 
+[University of California, Berkeley](https://www.berkeley.edu/).
 
 ## Software
   * deprecated contains old vignettes
