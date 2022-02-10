@@ -1,12 +1,13 @@
 Package: CKMR
 Type: Package
 Title: CKMR, C++
-Version: 1.0
+Version: 0.0.1
 Date: 2018-01-17
 Author: Jared Bennett
 Maintainer: Jared Bennett <jared_bennett@berkeley.edu>
-Description: One paragraph description of what the package does as one or more
-         full sentences.
+Description: CKMR is an individual based, lumped-age-class, descrete-time step 
+	model for exploring close-kin mark-recapture studies in mosquitoes.
+	It was adapted from a previous ABM, mPlex.  
 License: GPL (>= 2)
 Encoding: UTF-8
 Imports: Rcpp (>= 0.12.14), RcppProgress, RcppArmadillo

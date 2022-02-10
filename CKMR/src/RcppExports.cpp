@@ -12,7 +12,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // run_CKMR
-void run_CKMR(const std::uint64_t& s1_, const std::uint64_t& s2_, const std::uint64_t& s3_, const std::uint64_t& s4_, const uint_least32_t& numReps_, const uint_least32_t& numThreads_, const Rcpp::List& networkParameters_, const Rcpp::List& reproductionReference_, const Rcpp::List& patchReleases_, const Rcpp::NumericMatrix& migrationMale_, const Rcpp::NumericMatrix& migrationFemale_, const Rcpp::List& migrationBatch_, const arma::Cube<arma::uword>& sampDays_, const arma::Cube<double>& sampCov_, const std::string& outputDirectory_, const bool& verbose_);
+void run_CKMR(const std::uint64_t& s1_, const std::uint64_t& s2_, const std::uint64_t& s3_, const std::uint64_t& s4_, const uint_least32_t& numReps_, const uint_least32_t& numThreads_, const Rcpp::List& networkParameters_, const Rcpp::List& reproductionReference_, const Rcpp::List& patchReleases_, const Rcpp::NumericMatrix& migrationMale_, const Rcpp::NumericMatrix& migrationFemale_, const Rcpp::List& migrationBatch_, const arma::Cube<unsigned int>& sampDays_, const arma::Cube<double>& sampCov_, const std::string& outputDirectory_, const bool& verbose_);
 RcppExport SEXP _CKMR_run_CKMR(SEXP s1_SEXP, SEXP s2_SEXP, SEXP s3_SEXP, SEXP s4_SEXP, SEXP numReps_SEXP, SEXP numThreads_SEXP, SEXP networkParameters_SEXP, SEXP reproductionReference_SEXP, SEXP patchReleases_SEXP, SEXP migrationMale_SEXP, SEXP migrationFemale_SEXP, SEXP migrationBatch_SEXP, SEXP sampDays_SEXP, SEXP sampCov_SEXP, SEXP outputDirectory_SEXP, SEXP verbose_SEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -28,7 +28,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type migrationMale_(migrationMale_SEXP);
     Rcpp::traits::input_parameter< const Rcpp::NumericMatrix& >::type migrationFemale_(migrationFemale_SEXP);
     Rcpp::traits::input_parameter< const Rcpp::List& >::type migrationBatch_(migrationBatch_SEXP);
-    Rcpp::traits::input_parameter< const arma::Cube<arma::uword>& >::type sampDays_(sampDays_SEXP);
+    Rcpp::traits::input_parameter< const arma::Cube<unsigned int>& >::type sampDays_(sampDays_SEXP);
     Rcpp::traits::input_parameter< const arma::Cube<double>& >::type sampCov_(sampCov_SEXP);
     Rcpp::traits::input_parameter< const std::string& >::type outputDirectory_(outputDirectory_SEXP);
     Rcpp::traits::input_parameter< const bool& >::type verbose_(verbose_SEXP);

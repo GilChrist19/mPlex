@@ -1,12 +1,13 @@
 Package: mPlexCpp
 Type: Package
 Title: mPlex, C++
-Version: 1.0
+Version: 0.0.1
 Date: 2018-01-17
 Author: Jared Bennett
 Maintainer: Jared Bennett <jared_bennett@berkeley.edu>
-Description: One paragraph description of what the package does as one or more
-         full sentences.
+Description: mPlex is an individual based, lumped-age-class, descrete-time step 
+	model for exploring the dynamics of multiplex and Daisy gene drives in mosquitoes. 
+	It is based off the corresponding compartmental model, MGDrivE.
 License: GPL (>= 2)
 Encoding: UTF-8
 Imports: Rcpp (>= 0.12.14), RcppProgress, RcppArmadillo

@@ -7,7 +7,8 @@ Authors@R: as.person(c(
     "Sean Wu <slwu89@berkeley.edu> [aut]",
     "John Marshall <john.marshall@berkeley.edu> [aut]"
     ))
-Description: mPlex is an individual based, lumped-age-class, descrete-time step model for exploring the dynamics of multiplex and Daisy gene drives in mosquitoes.
+Description: mPlex is an individual based, lumped-age-class, descrete-time step 
+	model for exploring the dynamics of multiplex and Daisy gene drives in mosquitoes.
 Depends: R (>= 3.4.3)
 imports: R6
 License: GPL-3

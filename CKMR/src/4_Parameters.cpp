@@ -31,7 +31,7 @@ void parameters::set_parameters(/* simulation fields */
                                 // batch parameters
                                 const dVec& batchProbs_, const dMat& sexProbs_, const dMat& moveMat_,
                                 // sampling parameters
-                                const arma::Cube<arma::uword>& sampDays_, const arma::Cube<double>& sampCov_){
+                                const arma::Cube<unsigned int>& sampDays_, const arma::Cube<double>& sampCov_){
 
 
 

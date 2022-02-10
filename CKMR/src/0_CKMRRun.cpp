@@ -59,7 +59,7 @@ void run_CKMR(const std::uint64_t& s1_,
               const Rcpp::NumericMatrix& migrationMale_,
               const Rcpp::NumericMatrix& migrationFemale_,
               const Rcpp::List& migrationBatch_,
-              const arma::Cube<arma::uword>& sampDays_,
+              const arma::Cube<unsigned int>& sampDays_,
               const arma::Cube<double>& sampCov_,
               const std::string& outputDirectory_,
               const bool& verbose_){

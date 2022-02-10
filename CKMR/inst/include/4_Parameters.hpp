@@ -37,7 +37,7 @@ public:
                                        // batch parameters
                                        const std::vector<double>& batchProbs_, const dMat& sexProbs_, const dMat& moveMat_,
                                        // sampling parameters
-                                       const arma::Cube<arma::uword>& sampDays_, const arma::Cube<double>& sampCov_);
+                                       const arma::Cube<unsigned int>& sampDays_, const arma::Cube<double>& sampCov_);
   
   
   /* accessors */
@@ -116,8 +116,8 @@ private:
   dMat      batchLocations;
   
   /* sampling parameters */
-  arma::Cube<arma::uword>      sampDays;
-  arma::Cube<double>      sampCov;
+  arma::Cube<unsigned int>      sampDays;
+  arma::Cube<double>              sampCov;
   
 };
 
