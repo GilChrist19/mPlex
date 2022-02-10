@@ -28,7 +28,7 @@ Jared Bennett (lead), [Sean Wu](https://slwu89.github.io), [Héctor Manuel Sánc
       * goal is to de-couple the tightly coupled `reference` and `offspringDistribution` 
     elements; we want a generic `offspringDistribution` so the only variant type is `reference`.
   2. Check move semantics between stl containers working properly for `Mosquito` for low overhead migration functions.
-  3. Should steal the output/input classes from **MGDrivECpp** for more performance.
+  3. Should steal the output/input classes from **MGDrivECpp** for better performance.
 
 ## Notes and References
  1. Short and sweet [OMP guide](https://chryswoods.com/beginning_openmp/README.html)
