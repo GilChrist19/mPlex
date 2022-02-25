@@ -1,10 +1,10 @@
 # Agent-based Modeling of Mosquitoes
 
-This repository contains 2 models that were developed at the [Marshall Lab](https://www.marshalllab.com) 
-at the University of California, Berkeley.  
+This repository contains two models that were developed at the [Marshall Lab](https://www.marshalllab.com), 
+[University of California, Berkeley](https://www.berkeley.edu/).  
   
   * mPlex - an agent-based model for multiplexing (one locus, multiple gRNA or 
-  multiple locus, single gRNAs at each) gene drives and daisy-drives. 
+  multiple loci, single gRNAs at each) gene drives and [daisy-drives](https://doi.org/10.1073/pnas.1716358116). 
     * [mPlexR](./mPlexR): Pure R-based implementation of mPlex  
     This was the original test bed and is now out-of-date
     * [mPlexCpp](./mPlexCpp): Current, C++11/14-based package
@@ -21,14 +21,14 @@ at the University of California, Berkeley.
   to check population dynamics and simple one-locus homing constructs. 
 
 ## Authors
-Jared Bennett, [Sean Wu](https://slwu89.github.io), [Héctor Manuel Sánchez Castellanos](https://chipdelmal.github.io), and [John M. Marshall](http://sph.berkeley.edu/john-marshall)
+Jared Bennett (lead), [Sean Wu](https://slwu89.github.io), [Héctor Manuel Sánchez Castellanos](https://chipdelmal.github.io), and [John M. Marshall](http://sph.berkeley.edu/john-marshall)
 
 ## To-do
   1. Write out pseudocode of `offspringDistribution` function.
       * goal is to de-couple the tightly coupled `reference` and `offspringDistribution` 
     elements; we want a generic `offspringDistribution` so the only variant type is `reference`.
   2. Check move semantics between stl containers working properly for `Mosquito` for low overhead migration functions.
-  3. Should steal the output/input classes from **MGDrivECpp** for more performance.
+  3. Should steal the output/input classes from **MGDrivECpp** for better performance.
 
 ## Notes and References
  1. Short and sweet [OMP guide](https://chryswoods.com/beginning_openmp/README.html)
