@@ -123,6 +123,8 @@ combineFiles <- function(mainDir, workIndicator=25, fPattern=c("M","F") ){
   	list.files(path = mainDir, pattern = paste0(x,"_"), full.names = TRUE)
   })
   
+  # protect from incorrect fPattern
+  fList <- fList[as.logical(lengths(fList))]
   
   fPatCount <- 1
   
