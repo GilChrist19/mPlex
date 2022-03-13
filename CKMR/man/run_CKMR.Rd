@@ -17,7 +17,8 @@ run_CKMR(
   migrationMale_,
   migrationFemale_,
   migrationBatch_,
-  samplingParameters_,
+  sampDays_,
+  sampCov_,
   outputDirectory_,
   verbose_
 )

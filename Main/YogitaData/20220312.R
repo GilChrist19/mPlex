@@ -7,10 +7,29 @@
 #                                               /_/   /_/
 ###############################################################################
 ###############################################################################
-# 20220224
-#  Update of 20220209
-#  Changing the sample to average 3.5 days - ie, biweekly
-#  This is done after the paper was submitted, for the biweekly sims
+#                        _____         _   _____ _ _
+#                       |_   _|__  ___| |_|  ___(_) | ___
+#                         | |/ _ \/ __| __| |_  | | |/ _ \
+#                         | |  __/\__ \ |_|  _| | | |  __/
+#                         |_|\___||___/\__|_|   |_|_|\___|
+#
+###############################################################################
+# 20220312
+#  This is a copy and update of 20220908.R
+#  The sampling methodology was updated for greater flexibility.
+#  The updated sampling setup comes from 20220204.R
+#
+#
+#  25x25 landscape
+#  16.6062m distance between nodes on the grid
+#  72% lifetime stay probability
+#  exp. rate from MGDrivE
+#  Expected Displacement: 30.978m
+#  Expected Cumulative Distance: 34.394m
+#  Sampling Time: daily
+#  Sampling Places: 130 133 136 139 142 145 205 208 211 214 217 220 280 283 286 
+#                   289 292 295 355 358 361 364 367 370 430 433 436 439 442 445
+#                   505 508 511 514 517 520
 #
 ###############################################################################
 # Clean environment and source files
@@ -21,24 +40,23 @@ source("~/Desktop/mPlex/Main/YogitaData/combineFiles.R")
 
 set.seed(seed = 10)
 simTime <- 190
-numThreads <- 1
+numThreads <- 2 # FILL ME IN WITH MORE CORES!!!
 ###############################################################################
 # Setup Directories
 ###############################################################################
 topDirectory <- "~/Desktop/OUTPUT/CKMR"
 
-if(!dir.exists(paths = topDirectory)){
-  dir.create(path = topDirectory)
-} else {
-  # unlink(x = list.files(topDirectory, full.names = TRUE), recursive = TRUE, force = TRUE)
-}
+# if(!dir.exists(paths = topDirectory)){
+#   dir.create(path = topDirectory)
+# } else {
+#   unlink(x = list.files(topDirectory, full.names = TRUE), recursive = TRUE, force = TRUE)
+# }
 
 
 ###############################################################################
 # Setup Parameters for Network
 ###############################################################################
-# single patch
-migration <- as.matrix(x = 1)
+migration <- as.matrix(x = read.csv(file = "~/Desktop/OUTPUT/CKMR/gridMoveMat.csv",header = FALSE))
 numPatch <- nrow(migration)
 
 # batch migration
@@ -70,24 +88,28 @@ patchReleases = replicate(n = numPatch,
 #  how many to sample
 
 # Sampling Time
-#  We're sampling biweekly, so averaging every 3.5 days.
-#  Only sample adult females
-#  therefore, default to no sampling
+#  Setup default object - no sampling of any stage on any day
 sampDays <- array(data = FALSE, dim = c(simTime, 5, numPatch))
 
-# setup sampling days
-#  generate a sequence from beginning to end of simulation, then round to whole 
-#  values.
-#  we'll use these as the indices to set sampling days
-sdIndex <- round(x = seq.int(from = 1, to = simTime, by = 3.5))
+#  We will sample the larvae, male, and female stages (stages 2, 4, and 5)
+sampStages <- c(2, 4, 5)
 
-# set biweekly sampling for adult females in all patches
-sampDays[sdIndex,5, ] <- TRUE
+#  We only sample specific patches in the landscape ("sampPlaces" variable)
+sampPlaces <- c(130,133,136,139,142,145,205,208,211,214,217,220,280,283,286,289,
+                292,295,355,358,361,364,367,370,430,433,436,439,442,445,505,508,
+                511,514,517,520)
 
-# sampling coverage
-#  sample females 10% per week, converted to biweekly
+#  We sample the stages and places every day
+sampDays[ , sampStages, sampPlaces] <- TRUE
+
+# Sampling Coverage
+#  Setup default object - 0 sampling rate
 sampCov <- array(data = 0, dim = c(simTime, 5, numPatch))
-sampCov[ ,5, ] <- 0.10/2
+
+#  We sample larvae 10% per week, converted to daily
+#  We sample males 10% per week, converted to daily
+#  We sample females 10% per week, converted to daily
+sampCov[ , sampStages, sampPlaces] <- 0.10 / 7
 
 # list to pass to mPlex
 samplingScheme <- list("samplingDays"=sampDays, "samplingCoverage"=sampCov)
@@ -102,8 +124,8 @@ samplingScheme <- list("samplingDays"=sampDays, "samplingCoverage"=sampCov)
 # sweep over cube changing parameters
 # nRep: indices of reps to do
 # nPop: population sizes to test
-paramCombo <- as.matrix(expand.grid('nRep' = 1:50,
-                                    'nPop' = c(3000) ))
+paramCombo <- as.matrix(expand.grid('nRep' = 1:3,
+                                    'nPop' = c(1000) ))
 numPC <- NROW(paramCombo)
 
 
@@ -126,7 +148,7 @@ for(i in 1:numPC){
   ####################
   netPar = NetworkParameters(nPatch = numPatch,
                              simTime = simTime,
-                             AdPopEQ = paramCombo[i,'nPop'],
+                             AdPopEQ = rep.int(x = paramCombo[i,'nPop'], times = numPatch),
                              runID = 1L,
                              dayGrowthRate = 1.175,
                              beta = 20, tEgg = 2, tLarva = 5, tPupa = 1,
@@ -161,8 +183,8 @@ for(i in 1:numPC){
   # Combine Files
   ####################
   # no output
-  combineFiles(mainDir=simDir, workIndicator=25, fPattern=c("F"))
-  
+  combineFiles(mainDir=simDir, workIndicator=25, fPattern=c("L","F","M"))
+
   ####################
   # Remove initial population
   ####################
@@ -186,8 +208,8 @@ for(i in 1:numPC){
   # This one takes off first 100 days
   # awk -F "," '(NR==1) || ($1 > 100)' 000_F.csv > newFemFile.csv
   
-  readFiles <- c('/000_F.csv')
-  writeFiles <- c('/cut_F.csv')
+  readFiles <- c('/000_F.csv', '/000_L.csv', '/000_M.csv')
+  writeFiles <- c('/cut_F.csv', '/cut_L.csv', '/cut_M.csv')
   for(cFile in 1:length(writeFiles)){
     
     # build command, 

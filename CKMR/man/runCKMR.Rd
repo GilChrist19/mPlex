@@ -38,7 +38,7 @@ runCKMR(
 
 \item{migrationBatch}{A list specifing batch migration probabilities, rates, and sex ratios}
 
-\item{samplingParameters}{A list specifying the time between sampling events and sampling coverage}
+\item{samplingParameters}{A list specifying the time of sampling events and sampling coverage}
 
 \item{outputDirectory}{String folder name to write output}
 
