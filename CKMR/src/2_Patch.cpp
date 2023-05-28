@@ -103,7 +103,8 @@ Patch& Patch::operator=(Patch&& rhs) = default;
 * Population Dynamics for One Day
 ******************************************************************************/
 /* population dynamics */
-void Patch::oneDay_popDynamics(prng& myPRNG, bigBrother& myBB){
+void Patch::oneDay_popDynamics(prng& myPRNG, bigBrother& myBB,
+                               std::vector<std::ofstream *>& myLogFiles){
 
   // Death and Age
   oneDay_eggDeathAge(myPRNG);
@@ -112,18 +113,18 @@ void Patch::oneDay_popDynamics(prng& myPRNG, bigBrother& myBB){
   oneDay_adultDeathAge(myPRNG);
   
   // Mature
-  oneDay_pupaMaturation(myPRNG);
+  oneDay_pupaMaturation(myPRNG, *myLogFiles[0]);
   oneDay_larvaMaturation();
   oneDay_eggMaturation();
   
   // Mate
-  oneDay_mating(myPRNG);
+  oneDay_mating(myPRNG, *myLogFiles[1]);
   
   // New Eggs
   oneDay_layEggs(myPRNG, myBB);
   
   // Releases
-  oneDay_Releases();
+  oneDay_Releases(*myLogFiles[0]);
   
   // Migration out
   oneDay_migrationOut(myPRNG);
@@ -211,6 +212,7 @@ void Patch::oneDay_pupaDeathAge(prng& myPRNG){
 void Patch::oneDay_adultDeathAge(prng& myPRNG){
   
   double probs;
+  int maxAge(parameters::instance().get_male_max_age()); // instantiate to male max age
   holdDbl = 1.0 - parameters::instance().get_mu(3);
   
   // Loop over all adult males in the vector
@@ -218,7 +220,7 @@ void Patch::oneDay_adultDeathAge(prng& myPRNG){
     // get myID specific chance of death
     probs = holdDbl * reference::instance().get_omega(it->get_myID());
     // If it is your time, swap and remove
-    if(myPRNG.get_rBern(1.0-probs) ){
+    if(myPRNG.get_rBern(1.0-probs) || (it->get_age() >= maxAge)){
       // std::swap(*it, adult_male.back());
       *it = std::move(adult_male.back());
       adult_male.pop_back();
@@ -227,12 +229,15 @@ void Patch::oneDay_adultDeathAge(prng& myPRNG){
     }
   } // end loop
   
+  // grab female max age
+  maxAge = parameters::instance().get_female_max_age();
+  
   // Loop over all adult females in the vector
   for(auto it = adult_female.rbegin(); it != adult_female.rend(); ++it){
     // get myID specific chance of death
     probs = holdDbl * reference::instance().get_omega(it->get_myID());
     // If it is your time, swap and remove
-    if(myPRNG.get_rBern(1.0-probs) ){
+    if(myPRNG.get_rBern(1.0-probs) || (it->get_age() >= maxAge)){
       // std::swap(*it, adult_female.back());
       *it = std::move(adult_female.back());
       adult_female.pop_back();
@@ -246,7 +251,7 @@ void Patch::oneDay_adultDeathAge(prng& myPRNG){
 /**************************************
  * Mature
 ***************************************/
-void Patch::oneDay_pupaMaturation(prng& myPRNG){
+void Patch::oneDay_pupaMaturation(prng& myPRNG, std::ofstream& mFile){
   
   holdInt = parameters::instance().get_stage_sum(2);
   
@@ -284,6 +289,8 @@ void Patch::oneDay_pupaMaturation(prng& myPRNG){
         if(myPRNG.get_rBern(reference::instance().get_xiM(it->get_myID())) ){
           // you become and adult male
           adult_male.push_back(*it);
+          // log mosquito
+          mFile << patchID << (*it).print_male_short();
         }
         // you died
         // std::swap(*it, pupa.back());
@@ -339,7 +346,7 @@ void Patch::oneDay_eggMaturation(){
 /**************************************
  * Mate
 ***************************************/
-void Patch::oneDay_mating(prng& myPRNG){
+void Patch::oneDay_mating(prng& myPRNG, std::ofstream& fFile){
   
   if(!adult_male.empty() && !unmated_female.empty() ){
     
@@ -360,8 +367,11 @@ void Patch::oneDay_mating(prng& myPRNG){
       //get and set mate
       mateName = genNames[myPRNG.get_oneSample()];
       it->set_mate(mateName);
-      // move to real adult females and remove
+      // move to real adult females
       adult_female.push_back(*it);
+      // log mosquito
+      fFile << patchID << (*it).print_female_short();
+      // remove
       unmated_female.pop_back();
     } // end loop over unmated females
 
@@ -369,6 +379,7 @@ void Patch::oneDay_mating(prng& myPRNG){
   } else if(adult_male.empty() && !unmated_female.empty() ){
     
     double probs;
+    int maxAge(parameters::instance().get_female_max_age()); // instantiate to female max age
     holdDbl = 1.0 - parameters::instance().get_mu(3);
     
     // Loop over all unmated females in the vector
@@ -376,7 +387,7 @@ void Patch::oneDay_mating(prng& myPRNG){
       // get myID specific chance of death
       probs = holdDbl * reference::instance().get_omega(it->get_myID());
       // If it is your time, swap and remove
-      if(myPRNG.get_rBern(1.0-probs) ){
+      if(myPRNG.get_rBern(1.0-probs) || (it->get_age() >= maxAge)){
         // std::swap(*it, unmated_female.back());
         *it = std::move(unmated_female.back());
         unmated_female.pop_back();
@@ -392,7 +403,7 @@ void Patch::oneDay_mating(prng& myPRNG){
 /**************************************
  * Releases
 ***************************************/
-void Patch::oneDay_Releases(){
+void Patch::oneDay_Releases(std::ofstream& mFile){
   
   /****************
    * MALE
@@ -401,11 +412,14 @@ void Patch::oneDay_Releases(){
   if( (!releaseM.empty()) && (releaseM.back().release_time <= parameters::instance().get_t_now()) ){
     
     for(size_t it = 0; it < releaseM.back().pop_ages.size(); ++it){
-      
+      // make new mosquito
       adult_male.push_back(Mosquito(releaseM.back().pop_ages[it],
                                     releaseM.back().pop_names[it],
                                     "0", "0")
                            );
+      
+      // log mosquito
+      mFile << patchID << adult_male.back().print_male_short();
     } // end loop over released mosquitoes
     
     // remove release

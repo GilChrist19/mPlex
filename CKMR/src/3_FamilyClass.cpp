@@ -238,18 +238,35 @@ void fillPopulation(const int& patchID, popVec& eggVec, popVec& larvaVec, popVec
   /***********************************/
   minAge = parameters::instance().get_stage_sum(2);
   
+  /*********/
+  // male
+  /*********/
   // set age distribution vector
-  aDist = markovDist(1.0 - parameters::instance().get_mu(3), parameters::instance().get_stage_time(3) * 3);
+  maxAge = round(std::min(parameters::instance().get_male_max_age() - minAge,
+                          parameters::instance().get_stage_time(3) * 3));
+  aDist = markovDist(1.0 - parameters::instance().get_mu(3), maxAge);
   
   // reserve estimated population size
-  int popSize(round(1.1 * parameters::instance().get_adult_pop_eq(patchID) * accumulate(aDist.begin(), aDist.end(), 0.0)));
-  aMaleVec.reserve(popSize);
-  aFemaleVec.reserve(popSize);
-  unFemaleVec.reserve(popSize);
+  aMaleVec.reserve(round(0.75*parameters::instance().get_adult_pop_eq(patchID)));
   
   // fill initial population
   populationFill(parameters::instance().get_adult_pop_eq(patchID)/2,
                  minAge, aDist, myBB, aMaleVec);
+  
+  /*********/
+  // female
+  /*********/
+  // set age distribution vector
+  maxAge = round(std::min(parameters::instance().get_female_max_age() - minAge,
+                          parameters::instance().get_stage_time(3) * 3));
+  aDist = markovDist(1.0 - parameters::instance().get_mu(3), maxAge);
+  
+  // reserve estimated population size
+  int popSize(round(0.75*parameters::instance().get_adult_pop_eq(patchID)));
+  aFemaleVec.reserve(popSize);
+  unFemaleVec.reserve(popSize);
+  
+  // fill initial population
   populationFill(parameters::instance().get_adult_pop_eq(patchID)/2,
                  minAge, aDist, myBB, unFemaleVec);
   

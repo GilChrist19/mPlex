@@ -13,6 +13,8 @@ NetworkParameters(
   tPupa = 1L,
   beta = 32,
   muAd = 0.123,
+  maleMaxAge = 9999,
+  femaleMaxAge = 9999,
   dayGrowthRate = 1.096,
   AdPopEQ,
   runID = 1L
@@ -37,6 +39,10 @@ values lead to high variance and large values lead to low variance.}
 
 \item{muAd}{wild-type daily adult mortality (1/muAd is average wild-type lifespan)}
 
+\item{maleMaxAge}{maximum possible age of adult male}
+
+\item{femaleMaxAge}{maximum possible age of adult female}
+
 \item{dayGrowthRate}{daily population growth rate (used to calculate equilibrium)}
 
 \item{AdPopEQ}{vector of adult population size at equilibrium}
@@ -47,6 +53,7 @@ values lead to high variance and large values lead to low variance.}
 List(nPatch=int, simTime=vec int, parallel=logical, moveVar=numeric,
 runID=int, stageTime=vec int, beta=int, dayGrowthRate=numeric, AdPopEq=int vec,
 alleloTypes=list, genTime=numeric, genGrowthRate=numeric, mu=vec numeric,
+maleMaxAge=int, femaleMaxAge=int
 thetaAq=vec numeric, alpha=vec numeric, Leq=vec int)
 }
 \description{

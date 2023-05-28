@@ -44,7 +44,9 @@ public:
   
   // print
   std::string           print_male();
+  std::string           print_male_short();
   std::string           print_female();
+  std::string           print_female_short();
   std::string           print_aquatic();
   
 protected:

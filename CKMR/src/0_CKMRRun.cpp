@@ -151,6 +151,7 @@ void run_CKMR(const std::uint64_t& s1_,
   // now set parameters
   parameters::instance().set_parameters(networkParameters_["nPatch"],networkParameters_["simTime"],networkParameters_["runID"],
                                         networkParameters_["stageTime"],networkParameters_["beta"],networkParameters_["mu"],
+                                        networkParameters_["maleMaxAge"],networkParameters_["femaleMaxAge"],
                                         networkParameters_["alpha"],networkParameters_["Leq"],networkParameters_["AdPopEQ"],
                                         mHold, fHold, migrationBatch_["batchProbs"], bsHold, bmHold,
                                         sampDays_, sampCov_);
@@ -201,15 +202,13 @@ void run_CKMR(const std::uint64_t& s1_,
   // END INITIALIZE NETWORK
   ////////////////////
 
-
-
-
-
+  
   // initialize things for inside the loop
   int tMax = parameters::instance().get_sim_time();
 
   // setup vectors of ofstreams
   std::vector<std::vector<std::ofstream *> > output(numPatches, std::vector<std::ofstream *>(5));
+  std::vector<std::vector<std::ofstream *> > popLog(numThreads_, std::vector<std::ofstream *>(2));
   
   //Rcpp::Rcout << output.size()<< std::endl;
 
@@ -217,6 +216,7 @@ void run_CKMR(const std::uint64_t& s1_,
   std::vector<std::string> sHoldVec(5);
   std::string sHold;
 
+  
   ////////////////////
   // BEGIN REPETITION WRAP
   ////////////////////
@@ -258,7 +258,21 @@ void run_CKMR(const std::uint64_t& s1_,
       } // end loop over stages
 
     } // end loop over patches
-
+    
+    // open population log files
+    //  this is a vector for each thread, then with 2 files, male then female
+    #pragma omp parallel for default(shared) schedule(auto)
+    for(size_t nt=0; nt<numThreads_; ++nt){
+      // denote thread
+      std::string sT = std::string(2 - std::to_string(nt).length(), '0')
+      + std::to_string(nt) + ".csv";
+      
+      // initialize  male/female ofstream and open with file name
+      popLog[nt][0] = new std::ofstream(outputDirectory_ + "/popLog_M_part_" + sT);
+      popLog[nt][1] = new std::ofstream(outputDirectory_ + "/popLog_F_part_" + sT);
+    } // end loop over numThreads
+    
+    
     if(verbose_){Rcpp::Rcout <<  " ... done initializing logging!\n";};
     /////////////////////
     // END INITIALIZE LOGGER
@@ -276,6 +290,17 @@ void run_CKMR(const std::uint64_t& s1_,
     for(size_t np=0; np<numPatches; ++np){
       patches[np]->init_output( output[patches[np]->get_patchID()] );
     }
+    
+    
+    // output is to different files, so parallel
+    #pragma omp parallel for default(shared) schedule(dynamic)
+    for(size_t nt=0; nt<numThreads_; ++nt){
+      // male header
+      *popLog[nt][0] << "Patch,myID,momID,dadID\n";
+      // female header
+      *popLog[nt][1] << "Patch,myID,momID,dadID,Mate\n";
+    } // end loop over numThreads
+    
     
     // increment time to begin
     parameters::instance().increment_t_now();
@@ -304,7 +329,7 @@ void run_CKMR(const std::uint64_t& s1_,
         #endif
         
         // run today's stuff
-        patches[np]->oneDay_popDynamics(randInst[myThread], bigGov[myThread]);
+        patches[np]->oneDay_popDynamics(randInst[myThread], bigGov[myThread], popLog[myThread]);
       }
 
       // Do in-bound migration in one large loop, no extra structures
@@ -344,7 +369,13 @@ void run_CKMR(const std::uint64_t& s1_,
         output[np][stage]->close();
       } // end stage loop
     } // end patch loop
-
+    
+    #pragma omp parallel for default(shared) schedule(auto)
+    for(size_t nt=0; nt<numThreads_; ++nt){
+      popLog[nt][0]->close();
+      popLog[nt][1]->close();
+    } // end patch loop
+    
 
     ////////////////////
     // RESET SIMULATION

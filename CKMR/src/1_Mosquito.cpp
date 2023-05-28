@@ -28,7 +28,15 @@ std::string Mosquito::print_male(){
   return "," + std::to_string(age) + "," + myID + "," + momID + "," + dadID + "\n";
 }
 
+std::string Mosquito::print_male_short(){
+  return "," + myID + "," + momID + "," + dadID + "\n";
+}
+
 std::string Mosquito::print_female(){
   return "," + std::to_string(age) + "," + myID + "," + momID + "," + dadID + "," + 
     mate + "\n";
+}
+
+std::string Mosquito::print_female_short(){
+  return "," + myID + "," + momID + "," + dadID + "," + mate + "\n";
 }

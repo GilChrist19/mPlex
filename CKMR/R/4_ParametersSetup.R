@@ -181,6 +181,8 @@ basicBatchMigration <- function(batchProbs = 1e-5, sexProbs = c(0.01, 0.01),
 #' @param tPupa length of pupal stage
 #' @param beta female egg batch size of wild-type
 #' @param muAd wild-type daily adult mortality (1/muAd is average wild-type lifespan)
+#' @param maleMaxAge maximum possible age of adult male
+#' @param femaleMaxAge maximum possible age of adult female
 #' @param dayGrowthRate daily population growth rate (used to calculate equilibrium)
 #' @param AdPopEQ vector of adult population size at equilibrium
 #' @param runID begin counting runs with this set of parameters from this value
@@ -188,6 +190,7 @@ basicBatchMigration <- function(batchProbs = 1e-5, sexProbs = c(0.01, 0.01),
 #' @return List(nPatch=int, simTime=vec int, parallel=logical, moveVar=numeric,
 #' runID=int, stageTime=vec int, beta=int, dayGrowthRate=numeric, AdPopEq=int vec,
 #' alleloTypes=list, genTime=numeric, genGrowthRate=numeric, mu=vec numeric,
+#' maleMaxAge=int, femaleMaxAge=int
 #' thetaAq=vec numeric, alpha=vec numeric, Leq=vec int)
 #'
 #' @examples
@@ -204,6 +207,8 @@ NetworkParameters <- function(
   tPupa = 1L,
   beta = 32,
   muAd = 0.123,
+  maleMaxAge = 9999,
+  femaleMaxAge = 9999,
   dayGrowthRate = 1.096,
   AdPopEQ,
   runID = 1L
@@ -242,6 +247,8 @@ NetworkParameters <- function(
   muAq = calcLarvalStageMortalityRate(pars$genGrowthRate,muAd,beta,pars$stageTime[c("E","L","P")])
   pars$mu = setNames(object = c(muAq, muAq, muAq, muAd),
                      nm = c("E", "L", "P", "A"))
+  pars$maleMaxAge = maleMaxAge
+  pars$femaleMaxAge = femaleMaxAge
 
   # Survival probability for each state. Holdover from MGDrivE, useful in the equations
   pars$thetaAq = setNames(object = c(calcAquaticStageSurvivalProbability(muAq,tEgg),

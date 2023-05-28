@@ -86,7 +86,7 @@ public:
   
   
   // Population dynamics
-  void      oneDay_popDynamics(prng& myPRNG, bigBrother& myBB);
+  void      oneDay_popDynamics(prng& myPRNG, bigBrother& myBB, std::vector<std::ofstream *>& myLogFiles);
   
   // Death
   void      oneDay_eggDeathAge(prng& myPRNG);
@@ -95,18 +95,18 @@ public:
   void      oneDay_adultDeathAge(prng& myPRNG);
   
   // Maturation
-  void      oneDay_pupaMaturation(prng& myPRNG);
+  void      oneDay_pupaMaturation(prng& myPRNG, std::ofstream& mFile);
   void      oneDay_larvaMaturation();
   void      oneDay_eggMaturation();
   
   // Mating
-  void      oneDay_mating(prng& myPRNG);
+  void      oneDay_mating(prng& myPRNG, std::ofstream& fFile);
   
   // New Eggs
   virtual void  oneDay_layEggs(prng& myPRNG, bigBrother& myBB) = 0;
   
   // Releases 
-  void      oneDay_Releases();
+  void      oneDay_Releases(std::ofstream& mFile);
 
   // migration
   void      oneDay_migrationOut(prng& myPRNG);
