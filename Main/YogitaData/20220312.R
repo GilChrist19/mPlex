@@ -31,6 +31,9 @@
 #                   289 292 295 355 358 361 364 367 370 430 433 436 439 442 445
 #                   505 508 511 514 517 520
 #
+# 20231121
+#  Updating the file deletion to keep population logs.
+#
 ###############################################################################
 # Clean environment and source files
 ###############################################################################
@@ -227,7 +230,7 @@ for(i in 1:numPC){
   # Only need the final cut pops
   # May as well remove the rest
   allFiles <- list.files(path = simDir, full.names = TRUE)
-  trashFiles <- grep(pattern = 'cut', x = allFiles, fixed = TRUE, value = TRUE, invert = TRUE)
+  trashFiles <- grep(pattern = 'cut|popLog', x = allFiles, fixed = FALSE, value = TRUE, invert = TRUE)
   file.remove(trashFiles)
   
 } # end parameter sweep
