@@ -264,7 +264,7 @@ void run_CKMR(const std::uint64_t& s1_,
     #pragma omp parallel for default(shared) schedule(auto)
     for(size_t nt=0; nt<numThreads_; ++nt){
       // denote thread
-      std::string sT = std::string(2 - std::to_string(nt).length(), '0')
+      std::string sT = std::string(3 - std::to_string(nt).length(), '0')
       + std::to_string(nt) + ".csv";
       
       // initialize  male/female ofstream and open with file name

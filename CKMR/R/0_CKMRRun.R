@@ -36,6 +36,11 @@ runCKMR <- function(seed = 1, numReps = 1, numThreads = 1,
   
   # expand so c++ can find it
   outputDirectory = path.expand(outputDirectory)
+  
+  # numThreads safety check
+  if(numThreads > 999){
+    stop("Sim is setup to use less than 1000 cores. \n\tPlease stop being silly.")
+  }
 
   ##########
   # Seed Setup
