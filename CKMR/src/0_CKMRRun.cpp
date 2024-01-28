@@ -150,8 +150,8 @@ void run_CKMR(const std::uint64_t& s1_,
 
   // now set parameters
   parameters::instance().set_parameters(networkParameters_["nPatch"],networkParameters_["simTime"],networkParameters_["runID"],
-                                        networkParameters_["stageTime"],networkParameters_["beta"],networkParameters_["mu"],
-                                        networkParameters_["maleMaxAge"],networkParameters_["femaleMaxAge"],
+                                        networkParameters_["stageTime"],networkParameters_["beta"],networkParameters_["beta_const"],
+                                        networkParameters_["mu"],networkParameters_["maleMaxAge"],networkParameters_["femaleMaxAge"],
                                         networkParameters_["alpha"],networkParameters_["Leq"],networkParameters_["AdPopEQ"],
                                         mHold, fHold, migrationBatch_["batchProbs"], bsHold, bmHold,
                                         sampDays_, sampCov_);

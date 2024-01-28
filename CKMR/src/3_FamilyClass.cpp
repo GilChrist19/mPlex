@@ -78,8 +78,15 @@ void Family::oneDay_layEggs(prng& myPRNG, bigBrother& myBB){
   for(auto female : adult_female){
     
     // get number of new offspring
-    index = myPRNG.get_rpois(parameters::instance().get_beta()
-                            * reference::instance().get_s(female.get_myID()));
+    //  check if deterministic or if it follows a poisson distribution
+    if(parameters::instance().get_beta_const()){
+      // constant beta, no distribution
+      index = parameters::instance().get_beta() * reference::instance().get_s(female.get_myID());
+    } else {
+      // poisson distributed beta
+      index = myPRNG.get_rpois(parameters::instance().get_beta()
+                               * reference::instance().get_s(female.get_myID()));
+    }
     
     // create new eggs
     for(size_t it=0; it<index; ++it){

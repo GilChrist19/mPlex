@@ -29,8 +29,8 @@ public:
   void                  set_parameters(/* simulation fields */
                                        const int& n_patch_, const int& sim_time_, const int& run_id_,
                                        /* biological parameters */
-                                        const iVec& stage_time_, const double& beta_, const dVec& mu_,
-                                        const int& male_max_age_, const int& female_max_age_,
+                                        const iVec& stage_time_, const double& beta_, const bool& beta_const_,
+                                        const dVec& mu_, const int& male_max_age_, const int& female_max_age_,
                                        /* patch-specific derived parameters */
                                        const dVec& alpha_, const iVec& larva_eq_, const iVec& adult_pop_eq_,
                                        // migration
@@ -58,6 +58,7 @@ public:
   int               get_stage_time(const size_t& stage){return stage_time[stage];};
   int               get_stage_sum(const size_t& stage){return stage_sum[stage];};
   double            get_beta(){return beta;};
+  bool              get_beta_const(){return beta_const;};
   double            get_mu(const size_t& stage){return mu[stage];};
   int               get_male_max_age(){return male_max_age;};
   int               get_female_max_age(){return female_max_age;};
@@ -105,6 +106,7 @@ private:
   iVec      stage_time;
   iVec      stage_sum;
   double    beta;
+  bool      beta_const;
   dVec      mu;
   int       male_max_age;
   int       female_max_age;
@@ -121,7 +123,7 @@ private:
   
   /* sampling parameters */
   arma::Cube<unsigned int>      sampDays;
-  arma::Cube<double>              sampCov;
+  arma::Cube<double>            sampCov;
   
 };
 

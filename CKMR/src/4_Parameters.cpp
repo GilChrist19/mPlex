@@ -23,8 +23,8 @@ parameters& parameters::instance(){
 void parameters::set_parameters(/* simulation fields */
                                 const int& n_patch_, const int& sim_time_,const int& run_id_,
                                 /* biological parameters */
-                                const iVec& stage_time_, const double& beta_, const dVec& mu_,
-                                const int& male_max_age_, const int& female_max_age_,
+                                const iVec& stage_time_, const double& beta_, const bool& beta_const_,
+                                const dVec& mu_, const int& male_max_age_, const int& female_max_age_,
                                 /* patch-specific derived parameters */
                                 const dVec& alpha_, const iVec& larva_eq_, const iVec& adult_pop_eq_,
                                 // migration
@@ -49,6 +49,7 @@ void parameters::set_parameters(/* simulation fields */
   stage_sum.resize(stage_time.size());
     std::partial_sum(stage_time.begin(), stage_time.end(), stage_sum.begin());
   beta = beta_;
+  beta_const = beta_const_;
   mu = mu_;
   male_max_age = male_max_age_;
   female_max_age = female_max_age_;

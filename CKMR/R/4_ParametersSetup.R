@@ -180,6 +180,7 @@ basicBatchMigration <- function(batchProbs = 1e-5, sexProbs = c(0.01, 0.01),
 #' @param tLarva length of larval instar stage
 #' @param tPupa length of pupal stage
 #' @param beta female egg batch size of wild-type
+#' @param beta_const use a constant beta or draw from poisson?
 #' @param muAd wild-type daily adult mortality (1/muAd is average wild-type lifespan)
 #' @param maleMaxAge maximum possible age of adult male
 #' @param femaleMaxAge maximum possible age of adult female
@@ -206,6 +207,7 @@ NetworkParameters <- function(
   tLarva = 14L,
   tPupa = 1L,
   beta = 32,
+  beta_const = FALSE,
   muAd = 0.123,
   maleMaxAge = 9999,
   femaleMaxAge = 9999,
@@ -228,6 +230,7 @@ NetworkParameters <- function(
   pars$stageTime = setNames(object = c(tEgg, tLarva, tPupa, tAdult),
                        nm = c("E","L","P","A"))
   pars$beta = beta
+  pars$beta_const = beta_const
 
   # initial parameters
   pars$dayGrowthRate = dayGrowthRate
