@@ -12,6 +12,7 @@ NetworkParameters(
   tLarva = 14L,
   tPupa = 1L,
   beta = 32,
+  beta_const = FALSE,
   muAd = 0.123,
   maleMaxAge = 9999,
   femaleMaxAge = 9999,
@@ -36,6 +37,8 @@ values lead to high variance and large values lead to low variance.}
 \item{tPupa}{length of pupal stage}
 
 \item{beta}{female egg batch size of wild-type}
+
+\item{beta_const}{use a constant beta or draw from poisson?}
 
 \item{muAd}{wild-type daily adult mortality (1/muAd is average wild-type lifespan)}
 

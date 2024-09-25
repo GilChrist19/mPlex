@@ -582,14 +582,19 @@ void Patch::oneDay_migrationIn(const popVec& male, const popVec& female){
 ***************************************/
 void Patch::init_output(std::vector<std::ofstream *>& logFiles){
   
-  // logFile has 5 ostreams in it
-  // Eggs, Larva, Pupa, Males, Females
+  // logFile has 6 ofstreams in it
+  // Eggs, Larva, Pupa, Males, Females, poplog_counts
   
-  // write headers
+  // write headers for Eggs, Larva, Pupa, and Males
   for(size_t i : {0,1,2,3}){
     *logFiles[i] << "Time,Age,myID,momID,dadID\n";
   }
+  
+  // write header for Females
   *logFiles[4] << "Time,Age,myID,momID,dadID,Mate\n";
+  
+  // write header for poplog_counts
+  *logFiles[5] << "Time,Eggs,Larvae,Pupae,Males,Females\n";
   
   // no population to write because we sample at specific times/days
 }
@@ -632,6 +637,13 @@ void write_stage(popVec& pop, const int& patchID, const int& stage,
 void Patch::oneDay_writeOutput(std::vector<std::ofstream *>& logFiles, prng& myPRNG){
   // grab current time
   int curTime = parameters::instance().get_t_now();
+  
+  // output counts
+  //  do this first b/c we destructively sample the population below, so this 
+  //  gives the true total
+  *logFiles[5] << curTime << "," << eggs.size() << "," << larva.size() 
+               << "," << pupa.size() << "," << adult_male.size() << "," 
+               << adult_female.size() << "\n";
   
   // check eggs
   write_stage(eggs, patchID, 0, *logFiles[0], &Mosquito::print_aquatic, myPRNG, curTime);

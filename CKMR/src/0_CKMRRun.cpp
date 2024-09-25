@@ -207,14 +207,15 @@ void run_CKMR(const std::uint64_t& s1_,
   int tMax = parameters::instance().get_sim_time();
 
   // setup vectors of ofstreams
-  std::vector<std::vector<std::ofstream *> > output(numPatches, std::vector<std::ofstream *>(5));
+  unsigned int numStreams(6);
+  std::vector<std::vector<std::ofstream *> > output(numPatches, std::vector<std::ofstream *>(numStreams));
   std::vector<std::vector<std::ofstream *> > popLog(numThreads_, std::vector<std::ofstream *>(2));
   
   //Rcpp::Rcout << output.size()<< std::endl;
 
   // setup strings for file names
-  std::vector<std::string> sHoldVec(5);
-  std::string sHold;
+  std::vector<std::string> sHoldVec(numStreams);
+  std::string sHold, repHold;
 
   
   ////////////////////
@@ -230,12 +231,11 @@ void run_CKMR(const std::uint64_t& s1_,
     if(verbose_) {Rcpp::Rcout << "Initializing logging ... ";};
 
     dim = 0;
-    for(const std::string& stage : {"/E_Run_","/L_Run_","/P_Run_","/M_Run_","/F_Run_"}){
+    repHold = std::string(3 - std::to_string(rep+parameters::instance().get_run_id()).length(), '0')
+              + std::to_string(rep+parameters::instance().get_run_id());
+    for(const std::string& stage : {"/E_Run_","/L_Run_","/P_Run_","/M_Run_","/F_Run_","/popLog_Counts_"}){
       // base string name for each output
-      sHoldVec[dim] = outputDirectory_ + stage
-      + std::string(3 - std::to_string(rep+parameters::instance().get_run_id()).length(), '0')
-      + std::to_string(rep+parameters::instance().get_run_id())
-      + "_Patch_";
+      sHoldVec[dim] = outputDirectory_ + stage + repHold +  "_Patch_";
 
       // reusing dim from above, increment here
       dim++;
@@ -252,7 +252,7 @@ void run_CKMR(const std::uint64_t& s1_,
       + ".csv";
 
       // open streams
-      for(size_t stage=0; stage < 5; ++stage){
+      for(size_t stage=0; stage < numStreams; ++stage){
         // initialize ofstream and open with file name
         output[np][stage] = new std::ofstream(sHoldVec[stage] + sHold);
       } // end loop over stages
@@ -365,7 +365,7 @@ void run_CKMR(const std::uint64_t& s1_,
     // all independent, do in parallel
     #pragma omp parallel for default(shared) schedule(auto)
     for(size_t np=0; np<numPatches; ++np){
-      for(size_t stage=0; stage < 5; ++stage){
+      for(size_t stage=0; stage < numStreams; ++stage){
         output[np][stage]->close();
       } // end stage loop
     } // end patch loop

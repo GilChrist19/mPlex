@@ -235,12 +235,6 @@ NetworkParameters <- function(
   # initial parameters
   pars$dayGrowthRate = dayGrowthRate
 
-  if(length(AdPopEQ)!=nPatch){
-    stop("length of AdPopEQ vector must equal nPatch (number of patches)")
-  }
-  pars$AdPopEQ = AdPopEQ
-
-
   # derived parameters
   pars$genTime = calcAverageGenerationTime(pars$stageTime[c("E","L","P")],muAd)
   pars$genGrowthRate = calcPopulationGrowthRate(dayGrowthRate,pars$genTime)
@@ -259,7 +253,101 @@ NetworkParameters <- function(
                                 calcAquaticStageSurvivalProbability(muAq,tPupa)),
                      nm = c("E","L","P"))
 
+  
+  
+  
+  
+  
+  
   # patch-specific derived parameters
+  #  this is updated to check the adult population shape, and calculate timve-varying
+  #  larval parameters
+  
+  if(NROW(AdPopEQ)==1 && NCOL(AdPopEQ)==1){
+    # single patch, constant population
+    
+    # safety check
+    if(length(AdPopEQ) != nPatch){
+      stop("A single population size was specified by AdPopEQ, but the number of patches (nPatch) is not one.")
+    }
+    # set adult initial size
+    pars$AdPopEQ = AdPopEQ
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  } else if(NROW(AdPopEQ)!=1 && NCOL(AdPopEQ)!=1){
+    # multiple patch, time-varying population
+    
+    # safety check
+    if(NROW(AdPopEQ) != simTime){
+      stop("The number of rows in AdPopEQ is not equal to the simulation time (simTime).")
+    }
+    if(NCOL(AdPopEQ) != nPatch){
+      stop("The number of columns in AdPopEQ is not equal to the number of patches (nPatch).")
+    }
+    # set adult initial size
+    pars$AdPopEQ = AdPopEQ[1, ,drop=TRUE]
+    
+    
+    
+    
+    
+    
+    
+  } else if(NROW(AdPopEQ)!=1 || NCOL(AdPopEQ)!=1){
+    # Either multiple patch, constant population
+    #  or single patch, time-varying population
+    
+    # safety check
+    if(nPatch == simTime){
+      stop("The number of patches (nPatch) is equal to the simulation length (simTime). Therefore, it is impossible to determine the appropriate shape of AdPopEQ.
+           Please change the simulation time or provide AdPopEQ as a matrix.")
+    }
+    
+    if(length(AdPopEQ) == nPatch){
+      # multiple patch, constant population
+      
+      # set adult initial size
+      pars$AdPopEQ = AdPopEQ
+      
+      
+      
+      
+    } else if(length(AdPopEQ) == simTime){
+      # single patch, time-varying population
+      
+      # safety check
+      if(nPatch != 1){
+        stop("A single population was supplied for AdPopEQ, but the number of patches (nPatch) is not 1.")
+      }
+      
+      # set adult initial size
+      pars$AdPopEQ = AdPopEQ[1]
+    
+    
+    
+      
+    } else {
+      stop("AdPopEQ was supplied as a vector, but it is neither the length of the simulation time (simTime) nor the number of patches (nPatch).")
+    }
+    
+    
+    
+    
+    
+  }
+  
+  
+     
+  
+  
   pars$alpha = numeric(length = nPatch)
   pars$Leq = numeric(length = nPatch)
   for(i in 1:nPatch){
@@ -267,6 +355,15 @@ NetworkParameters <- function(
     pars$Leq[i] = calcLarvalPopEquilibrium(pars$alpha[i],pars$genGrowthRate)
   }
 
+  
+  
+  
+  
+  
+  
+  
+  
+  
   return(pars)
 }
 
