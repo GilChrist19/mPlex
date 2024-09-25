@@ -188,7 +188,7 @@ basicBatchMigration <- function(batchProbs = 1e-5, sexProbs = c(0.01, 0.01),
 #' @param AdPopEQ vector of adult population size at equilibrium
 #' @param runID begin counting runs with this set of parameters from this value
 #'
-#' @return List(nPatch=int, simTime=vec int, parallel=logical, moveVar=numeric,
+#' @return List(nPatch=int, simTime=vec int, beta_const=logical, moveVar=numeric,
 #' runID=int, stageTime=vec int, beta=int, dayGrowthRate=numeric, AdPopEq=int vec,
 #' alleloTypes=list, genTime=numeric, genGrowthRate=numeric, mu=vec numeric,
 #' maleMaxAge=int, femaleMaxAge=int
@@ -215,7 +215,7 @@ NetworkParameters <- function(
   AdPopEQ,
   runID = 1L
 ){
-
+  
   # make empty parameter list
   pars = list()
 
@@ -253,15 +253,18 @@ NetworkParameters <- function(
                                 calcAquaticStageSurvivalProbability(muAq,tPupa)),
                      nm = c("E","L","P"))
 
-  
-  
-  
-  
-  
-  
   # patch-specific derived parameters
   #  this is updated to check the adult population shape, and calculate timve-varying
   #  larval parameters
+  
+  # larval population vector (Leq) needs to remain a vector
+  #  it is used to setup the initial population, as well as reserve space for 
+  #  better performance (read, less memory re-allocation) later.
+  # However, b/c it's used to setup the initial population, this has to match 
+  #  T=0.
+  # Maybe, if performance becomes a real issue, we can output extra 
+  #  vectors for max adult population size and max larval population size, for 
+  #  reserving memory.
   
   if(NROW(AdPopEQ)==1 && NCOL(AdPopEQ)==1){
     # single patch, constant population
@@ -271,17 +274,16 @@ NetworkParameters <- function(
       stop("A single population size was specified by AdPopEQ, but the number of patches (nPatch) is not one.")
     }
     # set adult initial size
-    pars$AdPopEQ = AdPopEQ
+    pars$AdPopEQ <- as.integer(AdPopEQ)
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    # calc patch-specific derived parameters
+    pars$alpha <- matrix(data = calcDensityDependentDeathRate2(fertility=beta,
+                                                               thetaAq=pars$thetaAq,
+                                                               timeAq=pars$stageTime["L"],
+                                                               adultPopSizeEquilibrium=AdPopEQ,
+                                                               populationGrowthRate=pars$genGrowthRate),
+                         nrow = simTime, ncol = nPatch)
+
   } else if(NROW(AdPopEQ)!=1 && NCOL(AdPopEQ)!=1){
     # multiple patch, time-varying population
     
@@ -293,14 +295,15 @@ NetworkParameters <- function(
       stop("The number of columns in AdPopEQ is not equal to the number of patches (nPatch).")
     }
     # set adult initial size
-    pars$AdPopEQ = AdPopEQ[1, ,drop=TRUE]
+    pars$AdPopEQ <- as.integer(AdPopEQ[1, ,drop=TRUE])
     
-    
-    
-    
-    
-    
-    
+    # calc patch-specific derived parameters
+    pars$alpha <- calcDensityDependentDeathRate(fertility=beta,
+                                                thetaAq=pars$thetaAq,
+                                                timeAq=pars$stageTime["L"],
+                                                adultPopSizeEquilibrium=AdPopEQ,
+                                                populationGrowthRate=pars$genGrowthRate)
+
   } else if(NROW(AdPopEQ)!=1 || NCOL(AdPopEQ)!=1){
     # Either multiple patch, constant population
     #  or single patch, time-varying population
@@ -314,12 +317,20 @@ NetworkParameters <- function(
     if(length(AdPopEQ) == nPatch){
       # multiple patch, constant population
       
+      # no safety checks for simTime
+      
       # set adult initial size
-      pars$AdPopEQ = AdPopEQ
+      #  just in case someone puts in a 1-row/col matrix, drop dimensions
+      pars$AdPopEQ <- as.integer(AdPopEQ)
       
-      
-      
-      
+      # calc patch-specific derived parameters
+      pars$alpha <- matrix(data = calcDensityDependentDeathRate2(fertility=beta,
+                                                                 thetaAq=pars$thetaAq,
+                                                                 timeAq=pars$stageTime["L"],
+                                                                 adultPopSizeEquilibrium=AdPopEQ,
+                                                                 populationGrowthRate=pars$genGrowthRate),
+                           byrow=TRUE, nrow=simTime, ncol=nPatch)
+
     } else if(length(AdPopEQ) == simTime){
       # single patch, time-varying population
       
@@ -329,39 +340,23 @@ NetworkParameters <- function(
       }
       
       # set adult initial size
-      pars$AdPopEQ = AdPopEQ[1]
-    
-    
-    
+      pars$AdPopEQ <- as.integer(AdPopEQ[1])
       
+      # calc patch-specific derived parameters
+      pars$alpha <- matrix(data = calcDensityDependentDeathRate2(fertility=beta,
+                                                                 thetaAq=pars$thetaAq,
+                                                                 timeAq=pars$stageTime["L"],
+                                                                 adultPopSizeEquilibrium=AdPopEQ,
+                                                                 populationGrowthRate=pars$genGrowthRate),
+                           nrow=simTime, ncol=nPatch)
+    
     } else {
       stop("AdPopEQ was supplied as a vector, but it is neither the length of the simulation time (simTime) nor the number of patches (nPatch).")
-    }
-    
-    
-    
-    
-    
-  }
-  
-  
-     
-  
-  
-  pars$alpha = numeric(length = nPatch)
-  pars$Leq = numeric(length = nPatch)
-  for(i in 1:nPatch){
-    pars$alpha[i] = calcDensityDependentDeathRate(beta,pars$thetaAq,pars$stageTime["L"],AdPopEQ[i],pars$genGrowthRate)
-    pars$Leq[i] = calcLarvalPopEquilibrium(pars$alpha[i],pars$genGrowthRate)
-  }
-
-  
-  
-  
-  
-  
-  
-  
+    } # end vector AdPopEQ check
+  } # end full AdPopEQ check
+  # set larval equilibrium size - see note above
+  pars$Leq <- calcLarvalPopEquilibrium(alpha=pars$alpha[1, ,drop=TRUE],
+                                       Rm=pars$genGrowthRate)
   
   
   return(pars)
@@ -431,15 +426,18 @@ calcAquaticStageSurvivalProbability <- function(mortalityRate, stageDuration){
 #' @param fertility number of eggs per oviposition for wild-type females, \eqn{\beta_{k}}
 #' @param thetaAq vector of density-independent survival probabilities of aquatic stages, \eqn{\theta_{e}, \theta_{l}}
 #' @param timeAq vector of lengths of aquatic stages, \eqn{T_{e}, T_{l}, T_{p}}
-#' @param adultPopSizeEquilibrium adult population size at equilbrium, \eqn{Ad_{eq}}
+#' @param adultPopSizeEquilibrium adult population size at equilibrium, \eqn{Ad_{eq}}
 #' @param populationGrowthRate population growth in absence of density-dependent mortality \eqn{R_{m}}
 #'
 #' @export
 calcDensityDependentDeathRate <- function(fertility, thetaAq, timeAq, adultPopSizeEquilibrium, populationGrowthRate){
-    prodA = (fertility*thetaAq[["E"]]*adultPopSizeEquilibrium) / (2*(populationGrowthRate-1))
-    prodB_numerator = 1-(thetaAq[["L"]] / populationGrowthRate)
-    prodB_denominator = 1-((thetaAq[["L"]]/populationGrowthRate)^(1/timeAq))
-    return(prodA*(prodB_numerator/prodB_denominator))
+  # original, tweaked for better matrix performance
+  # no mathematical change
+  #prodA = (fertility*thetaAq[["E"]]*adultPopSizeEquilibrium) / (2*(populationGrowthRate-1))
+  prodA = adultPopSizeEquilibrium * ((fertility*thetaAq[["E"]]) / (2*(populationGrowthRate-1)))
+  prodB_numerator = 1-(thetaAq[["L"]] / populationGrowthRate)
+  prodB_denominator = 1-((thetaAq[["L"]]/populationGrowthRate)^(1/timeAq))
+  return(prodA*(prodB_numerator/prodB_denominator))
 }
 
 #' Calculate Equilibrium Larval Population
