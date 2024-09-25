@@ -53,7 +53,7 @@ values lead to high variance and large values lead to low variance.}
 \item{runID}{begin counting runs with this set of parameters from this value}
 }
 \value{
-List(nPatch=int, simTime=vec int, parallel=logical, moveVar=numeric,
+List(nPatch=int, simTime=vec int, beta_const=logical, moveVar=numeric,
 runID=int, stageTime=vec int, beta=int, dayGrowthRate=numeric, AdPopEq=int vec,
 alleloTypes=list, genTime=numeric, genGrowthRate=numeric, mu=vec numeric,
 maleMaxAge=int, femaleMaxAge=int

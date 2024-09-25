@@ -47,8 +47,17 @@ set.seed(10)
 # migration <- migration/rowSums(migration)
 migration <- diag(nrow = numPatch)
 
-
+# old
 patchPops = rep(1000L,numPatch)
+
+# fully specified
+patchPops = matrix(data = c(rbinom(n=simTime, size = 2000, prob = 0.5),
+                            rbinom(n=simTime, size = 4000, prob = 0.5),
+                            rbinom(n=simTime, size = 6000, prob = 0.5),
+                            rbinom(n=simTime, size = 8000, prob = 0.5)),
+                   nrow = simTime, ncol = numPatch)
+
+
 
 #setup alleles to initiate patches
 reference <- list('eta'=numeric(0), 'phi'=numeric(0), 'omega'=numeric(0),
@@ -146,7 +155,7 @@ migrationBatch <- basicBatchMigration(numPatches = numPatch)
 
 startTime <- Sys.time()
 runCKMR(seed = 10,
-         numThreads = 2,
+         numThreads = 1,
          networkParameters = netPar,
          reproductionReference = reference,
          patchReleases = patchReleases,
@@ -155,7 +164,7 @@ runCKMR(seed = 10,
          migrationBatch = migrationBatch,
          samplingParameters = samplingScheme,
          outputDirectory = simDir,
-         verbose = TRUE)
+         verbose = FALSE)
 
 endTime <- Sys.time()
 print(difftime(time1 = endTime, time2 = startTime))

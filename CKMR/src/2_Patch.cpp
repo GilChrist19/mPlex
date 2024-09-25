@@ -608,9 +608,9 @@ void write_stage(popVec& pop, const int& patchID, const int& stage,
                  prng& myPRNG, const int& cTime){
 
   
-  if( parameters::instance().get_sampDay(cTime, stage, patchID) ){
+  if( parameters::instance().get_sampDay(stage, patchID) ){
     // set bernoulli
-    myPRNG.set_cBern(parameters::instance().get_sampCov(cTime, stage, patchID));
+    myPRNG.set_cBern(parameters::instance().get_sampCov(stage, patchID));
     // loop over everyone in current stage
     for(auto it = pop.rbegin(); it != pop.rend(); ++it){
       // if we sample it, it then must die

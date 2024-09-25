@@ -26,7 +26,7 @@ void parameters::set_parameters(/* simulation fields */
                                 const iVec& stage_time_, const double& beta_, const bool& beta_const_,
                                 const dVec& mu_, const int& male_max_age_, const int& female_max_age_,
                                 /* patch-specific derived parameters */
-                                const dVec& alpha_, const iVec& larva_eq_, const iVec& adult_pop_eq_,
+                                const arma::Mat<double>& alpha_, const iVec& larva_eq_, const iVec& adult_pop_eq_,
                                 // migration
                                 const dMat& male_migration_, const dMat& female_migration_,
                                 // batch parameters
