@@ -277,7 +277,7 @@ NetworkParameters <- function(
     pars$AdPopEQ <- as.integer(AdPopEQ)
     
     # calc patch-specific derived parameters
-    pars$alpha <- matrix(data = calcDensityDependentDeathRate2(fertility=beta,
+    pars$alpha <- matrix(data = calcDensityDependentDeathRate(fertility=beta,
                                                                thetaAq=pars$thetaAq,
                                                                timeAq=pars$stageTime["L"],
                                                                adultPopSizeEquilibrium=AdPopEQ,
@@ -324,7 +324,7 @@ NetworkParameters <- function(
       pars$AdPopEQ <- as.integer(AdPopEQ)
       
       # calc patch-specific derived parameters
-      pars$alpha <- matrix(data = calcDensityDependentDeathRate2(fertility=beta,
+      pars$alpha <- matrix(data = calcDensityDependentDeathRate(fertility=beta,
                                                                  thetaAq=pars$thetaAq,
                                                                  timeAq=pars$stageTime["L"],
                                                                  adultPopSizeEquilibrium=AdPopEQ,
@@ -343,7 +343,7 @@ NetworkParameters <- function(
       pars$AdPopEQ <- as.integer(AdPopEQ[1])
       
       # calc patch-specific derived parameters
-      pars$alpha <- matrix(data = calcDensityDependentDeathRate2(fertility=beta,
+      pars$alpha <- matrix(data = calcDensityDependentDeathRate(fertility=beta,
                                                                  thetaAq=pars$thetaAq,
                                                                  timeAq=pars$stageTime["L"],
                                                                  adultPopSizeEquilibrium=AdPopEQ,
