@@ -126,6 +126,10 @@ void Patch::oneDay_popDynamics(prng& myPRNG, bigBrother& myBB,
   // Releases
   oneDay_Releases(*myLogFiles[0]);
   
+  // Flush Buffer for Safety
+  (*myLogFiles[0]).flush();
+  (*myLogFiles[1]).flush();
+  
   // Migration out
   oneDay_migrationOut(myPRNG);
 
@@ -624,7 +628,11 @@ void write_stage(popVec& pop, const int& patchID, const int& stage,
         *it = std::move(pop.back());
         pop.pop_back();
       } // end if statement
-    } // end loop over critters    
+    } // end loop over critters
+    
+    // Flush Buffer for Safety
+    logFile.flush();
+    
   } // end if statement
 } // end function
 
@@ -643,7 +651,7 @@ void Patch::oneDay_writeOutput(std::vector<std::ofstream *>& logFiles, prng& myP
   //  gives the true total
   *logFiles[5] << curTime << "," << eggs.size() << "," << larva.size() 
                << "," << pupa.size() << "," << adult_male.size() << "," 
-               << adult_female.size() << "\n";
+               << adult_female.size() << std::endl;
   
   // check eggs
   write_stage(eggs, patchID, 0, *logFiles[0], &Mosquito::print_aquatic, myPRNG, curTime);

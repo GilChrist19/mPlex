@@ -40,8 +40,8 @@ for(i in c(simDir, aggDir)){dir.create(path = i)}
 ###############################################################################
 # Setup Parameters for Network
 ###############################################################################
-simTime <- 100
-numPatch <- 4
+simTime <- 1000
+numPatch <- 1
 set.seed(10)
 # migration <- matrix(data = runif(numPatch*numPatch), nrow = numPatch, ncol = numPatch)
 # migration <- migration/rowSums(migration)
@@ -56,6 +56,10 @@ patchPops = matrix(data = c(rbinom(n=simTime, size = 2000, prob = 0.5),
                             rbinom(n=simTime, size = 6000, prob = 0.5),
                             rbinom(n=simTime, size = 8000, prob = 0.5)),
                    nrow = simTime, ncol = numPatch)
+
+patchPops <- matrix(data=c(rep.int(x=500, times=500),
+                           rep.int(x=1000, times=500)),
+                    nrow = simTime, ncol = numPatch)
 
 
 
@@ -120,12 +124,15 @@ patchReleases[[1]]$maleReleases <- c(holdRel, holdRel2)
 #  Boolean array: simTime x lifeStages x numPatches
 #  lifeStages is always 5 - egg, larva, pupa, male, female
 # Basic, every patch has every life stage (5 of them) sampled every day
-sampDay <- array(data = TRUE, dim = c(simTime, 5, numPatch))
+sampDay <- array(data = FALSE, dim = c(simTime, 5, numPatch))
 
-# test, don't sample any life stage in patch 1
-#  patch 2 gets forgotten half way through
-sampDay[ , ,1] <- FALSE
-sampDay[50:simTime, ,2] <- FALSE
+sampDay[ ,1:3, ] <- FALSE
+
+
+## test, don't sample any life stage in patch 1
+##  patch 2 gets forgotten half way through
+#sampDay[ , ,1] <- FALSE
+#sampDay[50:simTime, ,2] <- FALSE
 
 # sampling coverage
 #  double array: simTime x lifeStages x numPatches
@@ -147,7 +154,7 @@ netPar = NetworkParameters(nPatch = numPatch,
                            runID = 1L,
                            dayGrowthRate = 1.1,
                            beta = 32L, tEgg = 1, tLarva = 10, tPupa = 1,
-                           maleMaxAge = 30, femaleMaxAge = 20)
+                           maleMaxAge = 60, femaleMaxAge = 60)
 
 migrationBatch <- basicBatchMigration(numPatches = numPatch)
 
