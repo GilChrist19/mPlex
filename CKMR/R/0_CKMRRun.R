@@ -41,6 +41,11 @@ runCKMR <- function(seed = 1, numReps = 1, numThreads = 1,
   if(numThreads > 999){
     stop("Sim is setup to use less than 1000 cores. \n\tPlease stop being silly.")
   }
+  
+  # numReps safety check
+  if(numReps > 9999){
+    stop("Sim is setup to perform fewer than 10,000 reps. \n\tPlease stop being silly.")
+  }
 
   ##########
   # Seed Setup

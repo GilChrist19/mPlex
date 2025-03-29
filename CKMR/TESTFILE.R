@@ -41,7 +41,7 @@ for(i in c(simDir, aggDir)){dir.create(path = i)}
 # Setup Parameters for Network
 ###############################################################################
 simTime <- 1000
-numPatch <- 1
+numPatch <- 3
 set.seed(10)
 # migration <- matrix(data = runif(numPatch*numPatch), nrow = numPatch, ncol = numPatch)
 # migration <- migration/rowSums(migration)

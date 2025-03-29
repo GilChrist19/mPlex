@@ -231,7 +231,7 @@ void run_CKMR(const std::uint64_t& s1_,
     if(verbose_) {Rcpp::Rcout << "Initializing logging ... ";};
 
     dim = 0;
-    repHold = std::string(3 - std::to_string(rep+parameters::instance().get_run_id()).length(), '0')
+    repHold = std::string(4 - std::to_string(rep+parameters::instance().get_run_id()).length(), '0')
               + std::to_string(rep+parameters::instance().get_run_id());
     for(const std::string& stage : {"/E_Run_","/L_Run_","/P_Run_","/M_Run_","/F_Run_","/popLog_Counts_"}){
       // base string name for each output
@@ -247,7 +247,7 @@ void run_CKMR(const std::uint64_t& s1_,
     #pragma omp parallel for default(shared) private(sHold) schedule(auto)
     for(size_t np=0; np<numPatches; ++np){
       // denote patch
-      sHold = std::string(3 - std::to_string(np).length(), '0')
+      sHold = std::string(6 - std::to_string(np).length(), '0')
       + std::to_string(np)
       + ".csv";
 

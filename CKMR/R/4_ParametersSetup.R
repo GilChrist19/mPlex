@@ -220,6 +220,10 @@ NetworkParameters <- function(
   pars = list()
 
   # fill list
+  # nPatch safety check
+  if(nPatch > 999999){
+    stop("Sim is setup to perform fewer than 1,000,000 patches. \n\tPlease stop being silly.")
+  }
   pars$nPatch = nPatch
   pars$simTime = simTime
   pars$moveVar = moveVar
